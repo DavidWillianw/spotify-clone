@@ -1,9 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     
-    // MUDANÇA AQUI: Carrega AMBOS os arquivos JSON ao mesmo tempo
     async function loadAllData() {
         try {
-            // Promise.all carrega múltiplos arquivos em paralelo
             const [albumsResponse, artistsResponse] = await Promise.all([
                 fetch('data.json'),
                 fetch('artists.json')
@@ -22,12 +20,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
         } catch (error) {
             console.error("Falha ao carregar os dados:", error);
-            // Retorna objetos vazios para não quebrar o site
             return { albums: [], artists: [] };
         }
     }
 
-    // Espera os dados carregarem antes de continuar
     const { albums: albumsData, artists: artistsList } = await loadAllData();
     
     let db = { artists: [], albums: [], songs: [] };
@@ -37,24 +33,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     let activeArtist = null;
     let viewHistory = ['mainView'];
 
-    // MUDANÇA AQUI: Nova lógica para inicializar os dados
     const initializeData = () => {
-        // Cria um mapa para acesso rápido aos artistas pelo nome
         const artistsMap = new Map();
         
-        // 1. Começa com a lista completa de artists.json
+        // MUDANÇA AQUI: Usa a 'imageUrl' do artists.json como imagem principal
         artistsList.forEach(artist => {
             artistsMap.set(artist.name, {
                 ...artist,
-                img: 'https://i.imgur.com/AD3MbBi.png', // Imagem placeholder padrão
+                // Usa a imagem do JSON ou um placeholder se não houver
+                img: artist.imageUrl || 'https://i.imgur.com/AD3MbBi.png', 
                 albums: [],
                 singles: []
             });
         });
 
-        // 2. Processa os álbuns e associa aos artistas existentes
         albumsData.forEach(album => {
-            // Adiciona as faixas do álbum ao banco de dados global de músicas
             if (album.tracks && album.tracks.length > 0) {
                 album.totalDurationSeconds = album.tracks.reduce((total, track) => {
                     const parts = track.duration.split(':');
@@ -74,16 +67,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // Se o artista do álbum existe no nosso mapa, adiciona o álbum a ele
             if (artistsMap.has(album.artist)) {
                 const artistEntry = artistsMap.get(album.artist);
                 artistEntry.albums.push(album);
-                // Atualiza a imagem do artista com a imagem do seu álbum mais recente (ou qualquer um)
-                artistEntry.img = album.imageUrl; 
+                // MUDANÇA AQUI: Não sobrescreve mais a imagem principal do artista
+                // A linha 'artistEntry.img = album.imageUrl;' foi removida.
             }
         });
 
-        // Transforma o mapa de volta em um array e define os singles
         db.artists = Array.from(artistsMap.values()).map(artist => {
             const singles = [...artist.albums].sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 4) + 2);
             return { ...artist, singles };
@@ -91,6 +82,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         db.albums = albumsData;
     };
+
+    // O resto do seu script.js continua aqui, sem mais alterações...
+    // ... (copie e cole o restante do seu script.js aqui)
 
     const switchView = (viewId) => {
         allViews.forEach(v => v.classList.toggle('hidden', v.id !== viewId));
@@ -237,7 +231,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // --- INICIALIZAÇÃO ---
     initializeData();
     searchInput.addEventListener('input', handleSearch);
     allNavs.forEach(nav => nav.addEventListener('click', switchTab));
