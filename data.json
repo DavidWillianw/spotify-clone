@@ -1,0 +1,104 @@
+{
+  "albums": [
+    {
+      "id": "sinners-to-repentance",
+      "title": "Sinners To Repentance",
+      "artist": "Crystal",
+      "metascore": 98,
+      "imageUrl": "https://i.imgur.com/PaunpXh.jpeg",
+      "tracks": [
+        { "title": "First Confession", "duration": "03:45" },
+        { "title": "Stained Glass Heart", "duration": "04:12" },
+        { "title": "Midnight Sermon", "duration": "03:58" },
+        { "title": "Redemption's Echo", "duration": "05:02" },
+        { "title": "Fallen Angel", "duration": "04:30" },
+        { "title": "The Last Prayer", "duration": "03:22" },
+        { "title": "Sanctuary in Silence", "duration": "04:55" },
+        { "title": "Broken Halos", "duration": "03:15" },
+        { "title": "Final Absolution", "duration": "05:10" }
+      ]
+    },
+    {
+      "id": "purple-moon",
+      "title": "Purple Moon",
+      "artist": "Luna Raven",
+      "metascore": 96,
+      "imageUrl": "https://i.imgur.com/gK9x3u2.jpeg",
+      "tracks": [
+        { "title": "Violet Twilight", "duration": "03:33" },
+        { "title": "Lunar Spells", "duration": "04:01" },
+        { "title": "Shadow Dance", "duration": "03:50" },
+        { "title": "Whispers of the Orb", "duration": "04:44" },
+        { "title": "Nightshade", "duration": "03:21" },
+        { "title": "Cosmic Tide", "duration": "05:15" }
+      ]
+    },
+    {
+      "id": "matangi",
+      "title": "मातङ्गी Matangi",
+      "artist": "Kayla Weng",
+      "metascore": 95,
+      "imageUrl": "https://i.imgur.com/sC5f3g1.jpeg",
+      "tracks": [
+        { "title": "Mantra Flow", "duration": "02:59" },
+        { "title": "Ganges Groove", "duration": "03:40" },
+        { "title": "Third Eye Vision", "duration": "04:11" },
+        { "title": "Lotus Bloom", "duration": "03:55" },
+        { "title": "Sitar Dream", "duration": "05:05" }
+      ]
+    },
+    {
+      "id": "someone-like-you",
+      "title": "Someone Like You",
+      "artist": "Taylor Adkins",
+      "metascore": 94,
+      "imageUrl": "https://tmjbrazil.com.br/wp-content/uploads/2025/10/Taylor-Swift-celebra-venda-do-album-The-Life-of-a-Showgirl.jpg",
+      "tracks": [
+        { "title": "Faded Photograph", "duration": "04:02" },
+        { "title": "Empty Swing Set", "duration": "03:51" },
+        { "title": "The Way We Were", "duration": "04:20" },
+        { "title": "Echo in the Hallway", "duration": "03:30" },
+        { "title": "Last Goodbye", "duration": "04:55" }
+      ]
+    },
+    {
+      "id": "the-essence-of-robyn",
+      "title": "The Essence Of Robyn",
+      "artist": "Miss Fenty",
+      "metascore": 94,
+      "imageUrl": "https://i.imgur.com/lZ2x2eR.jpeg",
+      "tracks": [
+        { "title": "Show Me Love", "duration": "03:49" },
+        { "title": "Dancing On My Own", "duration": "04:38" },
+        { "title": "Handle Me", "duration": "03:47" },
+        { "title": "Be Mine!", "duration": "03:27" }
+      ]
+    },
+    {
+      "id": "ao-vivo-em-caucaia",
+      "title": "Ao Vivo em Caucaia",
+      "artist": "Nikita",
+      "metascore": 93,
+      "imageUrl": "https://i.imgur.com/O6E3b2f.jpeg",
+      "tracks": [
+        { "title": "Abertura (Live)", "duration": "01:50" },
+        { "title": "Festa na Praia (Live)", "duration": "03:55" },
+        { "title": "Amor de Verão (Live)", "duration": "04:10" },
+        { "title": "Sol e Mar (Live)", "duration": "03:30" }
+      ]
+    },
+    {
+      "id": "lady-killer",
+      "title": "Lady Killer",
+      "artist": "Crystal",
+      "metascore": 85,
+      "imageUrl": "https://crystalonline.carrd.co/assets/images/image03.jpg?v=3811acd1",
+      "tracks": [
+        { "title": "Red Lipstick", "duration": "03:10" },
+        { "title": "High Heels", "duration": "02:55" },
+        { "title": "Midnight Chase", "duration": "03:45" },
+        { "title": "No Witnesses", "duration": "04:05" }
+      ]
+    }
+  ]
+}
