@@ -62,8 +62,7 @@ if (inspirationsValue) {
                 name: fields.Name || 'Nome Indisponível',
 
                 // 3. Mapeia a coluna "URL da Imagem"
-                imageUrl: fields['URL da Imagem'] || 'https://i.imgur.com/AD3MbBi.png',
-
+imageUrl: (fields['URL da Imagem'] && fields['URL da Imagem'][0]?.url) || 'https://i.imgur.com/AD3MbBi.png',
                 // 4. Mapeia a coluna "Inspirações (Off)" para o array 'off'
                 off: inspirationsArray
             };
