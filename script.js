@@ -1,57 +1,77 @@
 document.addEventListener('DOMContentLoaded', async () => {
 
-    async function loadAllData() {
+async function loadAllData() {
+    // --- PREENCHA SUAS INFORMAÇÕES DO AIRTABLE AQUI ---
+    const AIRTABLE_BASE_ID = 'appSeuBaseIDaqui';      // COLE SEU BASE ID AQUI
+    const AIRTABLE_TABLE_NAME = 'Artists';               // COLOQUE O NOME EXATO DA SUA TABELA AQUI
+    const AIRTABLE_API_KEY = 'patSuaChaveDeAPIaqui';  // COLE SUA CHAVE DE API (NÃO COMPARTILHE!)
+    // ----------------------------------------------------
 
-        const AIRTABLE_BASE_ID = 'appG5NOoblUmtSMVI';      
-        const AIRTABLE_TABLE_NAME = 'Artists Table';               
-        const AIRTABLE_API_KEY = 'patjYNfQAI355hp41.da971a7eb98edb2d5d8b3cd33aa7c714e28b0763f7f15e547545380b436438aa';  
-        // ----------------------------------------------------
+    const airtableUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
 
-        const airtableUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
+    try {
+        const [albumsResponse, airtableArtistsResponse] = await Promise.all([
+            fetch('data.json'),
+            fetch(airtableUrl, {
+                headers: {
+                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`
+                }
+            })
+        ]);
 
-        try {
-            // Faz as duas buscas ao mesmo tempo: uma para o seu data.json local, outra para a API do Airtable
-            const [albumsResponse, airtableArtistsResponse] = await Promise.all([
-                fetch('data.json'),
-                fetch(airtableUrl, {
-                    headers: {
-                        'Authorization': `Bearer ${AIRTABLE_API_KEY}`
-                    }
-                })
-            ]);
+        if (!albumsResponse.ok || !airtableArtistsResponse.ok) {
+            throw new Error('Falha ao carregar dados do JSON local ou do Airtable.');
+        }
 
-            if (!albumsResponse.ok || !airtableArtistsResponse.ok) {
-                throw new Error('Falha ao carregar dados do JSON local ou do Airtable.');
-            }
+        const albumsData = await albumsResponse.json();
+        const airtableData = await airtableArtistsResponse.json();
 
-            const albumsData = await albumsResponse.json();
-            const airtableData = await airtableArtistsResponse.json();
+        // --- INÍCIO DA MUDANÇA ---
+        // Esta parte foi ajustada para corresponder à sua tabela da imagem.
+        const formattedArtists = airtableData.records.map(record => {
+            const fields = record.fields;
 
-            // Formata a resposta do Airtable para o formato que seu código já entende
-            const formattedArtists = airtableData.records.map(record => {
-                // Verificação para garantir que os campos existem antes de tentar acessá-los
-                const fields = record.fields;
-                const photoArray = fields.Photo;
-
-                return {
-                    id: fields.ID || record.id, // Usa o campo ID, ou o ID do registro como fallback
-                    name: fields.Name || 'Nome Indisponível', // Usa o campo Name, que é o primário
-                    imageUrl: (photoArray && photoArray.length > 0) ? photoArray[0].url : 'https://i.imgur.com/AD3MbBi.png', // Pega a URL da primeira imagem no anexo
-                    off: fields['Related Artists'] || [] // Pega a lista de artistas relacionados
-                };
-            });
-
-            return {
-                albums: albumsData.albums,
-                artists: formattedArtists // Retorna a lista de artistas já formatada
+            // Função para criar um "slug" (id amigável) a partir do nome do artista
+            const createIdFromName = (name) => {
+                if (!name) return record.id; // Se não houver nome, usa o ID padrão do Airtable
+                return name.toString().toLowerCase()
+                    .replace(/\s+/g, '-')           // Substitui espaços por -
+                    .replace(/[^\w\-]+/g, '')       // Remove caracteres inválidos
+                    .replace(/\-\-+/g, '-')         // Substitui múltiplos - por um só
+                    .replace(/^-+/, '')             // Corta - do início
+                    .replace(/-+$/, '');            // Corta - do fim
             };
 
-        } catch (error) {
-            console.error("Falha ao carregar e processar os dados:", error);
-            // Retorna arrays vazios para que o resto do app não quebre
-            return { albums: [], artists: [] };
-        }
+            // Pega a string de inspirações e transforma num array
+            const inspirationsString = fields['Inspirações (Off)'];
+            const inspirationsArray = inspirationsString ? inspirationsString.split(',').map(item => item.trim()) : [];
+
+            return {
+                // 1. O 'id' é criado dinamicamente a partir do nome
+                id: createIdFromName(fields.Name),
+
+                // 2. Mapeia a coluna "Name"
+                name: fields.Name || 'Nome Indisponível',
+
+                // 3. Mapeia a coluna "URL da Imagem"
+                imageUrl: fields['URL da Imagem'] || 'https://i.imgur.com/AD3MbBi.png',
+
+                // 4. Mapeia a coluna "Inspirações (Off)" para o array 'off'
+                off: inspirationsArray
+            };
+        });
+        // --- FIM DA MUDANÇA ---
+
+        return {
+            albums: albumsData.albums,
+            artists: formattedArtists // Retorna a lista de artistas já formatada
+        };
+
+    } catch (error) {
+        console.error("Falha ao carregar e processar os dados:", error);
+        return { albums: [], artists: [] };
     }
+}
 
     const { albums: albumsData, artists: artistsList } = await loadAllData();
 
