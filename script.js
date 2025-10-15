@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadAllData() {
-    // --- PREENCHA SUAS INFORMAÇÕES DO AIRTABLE AQUI ---
-    const AIRTABLE_BASE_ID = 'appSeuBaseIDaqui';      // COLE SEU BASE ID AQUI
-    const AIRTABLE_TABLE_NAME = 'Artists';               // COLOQUE O NOME EXATO DA SUA TABELA AQUI
-    const AIRTABLE_API_KEY = 'patSuaChaveDeAPIaqui';  // COLE SUA CHAVE DE API (NÃO COMPARTILHE!)
+
+    const AIRTABLE_BASE_ID = 'appG5NOoblUmtSMVI';      
+    const AIRTABLE_TABLE_NAME = 'Artists Table';               
+    const AIRTABLE_API_KEY = 'patjYNfQAI355hp41'; 
     // ----------------------------------------------------
 
     const airtableUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
