@@ -1,84 +1,97 @@
 document.addEventListener('DOMContentLoaded', async () => {
 
-async function loadAllData() {
+    async function loadAllData() {
+        // --- SUAS INFORMAÇÕES DO AIRTABLE ---
+        const AIRTABLE_BASE_ID = 'appG5NOoblUmtSMVI';
+        const AIRTABLE_API_KEY = 'pat5T28kjmJ4t6TQG.69bf34509e687fff6a3f76bd52e64518d6c92be8b1ee0a53bcc9f50fedcb5c70';
+        // ------------------------------------
 
-    const AIRTABLE_BASE_ID = 'appG5NOoblUmtSMVI';      
-    const AIRTABLE_TABLE_NAME = 'Artists';               
-    const AIRTABLE_API_KEY = 'pat5T28kjmJ4t6TQG.69bf34509e687fff6a3f76bd52e64518d6c92be8b1ee0a53bcc9f50fedcb5c70'; 
-    // ----------------------------------------------------
+        // URLs para cada tabela da sua base
+        const artistsURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Artists?filterByFormula=%7BArtista%20Principal%7D%3D1`;
+        const albumsURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Álbuns`;
+        const musicasURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Músicas`;
 
-const filterFormula = "filterByFormula=" + encodeURIComponent("{Artista Principal}=1");
-const airtableUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}?${filterFormula}`;
-    try {
-        const [albumsResponse, airtableArtistsResponse] = await Promise.all([
-            fetch('data.json'),
-            fetch(airtableUrl, {
-                headers: {
-                    'Authorization': `Bearer ${AIRTABLE_API_KEY}`
-                }
-            })
-        ]);
-
-        if (!albumsResponse.ok || !airtableArtistsResponse.ok) {
-            throw new Error('Falha ao carregar dados do JSON local ou do Airtable.');
-        }
-
-        const albumsData = await albumsResponse.json();
-        const airtableData = await airtableArtistsResponse.json();
-
-        // --- INÍCIO DA MUDANÇA ---
-        // Esta parte foi ajustada para corresponder à sua tabela da imagem.
-        const formattedArtists = airtableData.records.map(record => {
-            const fields = record.fields;
-
-            // Função para criar um "slug" (id amigável) a partir do nome do artista
-            const createIdFromName = (name) => {
-                if (!name) return record.id; // Se não houver nome, usa o ID padrão do Airtable
-                return name.toString().toLowerCase()
-                    .replace(/\s+/g, '-')           // Substitui espaços por -
-                    .replace(/[^\w\-]+/g, '')       // Remove caracteres inválidos
-                    .replace(/\-\-+/g, '-')         // Substitui múltiplos - por um só
-                    .replace(/^-+/, '')             // Corta - do início
-                    .replace(/-+$/, '');            // Corta - do fim
-            };
-
-let inspirationsArray = []; 
-const inspirationsValue = fields['Inspirações (Off)']; 
-
-if (inspirationsValue) {
-    if (Array.isArray(inspirationsValue)) {
-        inspirationsArray = inspirationsValue;
-    }
-    else if (typeof inspirationsValue === 'string') {
-        inspirationsArray = inspirationsValue.split(',').map(item => item.trim());
-    }
-}
-
-            return {
-                // 1. O 'id' é criado dinamicamente a partir do nome
-                id: createIdFromName(fields.Name),
-
-                // 2. Mapeia a coluna "Name"
-                name: fields.Name || 'Nome Indisponível',
-
-                // 3. Mapeia a coluna "URL da Imagem"
-imageUrl: (fields['URL da Imagem'] && fields['URL da Imagem'][0]?.url) || 'https://i.imgur.com/AD3MbBi.png',
-                // 4. Mapeia a coluna "Inspirações (Off)" para o array 'off'
-                off: inspirationsArray
-            };
-        });
-        // --- FIM DA MUDANÇA ---
-
-        return {
-            albums: albumsData.albums,
-            artists: formattedArtists // Retorna a lista de artistas já formatada
+        const fetchOptions = {
+            headers: {
+                'Authorization': `Bearer ${AIRTABLE_API_KEY}`
+            }
         };
 
-    } catch (error) {
-        console.error("Falha ao carregar e processar os dados:", error);
-        return { albums: [], artists: [] };
+        try {
+            // Busca os dados das três tabelas ao mesmo tempo
+            const [artistsResponse, albumsResponse, musicasResponse] = await Promise.all([
+                fetch(artistsURL, fetchOptions),
+                fetch(albumsURL, fetchOptions),
+                fetch(musicasURL, fetchOptions)
+            ]);
+
+            if (!artistsResponse.ok || !albumsResponse.ok || !musicasResponse.ok) {
+                throw new Error('Falha ao carregar dados de uma das tabelas do Airtable.');
+            }
+
+            const artistsData = await artistsResponse.json();
+            const albumsData = await albumsResponse.json();
+            const musicasData = await musicasResponse.json();
+
+            // --- RECONSTRUÇÃO DOS DADOS ---
+
+            // 1. Mapeia todas as músicas pelo seu ID para fácil acesso
+            const musicasMap = new Map();
+            musicasData.records.forEach(record => {
+                musicasMap.set(record.id, {
+                    title: record.fields['Nome da Faixa'],
+                    // Converte a duração de segundos (Airtable) para o formato mm:ss
+                    duration: record.fields['Duração'] ? new Date(record.fields['Duração'] * 1000).toISOString().substr(14, 5) : "00:00"
+                });
+            });
+
+            // 2. Mapeia todos os artistas pelo seu ID para fácil acesso
+            const artistsMapById = new Map();
+            artistsData.records.forEach(record => {
+                artistsMapById.set(record.id, record.fields.Name);
+            });
+
+            // 3. Formata os álbuns, inserindo as músicas dentro deles
+            const formattedAlbums = albumsData.records.map(record => {
+                const albumFields = record.fields;
+                const trackIds = albumFields['Músicas'] || [];
+                
+                const tracks = trackIds.map(trackId => musicasMap.get(trackId)).filter(Boolean);
+
+                const artistId = (albumFields['Artista'] && albumFields['Artista'][0]) || null;
+                const artistName = artistId ? artistsMapById.get(artistId) : "Artista Desconhecido";
+
+                return {
+                    id: record.id,
+                    title: albumFields['Nome do Álbum'],
+                    artist: artistName,
+                    metascore: albumFields['Metascore'] || 0,
+                    imageUrl: (albumFields['Capa do Álbum'] && albumFields['Capa do Álbum'][0]?.url) || 'https://i.imgur.com/AD3MbBi.png',
+                    releaseDate: albumFields['Data de Lançamento'] || '2024-01-01', // Pega a nova data
+                    tracks: tracks
+                };
+            });
+
+            // 4. Formata os artistas
+            const formattedArtists = artistsData.records.map(record => {
+                return {
+                    id: record.id,
+                    name: record.fields.Name || 'Nome Indisponível',
+                    imageUrl: (record.fields['URL da Imagem'] && record.fields['URL da Imagem'][0]?.url) || 'https://i.imgur.com/AD3MbBi.png',
+                    off: record.fields['Inspirações (Off)'] || []
+                };
+            });
+            
+            return {
+                albums: formattedAlbums,
+                artists: formattedArtists
+            };
+
+        } catch (error) {
+            console.error("Falha ao carregar e processar os dados do Airtable:", error);
+            return { albums: [], artists: [] };
+        }
     }
-}
 
     const { albums: albumsData, artists: artistsList } = await loadAllData();
 
@@ -160,7 +173,7 @@ imageUrl: (fields['URL da Imagem'] && fields['URL da Imagem'][0]?.url) || 'https
 
     const renderChart = (type) => {
         const container = document.getElementById(`${type}ChartsList`);
-        if (!container) return; // Adicionado para segurança
+        if (!container) return;
         const items = type === 'music' ? [...db.songs].sort((a, b) => b.streams - a.streams).slice(0, 50) : [...db.albums].sort((a, b) => (b.metascore || 0) - (a.metascore || 0)).slice(0, 50);
         container.innerHTML = items.map((item, index) => {
             const trends = ['up', 'down', 'new', 'same']; const trend = trends[Math.floor(Math.random() * trends.length)];
