@@ -4,7 +4,7 @@ async function loadAllData() {
 
     const AIRTABLE_BASE_ID = 'appG5NOoblUmtSMVI';      
     const AIRTABLE_TABLE_NAME = 'Artists Table';               
-    const AIRTABLE_API_KEY = 'patjYNfQAI355hp41'; 
+    const AIRTABLE_API_KEY = 'pathyiBxioWhXUQkr.c5ba2a53c43c56303a441291318e86753bf8cbefd56a8ce4b1361b81ea65d646'; 
     // ----------------------------------------------------
 
     const airtableUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
