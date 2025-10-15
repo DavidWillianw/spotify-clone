@@ -42,9 +42,17 @@ async function loadAllData() {
                     .replace(/-+$/, '');            // Corta - do fim
             };
 
-            // Pega a string de inspirações e transforma num array
-            const inspirationsString = fields['Inspirações (Off)'];
-            const inspirationsArray = inspirationsString ? inspirationsString.split(',').map(item => item.trim()) : [];
+let inspirationsArray = []; 
+const inspirationsValue = fields['Inspirações (Off)']; 
+
+if (inspirationsValue) {
+    if (Array.isArray(inspirationsValue)) {
+        inspirationsArray = inspirationsValue;
+    }
+    else if (typeof inspirationsValue === 'string') {
+        inspirationsArray = inspirationsValue.split(',').map(item => item.trim());
+    }
+}
 
             return {
                 // 1. O 'id' é criado dinamicamente a partir do nome
