@@ -14,11 +14,17 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
 
+
+
     <link rel="stylesheet" href="style.css" />
   </head>
-  <body>
+  <body>    
+    <div class="search-bar">
     <div id="mainView" class="page-view">
       <header class="topbar">
+        <div id="login-container">
+        <button id="btn-login">Conectar com o Spotify</button>
+    </div>
         <div class="search-bar">
           <i class="fas fa-search"></i>
           <input
@@ -28,6 +34,7 @@
           />
         </div>
         <nav class="nav-tabs">
+          
           <button class="nav-tab active" data-tab="homeSection">Início</button>
           <button class="nav-tab" data-tab="musicChartsSection">
             Top Músicas
@@ -157,6 +164,8 @@
         <i class="fas fa-users"></i><span>Artistas</span>
       </button>
     </nav>
+
+      <script src="open.spotify.com/playlist"></script>
 
     <script src="script.js"></script>
   </body>
