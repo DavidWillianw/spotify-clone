@@ -1,16 +1,16 @@
 document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadAllData() {
-        // --- SUAS INFORMAÇÕES DO AIRTABLE ---
+
         const AIRTABLE_BASE_ID = 'appG5NOoblUmtSMVI';
         const AIRTABLE_API_KEY = 'pat5T28kjmJ4t6TQG.69bf34509e687fff6a3f76bd52e64518d6c92be8b1ee0a53bcc9f50fedcb5c70';
         // ------------------------------------
 
-        // URLs para cada tabela da sua base
+        // URLs para cada tabela da base
         const artistsURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Artists?filterByFormula=%7BArtista%20Principal%7D%3D1`;
         const albumsURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Álbuns`;
         const musicasURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Músicas`;
-        const singlesURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Singles%20e%20EPs`; // <-- NOVO
+        const singlesURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Singles%20e%20EPs`;
 
         const fetchOptions = {
             headers: {
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 fetch(artistsURL, fetchOptions),
                 fetch(albumsURL, fetchOptions),
                 fetch(musicasURL, fetchOptions),
-                fetch(singlesURL, fetchOptions) // <-- NOVO
+                fetch(singlesURL, fetchOptions) 
             ]);
 
             if (!artistsResponse.ok || !albumsResponse.ok || !musicasResponse.ok || !singlesResponse.ok) {
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const artistsData = await artistsResponse.json();
             const albumsData = await albumsResponse.json();
             const musicasData = await musicasResponse.json();
-            const singlesData = await singlesResponse.json(); // <-- NOVO
+            const singlesData = await singlesResponse.json(); // <-- NOVOS DADOS
 
             // --- RECONSTRUÇÃO DOS DADOS ---
 
@@ -50,7 +50,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             artistsData.records.forEach(record => {
                 artistsMapById.set(record.id, record.fields.Name);
             });
-
+            
+            // Função genérica para formatar tanto álbuns quanto singles
             const formatReleases = (records) => {
                 return records.map(record => {
                     const fields = record.fields;
@@ -72,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
             
             const formattedAlbums = formatReleases(albumsData.records);
-            const formattedSingles = formatReleases(singlesData.records); // <-- NOVO
+            const formattedSingles = formatReleases(singlesData.records); // <-- PROCESSA OS SINGLES
 
             const formattedArtists = artistsData.records.map(record => {
                 return {
@@ -86,7 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return {
                 albums: formattedAlbums,
                 artists: formattedArtists,
-                singles: formattedSingles // <-- NOVO
+                singles: formattedSingles // <-- RETORNA OS SINGLES
             };
 
         } catch (error) {
@@ -95,6 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Pega os singles junto com os outros dados
     const { albums: albumsData, artists: artistsList, singles: singlesData } = await loadAllData();
 
     let db = { artists: [], albums: [], songs: [] };
@@ -115,12 +117,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 singles: []
             });
         });
-
+        
+        // Função genérica para processar e conectar os lançamentos aos artistas
         const processReleases = (releaseData, type) => {
             releaseData.forEach(item => {
                 if (item.tracks && item.tracks.length > 0) {
                     item.totalDurationSeconds = item.tracks.reduce((total, track) => {
-                        const parts = track.duration.split(':');
+                        const parts = (track.duration || "0:0").split(':');
                         const seconds = (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10);
                         return total + seconds;
                     }, 0);
@@ -139,18 +142,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (artistsMap.has(item.artist)) {
                     const artistEntry = artistsMap.get(item.artist);
-                    artistEntry[type].push(item);
+                    // Adiciona o item na lista correta (álbuns ou singles)
+                    if (artistEntry[type]) {
+                        artistEntry[type].push(item);
+                    }
                 }
             });
         };
 
         processReleases(albumsData, 'albums');
-        processReleases(singlesData, 'singles'); // <-- NOVO
+        processReleases(singlesData, 'singles'); // <-- PROCESSA OS SINGLES E CONECTA AOS ARTISTAS
 
         db.artists = Array.from(artistsMap.values());
-        db.albums = [...albumsData, ...singlesData]; // Junta álbuns e singles para a busca
+        // Junta álbuns e singles na lista de 'álbuns' do db para que a busca e os detalhes funcionem
+        db.albums = [...albumsData, ...singlesData]; 
     };
 
+    // NENHUMA ALTERAÇÃO NECESSÁRIA DAQUI PARA BAIXO.
+    // O restante do seu código original continua igual.
+    // ...
+    // (Copie e cole todo o resto do seu script.js aqui, da função switchView até o final)
     const switchView = (viewId) => {
         allViews.forEach(v => v.classList.toggle('hidden', v.id !== viewId));
         if (viewId !== viewHistory[viewHistory.length - 1]) { viewHistory.push(viewId); }
