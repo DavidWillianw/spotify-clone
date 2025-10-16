@@ -21,29 +21,32 @@
   <body>    
     <div class="search-bar">
     <div id="mainView" class="page-view">
-      <header class="topbar">
-        <div class="search-bar">
-          <i class="fas fa-search"></i>
-          <input
+<header class="topbar">
+    <div id="login-container" style="padding: 10px; text-align: center;">
+        <button id="btn-login" style="padding: 10px 20px; border-radius: 25px; border: none; background-color: #1DB954; color: white; font-weight: bold; cursor: pointer; font-size: 14px;">
+            Conectar com o Spotify
+        </button>
+    </div>
+
+    <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input
             type="text"
             id="searchInput"
             placeholder="Artistas, álbuns ou músicas"
-          />
-        </div>
-        <nav class="nav-tabs">
-          
-          <button class="nav-tab active" data-tab="homeSection">Início</button>
-          <button class="nav-tab" data-tab="musicChartsSection">
+        />
+    </div>
+    <nav class="nav-tabs">
+        <button class="nav-tab active" data-tab="homeSection">Início</button>
+        <button class="nav-tab" data-tab="musicChartsSection">
             Top Músicas
-          </button>
-          <button class="nav-tab" data-tab="albumChartsSection">
+        </button>
+        <button class="nav-tab" data-tab="albumChartsSection">
             Top Álbuns
-          </button>
-          <button class="nav-tab" data-tab="artistsSection">Artistas</button>
-                  <button class="nav-tab">Conectar com o Spotify</button>
-
-        </nav>
-      </header>
+        </button>
+        <button class="nav-tab" data-tab="artistsSection">Artistas</button>
+    </nav>
+</header>
 
       <main class="main-container">
         <section id="homeSection" class="content-section active">
