@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const artistsData = await artistsResponse.json();
             const albumsData = await albumsResponse.json();
             const musicasData = await musicasResponse.json();
-            const singlesData = await singlesResponse.json(); // <-- NOVOS DADOS
+            const singlesData = await singlesResponse.json();
 
             // --- RECONSTRUÇÃO DOS DADOS ---
 
@@ -42,7 +42,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             musicasData.records.forEach(record => {
                 musicasMap.set(record.id, {
                     title: record.fields['Nome da Faixa'],
-                    duration: record.fields['Duração'] ? new Date(record.fields['Duração'] * 1000).toISOString().substr(14, 5) : "00:00"
+                    duration: record.fields['Duração'] ? new Date(record.fields['Duração'] * 1000).toISOString().substr(14, 5) : "00:00",
+                    trackNumber: record.fields['Nº da Faixa'] || 0 // <-- MUDANÇA 1: Adiciona o número da faixa aos dados da música
                 });
             });
 
@@ -51,7 +52,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 artistsMapById.set(record.id, record.fields.Name);
             });
             
-            // Função genérica para formatar tanto álbuns quanto singles
             const formatReleases = (records) => {
                 return records.map(record => {
                     const fields = record.fields;
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
             
             const formattedAlbums = formatReleases(albumsData.records);
-            const formattedSingles = formatReleases(singlesData.records); // <-- PROCESSA OS SINGLES
+            const formattedSingles = formatReleases(singlesData.records);
 
             const formattedArtists = artistsData.records.map(record => {
                 return {
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return {
                 albums: formattedAlbums,
                 artists: formattedArtists,
-                singles: formattedSingles // <-- RETORNA OS SINGLES
+                singles: formattedSingles
             };
 
         } catch (error) {
@@ -96,7 +96,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Pega os singles junto com os outros dados
     const { albums: albumsData, artists: artistsList, singles: singlesData } = await loadAllData();
 
     let db = { artists: [], albums: [], songs: [] };
@@ -118,7 +117,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         });
         
-        // Função genérica para processar e conectar os lançamentos aos artistas
         const processReleases = (releaseData, type) => {
             releaseData.forEach(item => {
                 if (item.tracks && item.tracks.length > 0) {
@@ -142,7 +140,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (artistsMap.has(item.artist)) {
                     const artistEntry = artistsMap.get(item.artist);
-                    // Adiciona o item na lista correta (álbuns ou singles)
                     if (artistEntry[type]) {
                         artistEntry[type].push(item);
                     }
@@ -151,17 +148,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         processReleases(albumsData, 'albums');
-        processReleases(singlesData, 'singles'); // <-- PROCESSA OS SINGLES E CONECTA AOS ARTISTAS
+        processReleases(singlesData, 'singles');
 
         db.artists = Array.from(artistsMap.values());
-        // Junta álbuns e singles na lista de 'álbuns' do db para que a busca e os detalhes funcionem
         db.albums = [...albumsData, ...singlesData]; 
     };
 
-    // NENHUMA ALTERAÇÃO NECESSÁRIA DAQUI PARA BAIXO.
-    // O restante do seu código original continua igual.
-    // ...
-    // (Copie e cole todo o resto do seu script.js aqui, da função switchView até o final)
     const switchView = (viewId) => {
         allViews.forEach(v => v.classList.toggle('hidden', v.id !== viewId));
         if (viewId !== viewHistory[viewHistory.length - 1]) { viewHistory.push(viewId); }
@@ -211,7 +203,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const renderHorizontalList = (containerId, items) => { document.getElementById(containerId).innerHTML = items.map(item => `<div class="album-card" data-album-id="${item.id}"><img src="${item.imageUrl}" alt="${item.title}"><div class="album-title">${item.title}</div><div class="album-year">${new Date(item.releaseDate || '2024-01-01').getFullYear()}</div></div>`).join(''); };
         renderHorizontalList('albumsList', artist.albums);
-        renderHorizontalList('singlesList', artist.singles); // Agora usa os dados reais!
+        renderHorizontalList('singlesList', artist.singles);
         renderArtistsGrid('recommendedGrid', db.artists.filter(a => a.name !== artistName).sort(() => 0.5 - Math.random()).slice(0, 4));
         switchView('artistDetail');
     };
@@ -225,7 +217,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('albumDetailTitle').textContent = album.title;
         const totalMinutes = Math.floor((album.totalDurationSeconds || 0) / 60);
         document.getElementById('albumDetailInfo').innerHTML = `<strong class="clickable-artist" data-artist-name="${album.artist}">${album.artist}</strong> • ${new Date(album.releaseDate || '2024-01-01').getFullYear()} • ${(album.tracks || []).length} músicas, ${totalMinutes} min`;
-        document.getElementById('albumTracklist').innerHTML = (album.tracks || []).map((track, index) => `<div class="track-row"><div>${index + 1}</div><div class="track-title">${track.title}</div><div class="track-duration">${track.duration}</div></div>`).join('');
+        
+        // <-- MUDANÇA 2: Ordena as faixas ANTES de criar o HTML
+        const sortedTracks = [...(album.tracks || [])].sort((a, b) => (a.trackNumber || 0) - (b.trackNumber || 0));
+        
+        document.getElementById('albumTracklist').innerHTML = sortedTracks.map(track => 
+            `<div class="track-row">
+                <div>${track.trackNumber}</div>
+                <div class="track-title">${track.title}</div>
+                <div class="track-duration">${track.duration}</div>
+            </div>`
+        ).join('');
+        
         switchView('albumDetail');
     };
 
