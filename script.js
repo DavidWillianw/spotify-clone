@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const SPOTIFY_CLIENT_ID = '4c1a5e5e8deb42c19d9b1b948717ea28'; 
     
-    const REDIRECT_URI = 'https://davidwillianw.github.io/spotify-clone/';
+    const REDIRECT_URI = 'https://davidwillianw.github.io/spotify-clone/index.html';
 
     const AIRTABLE_BASE_ID = 'appG5NOoblUmtSMVI';
     const AIRTABLE_API_KEY = 'pat5T28kjmJ4t6TQG.69bf34509e687fff6a3f76bd52e64518d6c92be8b1ee0a53bcc9f50fedcb5c70';
