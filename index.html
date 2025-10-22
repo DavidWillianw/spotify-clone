@@ -38,7 +38,6 @@
           </button>
           <button class="nav-tab" data-tab="artistsSection">Artistas</button>
           <button class="nav-tab" data-tab="studioSection">Meu Estúdio</button>
-          <button class="nav-tab" data-tab="participacoesSection">Participações</button>
         </nav>
       </header>
 
@@ -71,12 +70,6 @@
           <div id="noResults" class="no-results hidden">
             <i class="fas fa-compact-disc"></i>
             <p>Não encontramos nada.</p>
-          </div>
-        </section>
-        <section id="participacoesSection" class="content-section">
-          <h2 class="section-title">Músicas com Participações</h2>
-          <div id="participacoesList" class="chart-list">
-             <p>Carregando participações...</p>
           </div>
         </section>
       </main>
@@ -155,7 +148,7 @@
           <h2 class="section-title">Meu Estúdio</h2>
 
           <div class="studio-login-wrapper">
-             <div id="loginPrompt">
+            <div id="loginPrompt">
               <label for="playerSelect">Quem é você?</label>
               <select id="playerSelect">
                 <option value="">Carregando jogadores...</option>
@@ -194,6 +187,10 @@
                 <label for="singleCoverUrl">URL da Capa</label>
                 <input type="url" id="singleCoverUrl" placeholder="https://i.imgur.com/..." required />
               </div>
+              <div class="studio-form-group">
+                <label for="singleReleaseDate">Data de Lançamento</label>
+                <input type="date" id="singleReleaseDate" required />
+              </div>
               <hr class="form-divider" />
               <h4>Informações da Faixa</h4>
               <div class="studio-form-group">
@@ -205,10 +202,10 @@
                 <input type="text" id="trackDuration" placeholder="Ex: 3:45" pattern="\d{1,2}:\d{2}" required />
               </div>
               <div class="feat-section">
-                  <label>Participações (Feat.)</label>
-                  <div class="feat-list" id="singleFeatList">
-                      </div>
-                  <button type="button" class="small-btn add-feat-btn" data-target="single"><i class="fas fa-plus"></i> Adicionar Feat</button>
+                <label>Participações (Feat.)</label>
+                <div class="feat-list" id="singleFeatList">
+                </div>
+                <button type="button" class="small-btn add-feat-btn" data-target="single"><i class="fas fa-plus"></i> Adicionar Feat</button>
               </div>
               <button type="submit" class="submit-btn" id="submitNewSingle"> Lançar Single </button>
             </form>
@@ -229,10 +226,14 @@
                 <label for="albumCoverUrl">URL da Capa</label>
                 <input type="url" id="albumCoverUrl" placeholder="https://i.imgur.com/..." required />
               </div>
+               <div class="studio-form-group">
+                <label for="albumReleaseDate">Data de Lançamento</label>
+                <input type="date" id="albumReleaseDate" required />
+              </div>
               <hr class="form-divider" />
               <h4> Tracklist <span class="track-helper">(Arraste <i class="fas fa-bars"></i> para reordenar)</span></h4>
               <div id="albumTracklistEditor" class="track-list-editor">
-                </div>
+              </div>
               <button type="button" class="small-btn" id="addTrackButton"><i class="fas fa-plus"></i> Adicionar Faixa</button>
               <hr class="form-divider" />
               <button type="submit" class="submit-btn" id="submitNewAlbum"> Lançar Álbum / EP </button>
@@ -242,27 +243,27 @@
       </main>
     </div>
 
-     <div id="featModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>Adicionar Participação</h3>
-            <div class="studio-form-group">
-                <label for="featArtistSelect">Selecionar Artista</label>
-                <select id="featArtistSelect">
-                    <option value="">Carregando...</option>
-                    </select>
-            </div>
-             <div class="studio-form-group">
-                <label for="featTypeSelect">Tipo de Colaboração</label>
-                <select id="featTypeSelect">
-                    <option value="Feat.">Feat. (Participação Curta)</option>
-                    <option value="Dueto/Grupo">Dueto / Grupo (&)</option>
-                    </select>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="submit-btn" id="confirmFeatBtn">Adicionar</button>
-                <button type="button" class="cancel-btn" id="cancelFeatBtn">Cancelar</button>
-            </div>
+    <div id="featModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3>Adicionar Participação</h3>
+        <div class="studio-form-group">
+          <label for="featArtistSelect">Selecionar Artista</label>
+          <select id="featArtistSelect">
+            <option value="">Carregando...</option>
+          </select>
         </div>
+        <div class="studio-form-group">
+          <label for="featTypeSelect">Tipo de Colaboração</label>
+          <select id="featTypeSelect">
+            <option value="Feat.">Feat. (Participação Curta)</option>
+            <option value="Dueto/Grupo">Dueto / Grupo (&)</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="submit-btn" id="confirmFeatBtn">Adicionar</button>
+          <button type="button" class="cancel-btn" id="cancelFeatBtn">Cancelar</button>
+        </div>
+      </div>
     </div>
 
 
@@ -281,9 +282,6 @@
       </button>
       <button class="bottom-nav-item" data-tab="studioSection">
         <i class="fas fa-microphone-alt"></i><span>Estúdio</span>
-      </button>
-       <button class="bottom-nav-item" data-tab="participacoesSection">
-        <i class="fas fa-handshake"></i><span>Feats</span>
       </button>
     </nav>
     <script src="script.js"></script>
