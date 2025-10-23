@@ -22,43 +22,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- FUNÇÃO PARA INICIALIZAR ELEMENTOS DO DOM ---
     function initializeDOMElements() {
         console.log("Initializing DOM elements...");
-        allViews = document.querySelectorAll('.page-view');
-        searchInput = document.getElementById('searchInput');
-        studioView = document.getElementById('studioView');
-        loginPrompt = document.getElementById('loginPrompt');
-        loggedInInfo = document.getElementById('loggedInInfo');
-        playerSelect = document.getElementById('playerSelect');
-        loginButton = document.getElementById('loginButton');
-        logoutButton = document.getElementById('logoutButton');
-        studioLaunchWrapper = document.getElementById('studioLaunchWrapper');
-        studioTabs = document.querySelectorAll('.studio-tab-btn');
-        studioForms = document.querySelectorAll('.studio-form-content');
-        newSingleForm = document.getElementById('newSingleForm');
-        singleArtistSelect = document.getElementById('singleArtistSelect');
-        singleReleaseDateInput = document.getElementById('singleReleaseDate');
-        newAlbumForm = document.getElementById('newAlbumForm');
-        albumArtistSelect = document.getElementById('albumArtistSelect');
-        albumReleaseDateInput = document.getElementById('albumReleaseDate');
-        addTrackButton = document.getElementById('addTrackButton');
-        albumTracklistEditor = document.getElementById('albumTracklistEditor');
-        featModal = document.getElementById('featModal');
-        featArtistSelect = document.getElementById('featArtistSelect');
-        featTypeSelect = document.getElementById('featTypeSelect');
-        confirmFeatBtn = document.getElementById('confirmFeatBtn');
-        cancelFeatBtn = document.getElementById('cancelFeatBtn');
+        try { // Adiciona try...catch para pegar erros aqui
+            allViews = document.querySelectorAll('.page-view');
+            searchInput = document.getElementById('searchInput');
+            studioView = document.getElementById('studioView');
+            loginPrompt = document.getElementById('loginPrompt');
+            loggedInInfo = document.getElementById('loggedInInfo');
+            playerSelect = document.getElementById('playerSelect');
+            loginButton = document.getElementById('loginButton');
+            logoutButton = document.getElementById('logoutButton');
+            studioLaunchWrapper = document.getElementById('studioLaunchWrapper');
+            studioTabs = document.querySelectorAll('.studio-tab-btn');
+            studioForms = document.querySelectorAll('.studio-form-content');
+            newSingleForm = document.getElementById('newSingleForm');
+            singleArtistSelect = document.getElementById('singleArtistSelect');
+            singleReleaseDateInput = document.getElementById('singleReleaseDate');
+            newAlbumForm = document.getElementById('newAlbumForm');
+            albumArtistSelect = document.getElementById('albumArtistSelect');
+            albumReleaseDateInput = document.getElementById('albumReleaseDate');
+            addTrackButton = document.getElementById('addTrackButton');
+            albumTracklistEditor = document.getElementById('albumTracklistEditor');
+            featModal = document.getElementById('featModal');
+            featArtistSelect = document.getElementById('featArtistSelect');
+            featTypeSelect = document.getElementById('featTypeSelect');
+            confirmFeatBtn = document.getElementById('confirmFeatBtn');
+            cancelFeatBtn = document.getElementById('cancelFeatBtn');
 
-        if (!studioView || !loginPrompt || !playerSelect || !newSingleForm || !newAlbumForm || !featModal || !allViews || allViews.length === 0 || !singleReleaseDateInput || !albumReleaseDateInput) {
-            console.error("ERRO CRÍTICO: Elementos essenciais do HTML não foram encontrados! Verifique IDs: studioView, loginPrompt, playerSelect, newSingleForm, newAlbumForm, featModal, .page-view, singleReleaseDate, albumReleaseDate");
-            document.body.innerHTML = '<div style="color: red; padding: 20px; text-align: center;"><h1>Erro de Interface</h1><p>Elementos essenciais da página não foram encontrados. Verifique o HTML e os IDs.</p></div>';
+            // Verifica elementos essenciais
+            const essentialElements = [
+                allViews, searchInput, studioView, loginPrompt, loggedInInfo, playerSelect,
+                loginButton, logoutButton, studioLaunchWrapper, studioTabs, studioForms,
+                newSingleForm, singleArtistSelect, singleReleaseDateInput, newAlbumForm,
+                albumArtistSelect, albumReleaseDateInput, addTrackButton, albumTracklistEditor,
+                featModal, featArtistSelect, featTypeSelect, confirmFeatBtn, cancelFeatBtn
+            ];
+
+            if (essentialElements.some(el => !el) || (allViews && allViews.length === 0)) {
+                 console.error("ERRO CRÍTICO: Elementos essenciais do HTML não foram encontrados!");
+                 // Tenta mostrar erro sem quebrar tudo
+                 const errorDiv = document.createElement('div');
+                 errorDiv.style.color = 'red';
+                 errorDiv.style.padding = '20px';
+                 errorDiv.style.textAlign = 'center';
+                 errorDiv.innerHTML = '<h1>Erro de Interface</h1><p>Elementos essenciais da página não foram encontrados. Verifique o HTML e os IDs no console.</p>';
+                 document.body.prepend(errorDiv); // Adiciona no início do body
+                 return false;
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            singleReleaseDateInput.value = today;
+            albumReleaseDateInput.value = today;
+
+            console.log("DOM elements initialized.");
+            return true;
+        } catch (error) {
+            console.error("Erro durante initializeDOMElements:", error);
+            document.body.innerHTML = `<div style="color: red; padding: 20px;"><h1>Erro Fatal na Inicialização do DOM</h1><p>${error.message}</p><p>Verifique o console.</p></div>`;
             return false;
         }
-
-        const today = new Date().toISOString().split('T')[0];
-        singleReleaseDateInput.value = today;
-        albumReleaseDateInput.value = today;
-
-        console.log("DOM elements initialized.");
-        return true;
     }
 
 
@@ -67,31 +88,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchAllAirtablePages(baseUrl, fetchOptions) {
         let allRecords = [];
         let offset = null;
+        console.log(`Fetching all pages for: ${baseUrl.split('?')[0]}...`); // Log a tabela
 
         do {
             const separator = baseUrl.includes('?') ? '&' : '?';
             const fetchUrl = offset ? `${baseUrl}${separator}offset=${offset}` : baseUrl;
 
-            const response = await fetch(fetchUrl, fetchOptions);
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`Falha ao carregar ${fetchUrl}: ${response.status} - ${errorText}`);
-                throw new Error(`Airtable fetch failed for ${baseUrl}`);
-            }
+            try { // Adiciona try...catch por chamada
+                const response = await fetch(fetchUrl, fetchOptions);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`Falha ao carregar ${fetchUrl}: ${response.status} - ${errorText}`);
+                    // Decide se quer parar tudo ou tentar continuar (aqui paramos)
+                    throw new Error(`Airtable fetch failed for ${baseUrl} (status ${response.status})`);
+                }
 
-            const data = await response.json();
-            if (data.records) {
-                allRecords.push(...data.records);
+                const data = await response.json();
+                if (data.records) {
+                    allRecords.push(...data.records);
+                    console.log(`  -> Fetched ${data.records.length} records... Total: ${allRecords.length}`);
+                }
+                offset = data.offset;
+            } catch (fetchError) {
+                 console.error(`Erro na chamada fetch para ${fetchUrl}:`, fetchError);
+                 throw fetchError; // Re-lança o erro para parar o Promise.all
             }
-            offset = data.offset;
 
         } while (offset);
 
+        console.log(`Finished fetching for ${baseUrl.split('?')[0]}. Total records: ${allRecords.length}`);
         return { records: allRecords };
     }
 
 
     async function loadAllData() {
+        // ========================================================
+        // === VERIFIQUE OS NOMES DESTES CAMPOS LINK NO AIRTABLE ===
+        // ========================================================
+        const albumLinkFieldNameInMusicas = 'Álbuns'; // <<< VERIFIQUE 'Álbuns' na tabela Músicas
+        const singleLinkFieldNameInMusicas = 'Singles e EPs'; // <<< VERIFIQUE 'Singles e EPs' na tabela Músicas
+        // ========================================================
+
         const artistsURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Artists?filterByFormula=%7BArtista%20Principal%7D%3D1`;
         const albumsURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Álbuns`;
         const musicasURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Músicas`;
@@ -109,41 +146,49 @@ document.addEventListener('DOMContentLoaded', async () => {
                 fetchAllAirtablePages(playersURL, fetchOptions)
             ]);
 
-            if (!artistsData || !albumsData || !musicasData || !singlesData || !playersData) {
-                 throw new Error('Falha ao carregar dados Airtable (paginação).');
+            // Verificação básica se os dados retornaram
+             if (!artistsData || !albumsData || !musicasData || !singlesData || !playersData) {
+                 throw new Error('Falha crítica ao carregar um ou mais conjuntos de dados do Airtable.');
             }
+
 
             // --- RECONSTRUÇÃO ---
             const musicasMap = new Map();
             (musicasData.records || []).forEach(record => {
-                const artistIdsFromServer = record.fields['Artista'] || [];
+                const fields = record.fields;
+                const artistIdsFromServer = fields['Artista'] || [];
                 const artistIds = Array.isArray(artistIdsFromServer) ? artistIdsFromServer : [artistIdsFromServer];
-                const parentAlbumId = record.fields['Álbuns'] ? record.fields['Álbuns'][0] : null;
-                const parentSingleId = record.fields['Singles e EPs'] ? record.fields['Singles e EPs'][0] : null;
+                // Usa os nomes definidos no início da função
+                const parentAlbumId = fields[albumLinkFieldNameInMusicas] ? fields[albumLinkFieldNameInMusicas][0] : null;
+                const parentSingleId = fields[singleLinkFieldNameInMusicas] ? fields[singleLinkFieldNameInMusicas][0] : null;
                 const parentReleaseId = parentAlbumId || parentSingleId || null;
 
                 musicasMap.set(record.id, {
                     id: record.id,
-                    title: record.fields['Nome da Faixa'] || 'Faixa Sem Título',
-                    duration: record.fields['Duração'] ? new Date(record.fields['Duração'] * 1000).toISOString().substr(14, 5) : "00:00",
-                    trackNumber: record.fields['Nº da Faixa'] || 0,
-                    durationSeconds: record.fields['Duração'] || 0,
+                    title: fields['Nome da Faixa'] || 'Faixa Sem Título',
+                    duration: fields['Duração'] ? new Date(fields['Duração'] * 1000).toISOString().substr(14, 5) : "00:00",
+                    trackNumber: fields['Nº da Faixa'] || 0,
+                    durationSeconds: fields['Duração'] || 0,
                     artistIds: artistIds,
-                    collabType: record.fields['Tipo de Colaboração'],
+                    collabType: fields['Tipo de Colaboração'],
                     albumId: parentReleaseId,
-                    // Carrega os novos campos
-                    streams: record.fields['Streams'] || 0, // Assume 0 se não existir
-                    isMainTrack: record.fields['É Faixa Principal?'] || false // Assume false se não existir/desmarcado
+                    streams: fields['Streams'] || 0,
+                    isMainTrack: fields['É Faixa Principal?'] || false
                 });
             });
 
 
             const artistsMapById = new Map();
             const artistsList = (artistsData.records || []).map(record => {
+                const fields = record.fields;
                 const artist = {
-                    id: record.id, name: record.fields.Name || 'Nome Indisponível',
-                    imageUrl: (record.fields['URL da Imagem'] && record.fields['URL da Imagem'][0]?.url) || 'https://i.imgur.com/AD3MbBi.png',
-                    off: record.fields['Inspirações (Off)'] || [], RPGPoints: record.fields.RPGPoints || 0, LastActive: record.fields.LastActive || null
+                    id: record.id, name: fields.Name || 'Nome Indisponível',
+                    imageUrl: (fields['URL da Imagem'] && fields['URL da Imagem'][0]?.url) || 'https://i.imgur.com/AD3MbBi.png',
+                    off: fields['Inspirações (Off)'] || [], RPGPoints: fields.RPGPoints || 0,
+                    // ==========================================
+                    // === VERIFIQUE ESTE NOME NO AIRTABLE ===
+                    // ==========================================
+                    LastActive: fields['LastActive'] || null // <<< VERIFIQUE 'LastActive' na tabela Artistas
                 };
                 artistsMapById.set(artist.id, artist.name);
                 return artist;
@@ -154,7 +199,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return records.map(record => {
                     const fields = record.fields;
                     const recordId = record.id;
-                    // Pega as músicas já processadas do musicasMap
                     const tracks = Array.from(musicasMap.values()).filter(song => song.albumId === recordId)
                         .sort((a, b) => (a.trackNumber || 0) - (b.trackNumber || 0));
                     const totalDurationSeconds = tracks.reduce((total, track) => total + (track.durationSeconds || 0), 0);
@@ -166,8 +210,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     return {
                         id: record.id, title: fields['Nome do Álbum'] || fields['Nome do Single/EP'] || 'Título Indisponível', artist: mainArtistName, artistId: mainArtistId,
                         metascore: fields['Metascore'] || 0, imageUrl: imageUrl, releaseDate: fields['Data de Lançamento'] || '2024-01-01',
-                        tracks: tracks, // Músicas já contêm streams e isMainTrack
-                        totalDurationSeconds: totalDurationSeconds
+                        tracks: tracks,
+                        totalDurationSeconds: totalDurationSeconds,
+                        isAlbum: isAlbumTable // Adiciona flag para facilitar
                     };
                 });
             };
@@ -181,10 +226,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("Dados carregados com sucesso.");
             return {
                 allArtists: artistsList, albums: formattedAlbums, singles: formattedSingles,
-                players: formattedPlayers, musicas: Array.from(musicasMap.values()) // Retorna as músicas processadas
+                players: formattedPlayers, musicas: Array.from(musicasMap.values())
             };
         } catch (error) {
             console.error("Falha GERAL ao carregar dados:", error);
+            // Mostra erro na UI de forma mais clara
+            document.body.innerHTML = `<div style="color: red; padding: 20px;"><h1>Erro Crítico ao Carregar Dados</h1><p>${error.message}</p><p>Verifique o console e a conexão/API Key do Airtable.</p></div>`;
             return null;
         }
     }
@@ -203,8 +250,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return artistEntry;
             });
 
-            // As músicas já vêm processadas de loadAllData
-            db.songs = data.musicas || [];
+            db.songs = data.musicas || []; // Já vêm processadas
 
             db.albums = [];
             db.singles = [];
@@ -212,29 +258,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             const thirtyMinutesInSeconds = 30 * 60;
 
             allReleases.forEach(item => {
-                // Atualiza a capa das músicas DENTRO de db.songs
+                // Atualiza a capa das músicas em db.songs
                 (item.tracks || []).forEach(trackInfo => {
                     const songInDb = db.songs.find(s => s.id === trackInfo.id);
                     if (songInDb) {
                         songInDb.cover = item.imageUrl;
-                    } else {
-                        // O warning já acontece em loadAllData se a música não existir no map
-                    }
+                    } // Warning já acontece em loadAllData
                 });
 
                 const artistEntry = db.artists.find(a => a.id === item.artistId);
 
-                if ((item.totalDurationSeconds || 0) >= thirtyMinutesInSeconds) {
+                // Usa a flag 'isAlbum' adicionada em formatReleases
+                if (item.isAlbum && (item.totalDurationSeconds || 0) >= thirtyMinutesInSeconds) { // Garante que é album E tem duração
                     db.albums.push(item);
                     if (artistEntry) {
                         artistEntry.albums.push(item);
                     }
-                } else {
+                } else { // Singles ou álbuns curtos vão para singles
                     db.singles.push(item);
                     if (artistEntry) {
                         artistEntry.singles.push(item);
                     }
                 }
+
 
                 if (!artistEntry && item.artist !== "Artista Desconhecido") {
                      console.warn(`Artista "${item.artist}" (ID: ${item.artistId}) do lançamento "${item.title}" não encontrado em db.artists.`);
@@ -255,9 +301,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function refreshAllData() {
         console.log("Atualizando todos os dados...");
-        document.body.classList.add('loading'); // Adiciona loading visual
+        document.body.classList.add('loading');
         const data = await loadAllData();
-        if (data && data.allArtists) {
+        document.body.classList.remove('loading'); // Remove o loading DEPOIS de carregar
+
+        if (data?.allArtists) { // Optional chaining
             if (initializeData(data)) {
                 console.log("Dados atualizados e UI renderizada.");
 
@@ -272,20 +320,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (activeArtist && !document.getElementById('artistDetail').classList.contains('hidden')) {
                     console.log(`Atualizando detalhes para ${activeArtist.name} após refresh...`);
-                    openArtistDetail(activeArtist.name);
+                    openArtistDetail(activeArtist.name); // Reabre com dados frescos
                 }
-                 document.body.classList.remove('loading'); // Remove loading
+
                 return true;
             }
         }
-        console.error("Falha ao atualizar os dados.");
+        console.error("Falha ao atualizar os dados após refresh.");
         alert("Não foi possível atualizar os dados do servidor.");
-        document.body.classList.remove('loading'); // Remove loading em caso de erro
         return false;
     }
 
     // --- 2. NAVEGAÇÃO E UI ---
-    // (Funções switchView, switchTab, handleBack, renderArtistsGrid, formatArtistString, getCoverUrl, renderChart - sem mudanças)
+
      const switchView = (viewId, targetSectionId = null) => {
         console.log(`Switching view to: ${viewId}`);
         allViews.forEach(view => {
@@ -337,8 +384,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        // Se não for a studio view e não estiver na main view, volta pra main view
         if (!document.getElementById('mainView').classList.contains('active')) {
-             if (viewHistory.length > 0 || !document.getElementById('mainView').classList.contains('active')) {
+             if (viewHistory.length > 0) { // Só volta se houver histórico (estava em detail)
                 switchView('mainView');
             }
         }
@@ -362,9 +410,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     const handleBack = () => {
-        viewHistory.pop();
-        const previousViewId = viewHistory.pop() || 'mainView';
-        switchView(previousViewId);
+        viewHistory.pop(); // Remove a view atual
+        const previousViewId = viewHistory.pop() || 'mainView'; // Pega a anterior
+        switchView(previousViewId); // Mostra a anterior (será re-adicionada ao histórico se não for main)
     };
 
 
@@ -411,19 +459,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!dataList || dataList.length === 0) {
             container.innerHTML = `<p class="empty-state">Nenhum item no chart.</p>`; return;
         }
-        container.innerHTML = dataList.map((item, index) => {
-            if (type === 'music') {
-                const artistName = formatArtistString(item.artistIds, item.collabType);
-                return `...`; // HTML do chart de música (sem mudanças)
-            } else {
-                return `...`; // HTML do chart de álbum (sem mudanças)
-            }
-        }).join('');
-         // Recriando o HTML do Chart para clareza (NÃO mudou a lógica)
          container.innerHTML = dataList.map((item, index) => {
             if (type === 'music') {
                 const artistName = formatArtistString(item.artistIds, item.collabType);
-                // Adiciona data-streams ao item para debug ou futuras features
                 return `
                     <div class="chart-item" data-song-id="${item.id}" data-streams="${item.streams || 0}">
                         <span class="chart-rank">${index + 1}</span>
@@ -454,11 +492,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const openArtistDetail = (artistName) => {
         const artist = db.artists.find(a => a.name === artistName);
         if (!artist) { console.error(`Artista "${artistName}" não encontrado.`); handleBack(); return; }
-        activeArtist = artist;
+        activeArtist = artist; // Define o artista ativo AQUI
         document.getElementById('detailBg').style.backgroundImage = `url(${artist.img})`;
         document.getElementById('detailName').textContent = artist.name;
 
-        // Populares agora usa db.songs diretamente
         const popularSongs = db.songs
             .filter(s => s.artistIds && s.artistIds.includes(artist.id))
             .sort((a, b) => (b.streams || 0) - (a.streams || 0))
@@ -473,39 +510,34 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <img src="${song.cover || getCoverUrl(song.albumId)}" alt="${song.title}" class="song-row-cover">
                         <span class="song-row-title">${song.title}</span>
                     </div>
-                    {/* Exibe streams formatados */}
                     <span class="song-streams">${(song.streams || 0).toLocaleString('pt-BR')}</span>
                 </div>`).join('');
-        } else { /* ... HTML estado vazio ... */ }
+        } else { popularContainer.innerHTML = '<p class="empty-state-small">Nenhuma música popular.</p>'; }
 
         const albumsContainer = document.getElementById('albumsList');
-        const sortedAlbums = (artist.albums || []).sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
-        albumsContainer.innerHTML = sortedAlbums.map(album => `...`).join('') || '<p class="empty-state-small">Nenhum álbum.</p>'; // HTML do carrossel (sem mudanças)
-
-        const singlesContainer = document.getElementById('singlesList');
-        const sortedSingles = (artist.singles || []).sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
-        singlesContainer.innerHTML = sortedSingles.map(single => `...`).join('') || '<p class="empty-state-small">Nenhum single.</p>'; // HTML do carrossel (sem mudanças)
-
-        const recommended = [...db.artists].filter(a => a.id !== artist.id).sort(() => 0.5 - Math.random()).slice(0, 5);
-        renderArtistsGrid('recommendedGrid', recommended);
-        switchView('artistDetail');
-         // Recriando HTML dos carrosseis para clareza (NÃO mudou a lógica)
-        albumsContainer.innerHTML = sortedAlbums.map(album => `
+        // Filtra álbuns do DB global E ordena
+        const artistAlbums = db.albums.filter(a => a.artistId === artist.id).sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+        albumsContainer.innerHTML = artistAlbums.map(album => `
             <div class="scroll-item" data-album-id="${album.id}">
                 <img src="${album.imageUrl}" alt="${album.title}">
                 <p>${album.title}</p>
                 <span>${new Date(album.releaseDate).getFullYear()}</span>
-            </div>
-        `).join('') || '<p class="empty-state-small">Nenhum álbum.</p>';
+            </div>`).join('') || '<p class="empty-state-small">Nenhum álbum.</p>';
 
-        singlesContainer.innerHTML = sortedSingles.map(single => `
+        const singlesContainer = document.getElementById('singlesList');
+         // Filtra singles do DB global E ordena
+        const artistSingles = db.singles.filter(s => s.artistId === artist.id).sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+        singlesContainer.innerHTML = artistSingles.map(single => `
             <div class="scroll-item" data-album-id="${single.id}">
                 <img src="${single.imageUrl}" alt="${single.title}">
                 <p>${single.title}</p>
                 <span>${new Date(single.releaseDate).getFullYear()}</span>
-            </div>
-        `).join('') || '<p class="empty-state-small">Nenhum single.</p>';
+            </div>`).join('') || '<p class="empty-state-small">Nenhum single.</p>';
 
+
+        const recommended = [...db.artists].filter(a => a.id !== artist.id).sort(() => 0.5 - Math.random()).slice(0, 5);
+        renderArtistsGrid('recommendedGrid', recommended);
+        switchView('artistDetail');
     };
 
 
@@ -520,12 +552,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('albumDetailInfo').innerHTML = `Por <strong class="artist-link" data-artist-name="${artistObj?.name || ''}">${album.artist}</strong> • ${releaseDate}`;
 
         const tracklistContainer = document.getElementById('albumTracklist');
-        // Usa as faixas do objeto 'album', que já contêm streams e isMainTrack
+        // Usa as faixas já linkadas ao objeto 'album' vindo do DB
         tracklistContainer.innerHTML = (album.tracks || [])
          .sort((a,b)=>(a.trackNumber || 0) - (b.trackNumber || 0)) // Garante ordem
          .map(song => {
             const artistName = formatArtistString(song.artistIds, song.collabType);
-            // Adiciona indicador visual para faixa principal
             const mainTrackIndicator = song.isMainTrack ? '<i class="fas fa-star main-track-indicator" title="Faixa Principal"></i>' : '';
             return `
                 <div class="track-row ${song.isMainTrack ? 'main-track' : ''}" data-song-id="${song.id}">
@@ -544,15 +575,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const openDiscographyDetail = (type) => {
         if (!activeArtist) { console.error("Nenhum artista ativo."); handleBack(); return; }
-        const data = (type === 'albums')
-            ? (activeArtist.albums || []).sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate))
-            : (activeArtist.singles || []).sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+        // Busca lançamentos do DB global e ordena
+         const data = (type === 'albums')
+            ? db.albums.filter(a => a.artistId === activeArtist.id).sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate))
+            : db.singles.filter(s => s.artistId === activeArtist.id).sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+
         const title = (type === 'albums') ? `Álbuns de ${activeArtist.name}` : `Singles & EPs de ${activeArtist.name}`;
         document.getElementById('discographyTypeTitle').textContent = title;
         const grid = document.getElementById('discographyGrid');
-        grid.innerHTML = data.map(item => `...`).join('') || '<p class="empty-state">Nenhum lançamento.</p>'; // HTML do grid (sem mudanças)
-        switchView('discographyDetail');
-         // Recriando HTML do Grid para clareza (NÃO mudou a lógica)
         grid.innerHTML = data.map(item => `
             <div class="scroll-item" data-album-id="${item.id}">
                 <img src="${item.imageUrl}" alt="${item.title}">
@@ -560,19 +590,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <span>${new Date(item.releaseDate).getFullYear()}</span>
             </div>
         `).join('') || '<p class="empty-state">Nenhum lançamento encontrado.</p>';
+        switchView('discographyDetail');
     };
 
     const handleSearch = () => { /* ... (sem mudanças) ... */ };
     const setupCountdown = (timerId, callback) => { /* ... (sem mudanças) ... */ };
-
-    // --- 3. SISTEMA DE RPG ---
-    const CHART_TOP_N = 20;
-    const STREAMS_PER_POINT = 10000;
+    const CHART_TOP_N = 20; const STREAMS_PER_POINT = 10000;
     const calculateSimulatedStreams = (points, lastActiveISO) => { /* ... (sem mudanças) ... */ };
     const computeChartData = (artistsArray) => { /* ... (sem mudanças) ... */ };
     function renderRPGChart() { /* ... (sem mudanças) ... */ }
-
-    // --- 4. SISTEMA DO ESTÚDIO ---
     function populateArtistSelector(playerId) { /* ... (sem mudanças) ... */ }
     function loginPlayer(playerId) { /* ... (sem mudanças) ... */ }
     function logoutPlayer() { /* ... (sem mudanças) ... */ }
@@ -580,10 +606,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     function openFeatModal(buttonElement) { /* ... (sem mudanças) ... */ }
     function closeFeatModal() { /* ... (sem mudanças) ... */ }
     function confirmFeat() { /* ... (sem mudanças) ... */ }
-    function initializeStudio() { /* ... (sem mudanças - exceto talvez data inicial?) ... */ }
-    async function createAirtableRecord(tableName, fields) { /* ... (sem mudanças) ... */ }
+    function initializeStudio() { /* ... (sem mudanças) ... */ }
+    async function createAirtableRecord(tableName, fields) { /* ... (sem mudanças - exceto logs) ... */ }
     function parseDurationToSeconds(durationStr) { /* ... (sem mudanças) ... */ }
-
 
     async function handleSingleSubmit(event) {
         event.preventDefault();
@@ -611,22 +636,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const featTags = document.querySelectorAll('#singleFeatList .feat-tag');
             let finalTrackName = trackName, finalArtistIds = [artistId], collabType = null;
-            if (featTags.length > 0) { /* ... lógica feat/dueto (sem mudanças) ... */ }
              if (featTags.length > 0) {
-                const featArtistIds = []; const featArtistNames = [];
-                collabType = featTags[0].dataset.featType;
+                const featArtistIds = []; const featArtistNames = []; collabType = featTags[0].dataset.featType;
                 featTags.forEach(tag => { featArtistIds.push(tag.dataset.artistId); featArtistNames.push(tag.dataset.artistName); });
                 if (collabType === "Feat.") { finalTrackName = `${trackName} (feat. ${featArtistNames.join(', ')})`; finalArtistIds = [artistId]; }
                 else if (collabType === "Dueto/Grupo") { finalTrackName = trackName; finalArtistIds = [artistId, ...featArtistIds]; }
             }
 
-
             const musicRecordFields = {
                 "Nome da Faixa": finalTrackName, "Artista": finalArtistIds,
                 "Duração": trackDurationSec, "Nº da Faixa": 1,
                 "Singles e EPs": [singleRecordId],
-                "Streams": 0 // <-- ADICIONADO Streams: 0
-                // É Faixa Principal? não é necessário para single
+                "Streams": 0, // Adicionado Streams
+                // "É Faixa Principal?" -> Não aplicável para singles
             };
             if (collabType) musicRecordFields["Tipo de Colaboração"] = collabType;
 
@@ -639,49 +661,40 @@ document.addEventListener('DOMContentLoaded', async () => {
             singleReleaseDateInput.value = new Date().toISOString().split('T')[0];
             document.getElementById('singleFeatList').innerHTML = '';
             await refreshAllData();
-        } catch (error) { /* ... (tratamento de erro sem mudanças) ... */ }
-        finally { submitBtn.disabled = false; submitBtn.textContent = 'Lançar Single'; }
-         } catch (error) {
+        } catch (error) {
             alert("Erro ao lançar o single. Verifique o console para mais detalhes.");
             console.error("Erro em handleSingleSubmit:", error);
         } finally {
              submitBtn.disabled = false;
             submitBtn.textContent = 'Lançar Single';
         }
-
     }
 
 
     function initAlbumForm() {
-        addNewTrackInput(); // Adiciona a primeira faixa
-        if (albumTracklistEditor && typeof Sortable !== 'undefined') { /* ... inicializa Sortable ... */ }
-         if (albumTracklistEditor && typeof Sortable !== 'undefined') {
-            albumTracklistSortable = Sortable.create(albumTracklistEditor, {
-                animation: 150, handle: '.drag-handle', onEnd: updateTrackNumbers
-            });
-        } else if (typeof Sortable === 'undefined') {
-            console.warn("SortableJS não carregado.");
-        }
+        addNewTrackInput();
+        if (albumTracklistEditor && typeof Sortable !== 'undefined') {
+             albumTracklistSortable = Sortable.create(albumTracklistEditor, { animation: 150, handle: '.drag-handle', onEnd: updateTrackNumbers });
+        } else if (typeof Sortable === 'undefined') { console.warn("SortableJS não carregado."); }
     }
 
-    // Adiciona input radio para marcar faixa principal
+    // Modificado para incluir radio button
     function addNewTrackInput() {
         const trackId = `track_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
         const trackCount = albumTracklistEditor.children.length + 1;
-        const isFirstTrack = trackCount === 1; // Verifica se é a primeira faixa
+        const isFirstTrack = trackCount === 1;
 
         const newTrackEl = document.createElement('div');
         newTrackEl.className = 'track-list-item';
+        // Adiciona wrapper .track-selection com input radio e label
         newTrackEl.innerHTML = `
             <div class="track-main-row">
                 <i class="fas fa-bars drag-handle"></i>
-                {/* Wrapper para número e radio */}
                 <div class="track-selection">
                     <span class="track-number">${trackCount}.</span>
-                    {/* Radio button para Faixa Principal */}
                     <input type="radio" name="mainTrackRadio" id="main_${trackId}" value="${trackCount - 1}" ${isFirstTrack ? 'checked' : ''} class="main-track-radio">
                     <label for="main_${trackId}" class="main-track-label" title="Marcar como Faixa Principal">
-                        <i class="fas fa-star"></i> {/* Ícone de estrela */}
+                        <i class="fas fa-star"></i>
                     </label>
                 </div>
                 <div class="track-inputs">
@@ -701,9 +714,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const wasChecked = newTrackEl.querySelector('.main-track-radio').checked;
             newTrackEl.remove();
             updateTrackNumbers();
-            // Se a faixa removida era a principal, marca a nova primeira como principal
             if (wasChecked && albumTracklistEditor.children.length > 0) {
-                 albumTracklistEditor.querySelector('.main-track-radio').checked = true;
+                 albumTracklistEditor.querySelector('.main-track-radio').checked = true; // Marca a nova primeira
+            } else if (albumTracklistEditor.children.length === 0) {
+                // Se removeu a última, talvez adicionar uma nova? Ou deixar vazio?
+                // Vamos deixar vazio por enquanto. Se addTrackButton for clicado, a primeira será marcada.
             }
         });
 
@@ -715,13 +730,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         const tracks = albumTracklistEditor.querySelectorAll('.track-list-item');
         tracks.forEach((track, index) => {
             track.querySelector('.track-number').textContent = `${index + 1}.`;
-            // Atualiza o VALOR do radio button para o novo índice
-            track.querySelector('.main-track-radio').value = index;
+            track.querySelector('.main-track-radio').value = index; // Atualiza o VALOR do radio
+             // Garante que o ID do label e radio sejam únicos se houver reordenação complexa (opcional mas seguro)
+            const trackId = track.querySelector('.feat-target-hidden').id;
+            const radio = track.querySelector('.main-track-radio');
+            const label = track.querySelector('.main-track-label');
+            radio.id = `main_${trackId}`;
+            label.setAttribute('for', `main_${trackId}`);
         });
+        // Garante que sempre haja UMA selecionada se houver faixas
+         if (tracks.length > 0 && !albumTracklistEditor.querySelector('input[name="mainTrackRadio"]:checked')) {
+             albumTracklistEditor.querySelector('input[name="mainTrackRadio"]').checked = true;
+         }
     }
 
     async function batchCreateAirtableRecords(tableName, records) { /* ... (sem mudanças) ... */ }
 
+    // Modificado para pegar a faixa principal e enviar campo booleano
     async function handleAlbumSubmit(event) {
         event.preventDefault();
         const submitBtn = document.getElementById('submitNewAlbum');
@@ -736,15 +761,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                  throw new Error("Campos obrigatórios do álbum faltando.");
             }
 
-            // Descobre qual radio button está selecionado para ser a faixa principal
+            // Descobre qual radio button está selecionado
             const mainTrackRadio = albumTracklistEditor.querySelector('input[name="mainTrackRadio"]:checked');
-            const mainTrackIndex = mainTrackRadio ? parseInt(mainTrackRadio.value, 10) : 0; // Pega o índice (valor do radio)
+            // Pega o índice (valor do radio), default para 0 se nenhum (embora updateTrackNumbers deva garantir um)
+            const mainTrackIndex = mainTrackRadio ? parseInt(mainTrackRadio.value, 10) : 0;
 
             const trackElements = albumTracklistEditor.querySelectorAll('.track-list-item');
             let totalDurationSec = 0;
             const musicRecordsToCreate = [];
 
-            for (let index = 0; index < trackElements.length; index++) { /* ... validação de campos ... */ }
              for (let index = 0; index < trackElements.length; index++) {
                 const trackEl = trackElements[index];
                 const trackNameInput = trackEl.querySelector('.track-name-input');
@@ -756,7 +781,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const featTags = trackEl.querySelectorAll('.feat-tag');
                 let finalTrackName = trackName, finalArtistIds = [artistId], collabType = null;
-                 if (featTags.length > 0) { /* ... lógica feat/dueto (sem mudanças) ... */ }
                   if (featTags.length > 0) {
                     const featArtistIds = []; const featArtistNames = []; collabType = featTags[0].dataset.featType;
                     featTags.forEach(tag => { featArtistIds.push(tag.dataset.artistId); featArtistNames.push(tag.dataset.artistName); });
@@ -764,12 +788,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     else if (collabType === "Dueto/Grupo") { finalTrackName = trackName; finalArtistIds = [artistId, ...featArtistIds]; }
                 }
 
-                // Cria o registro da música
                 const musicRecord = {
                     "Nome da Faixa": finalTrackName, "Artista": finalArtistIds,
                     "Duração": durationSec, "Nº da Faixa": index + 1,
-                    "Streams": 0, // <-- ADICIONADO Streams: 0
-                    "É Faixa Principal?": (index === mainTrackIndex) // <-- ADICIONADO Faixa Principal
+                    "Streams": 0,
+                    "É Faixa Principal?": (index === mainTrackIndex) // Define true/false
                 };
                 if (collabType) musicRecord["Tipo de Colaboração"] = collabType;
                 musicRecordsToCreate.push(musicRecord);
@@ -790,13 +813,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!releaseRecordResponse?.id) throw new Error("Falha ao criar registro do álbum/EP.");
             const releaseRecordId = releaseRecordResponse.id;
 
-            const albumLinkFieldNameInMusicas = 'Álbuns'; // <<< VERIFIQUE NOME
-            const singleLinkFieldNameInMusicas = 'Singles e EPs'; // <<< VERIFIQUE NOME
+            // ==========================================
+            // === VERIFIQUE ESTES NOMES NO AIRTABLE ===
+            // ==========================================
+            const albumLinkFieldNameInMusicas = 'Álbuns'; // <<< VERIFIQUE ESTE NOME!
+            const singleLinkFieldNameInMusicas = 'Singles e EPs'; // <<< VERIFIQUE ESTE NOME!
+
             const correctLinkField = isAlbum ? albumLinkFieldNameInMusicas : singleLinkFieldNameInMusicas;
             musicRecordsToCreate.forEach(record => { record[correctLinkField] = [releaseRecordId]; });
 
             const createdSongs = await batchCreateAirtableRecords('Músicas', musicRecordsToCreate);
             if (!createdSongs || createdSongs.length !== musicRecordsToCreate.length) {
+                 console.error("Álbum/EP criado, mas falha ao criar as músicas vinculadas.");
                  throw new Error("Falha ao criar as faixas no Airtable.");
             }
 
@@ -805,35 +833,54 @@ document.addEventListener('DOMContentLoaded', async () => {
             albumReleaseDateInput.value = new Date().toISOString().split('T')[0];
             albumTracklistEditor.innerHTML = ''; initAlbumForm();
             await refreshAllData();
-        } catch (error) { /* ... (tratamento de erro sem mudanças) ... */ }
-        finally { submitBtn.disabled = false; submitBtn.textContent = 'Lançar Álbum / EP'; }
-         } catch (error) {
+        } catch (error) {
             alert("Erro ao lançar o álbum/EP. Verifique o console e os campos preenchidos.");
             console.error("Erro em handleAlbumSubmit:", error);
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Lançar Álbum / EP';
         }
-
     }
 
 
     // --- 5. INICIALIZAÇÃO GERAL ---
 
-    function initializeBodyClickListener() { /* ... (sem mudanças) ... */ }
+    function initializeBodyClickListener() {
+        document.body.addEventListener('click', (e) => {
+            const artistCard = e.target.closest('.artist-card[data-artist-name]');
+            const albumCard = e.target.closest('[data-album-id]');
+            const songCard = e.target.closest('.song-row[data-song-id], .track-row[data-song-id], .chart-item[data-song-id]');
+            const artistLink = e.target.closest('.artist-link[data-artist-name]');
+            const discogLink = e.target.closest('.see-all-btn[data-type]');
+
+            if (discogLink) { openDiscographyDetail(discogLink.dataset.type); return; }
+            if (albumCard) { openAlbumDetail(albumCard.dataset.albumId); return; }
+            if (artistCard) { openArtistDetail(artistCard.dataset.artistName); return; }
+            if (artistLink) { openArtistDetail(artistLink.dataset.artistName); return; }
+            if (songCard) { console.log("Clicou na música ID:", songCard.dataset.songId); }
+        });
+
+        searchInput.addEventListener('input', handleSearch);
+        searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleSearch(); });
+    }
 
     async function main() {
         console.log("Iniciando Aplicação...");
         if (!initializeDOMElements()) return;
         document.body.classList.add('loading');
-        const data = await loadAllData();
-        if (data?.allArtists) {
-            if (!initializeData(data)) return;
+        const data = await loadAllData(); // Carrega os dados primeiro
+        document.body.classList.remove('loading'); // Remove o loading DEPOIS
+
+        if (data?.allArtists) { // Verifica se dados foram carregados
+            if (!initializeData(data)) return; // Processa os dados
             try {
-                initializeStudio();
+                initializeStudio(); // Configura ouvintes de eventos, etc.
+
+                // Adiciona ouvintes de submit APÓS initializeStudio
                 if (newSingleForm) newSingleForm.addEventListener('submit', handleSingleSubmit);
                 if (newAlbumForm) newAlbumForm.addEventListener('submit', handleAlbumSubmit);
-                renderRPGChart();
+
+                renderRPGChart(); // Renderiza componentes iniciais
                 const allNavs = [...document.querySelectorAll('.nav-tab'), ...document.querySelectorAll('.bottom-nav-item')];
                 allNavs.forEach(nav => { nav.removeEventListener('click', switchTab); nav.addEventListener('click', switchTab); });
                 renderArtistsGrid('homeGrid', [...(db.artists || [])].sort(() => 0.5 - Math.random()).slice(0, 10));
@@ -842,21 +889,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 setupCountdown('albumCountdownTimer', () => renderChart('album'));
                 initializeBodyClickListener();
                 document.querySelectorAll('.back-btn').forEach(btn => btn.addEventListener('click', handleBack));
-                switchTab(null, 'homeSection');
+
+                switchTab(null, 'homeSection'); // Mostra a view inicial
+
                 console.log("Aplicação Iniciada e Configurada.");
-            } catch (uiError) { /* ... (tratamento de erro sem mudanças) ... */ }
-             catch (uiError) {
+            } catch (uiError) { // Captura erros na configuração da UI
                 console.error("Erro fatal durante a inicialização da UI:", uiError);
-                document.body.innerHTML = '<div style="color: white; padding: 20px; text-align: center;"><h1>Erro de Interface</h1><p>Ocorreu um erro ao configurar a interface. Verifique o console.</p></div>';
+                document.body.innerHTML = `<div style="color: red; padding: 20px;"><h1>Erro Fatal na UI</h1><p>${uiError.message}</p><p>Verifique o console.</p></div>`;
             }
-        } else { /* ... (tratamento de erro de carregamento sem mudanças) ... */ }
-         else {
-            document.body.innerHTML = '<div style="color: white; padding: 20px; text-align: center;"><h1>Erro Crítico</h1><p>Não foi possível carregar os dados essenciais do Airtable. Verifique sua conexão, a API Key e se as tabelas não estão vazias.</p></div>';
-            console.error("Initialization failed due to critical data loading error.");
+        } else { // Erro no carregamento de dados já tratado em loadAllData
+             // Opcional: Adicionar mensagem aqui se loadAllData não tiver mostrado
+             if (!document.body.innerHTML.includes('Erro Crítico')) { // Evita duplicar msg
+                document.body.innerHTML = '<div style="color: white; padding: 20px; text-align: center;"><h1>Erro Crítico</h1><p>Não foi possível carregar os dados essenciais.</p></div>';
+            }
         }
-        document.body.classList.remove('loading');
     }
 
-    main();
+    main().catch(err => { // Adiciona catch geral para erros não pegos
+         console.error("Erro não capturado na execução principal:", err);
+         document.body.innerHTML = `<div style="color: red; padding: 20px;"><h1>Erro Inesperado</h1><p>${err.message}</p><p>Verifique o console.</p></div>`;
+    });
 
 });
