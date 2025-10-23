@@ -18,128 +18,128 @@
   </head>
   <body>
     <div id="mainView" class="page-view">
-      <header class="topbar">
-        <div class="search-bar">
-          <i class="fas fa-search"></i>
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Artistas, álbuns ou músicas"
-          />
-        </div>
+        <header class="topbar">
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Artistas, álbuns ou músicas"
+            />
+          </div>
 
-        <nav class="nav-tabs">
-          <button class="nav-tab active" data-tab="homeSection">Início</button>
-          <button class="nav-tab" data-tab="musicChartsSection">
-            Top Músicas
-          </button>
-          <button class="nav-tab" data-tab="albumChartsSection">
-            Top Álbuns
-          </button>
-          <button class="nav-tab" data-tab="artistsSection">Artistas</button>
-          <button class="nav-tab" data-tab="studioSection">Meu Estúdio</button>
-        </nav>
-      </header>
+          <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="homeSection">Início</button>
+            <button class="nav-tab" data-tab="musicChartsSection">
+              Top Músicas
+            </button>
+            <button class="nav-tab" data-tab="albumChartsSection">
+              Top Álbuns
+            </button>
+            <button class="nav-tab" data-tab="artistsSection">Artistas</button>
+            <button class="nav-tab" data-tab="studioSection">Meu Estúdio</button>
+          </nav>
+        </header>
 
-      <main class="main-container">
-        <section id="homeSection" class="content-section active">
-          <h2 class="section-title">Artistas em Destaque</h2>
-          <div id="homeGrid" class="artists-grid"></div>
-        </section>
-        <section id="musicChartsSection" class="content-section">
-          <div class="chart-header">
-            <h3>🔥 Top Músicas da Semana</h3>
-            <p>Atualiza em <span id="musicCountdownTimer"></span></p>
-          </div>
-          <div id="musicChartsList" class="chart-list"></div>
-        </section>
-        <section id="albumChartsSection" class="content-section">
-          <div class="chart-header">
-            <h3>💿 Top Álbuns da Semana</h3>
-            <p>Atualiza em <span id="albumCountdownTimer"></span></p>
-          </div>
-          <div id="albumChartsList" class="chart-list"></div>
-        </section>
-        <section id="artistsSection" class="content-section">
-          <h2 class="section-title">Todos os Artistas</h2>
-          <div id="artistsGrid" class="artists-grid"></div>
-        </section>
-        <section id="searchSection" class="content-section">
-          <h2 class="section-title">Resultados da Busca</h2>
-          <div id="searchResults" class="artists-grid"></div>
-          <div id="noResults" class="no-results hidden">
-            <i class="fas fa-compact-disc"></i>
-            <p>Não encontramos nada.</p>
-          </div>
-        </section>
-      </main>
+        <main class="main-container">
+          <section id="homeSection" class="content-section active">
+            <h2 class="section-title">Artistas em Destaque</h2>
+            <div id="homeGrid" class="artists-grid"></div>
+          </section>
+          <section id="musicChartsSection" class="content-section">
+            <div class="chart-header">
+              <h3>🔥 Top Músicas da Semana</h3>
+              <p>Atualiza em <span id="musicCountdownTimer"></span></p>
+            </div>
+            <div id="musicChartsList" class="chart-list"></div>
+          </section>
+          <section id="albumChartsSection" class="content-section">
+            <div class="chart-header">
+              <h3>💿 Top Álbuns da Semana</h3>
+              <p>Atualiza em <span id="albumCountdownTimer"></span></p>
+            </div>
+            <div id="albumChartsList" class="chart-list"></div>
+          </section>
+          <section id="artistsSection" class="content-section">
+            <h2 class="section-title">Todos os Artistas</h2>
+            <div id="artistsGrid" class="artists-grid"></div>
+          </section>
+          <section id="searchSection" class="content-section">
+            <h2 class="section-title">Resultados da Busca</h2>
+            <div id="searchResults" class="artists-grid"></div>
+            <div id="noResults" class="no-results hidden">
+              <i class="fas fa-compact-disc"></i>
+              <p>Não encontramos nada.</p>
+            </div>
+          </section>
+        </main>
     </div>
 
     <div id="artistDetail" class="page-view hidden">
-      <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
-      <header class="artist-header">
-        <div class="header-bg" id="detailBg"></div>
-        <div class="header-overlay"></div>
-      </header>
-      <main class="page-detail-body">
-        <div class="artist-header-content">
-          <h1 id="detailName"></h1>
-          <div class="verified-artist">
-            <i class="fas fa-check-circle"></i> Artista Verificado
+         <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
+        <header class="artist-header">
+          <div class="header-bg" id="detailBg"></div>
+          <div class="header-overlay"></div>
+        </header>
+        <main class="page-detail-body">
+          <div class="artist-header-content">
+            <h1 id="detailName"></h1>
+            <div class="verified-artist">
+              <i class="fas fa-check-circle"></i> Artista Verificado
+            </div>
+            <div class="page-actions">
+              <button class="main-play-btn"><i class="fas fa-play"></i></button>
+              <button class="follow-btn">SEGUIR</button>
+            </div>
           </div>
-          <div class="page-actions">
-            <button class="main-play-btn"><i class="fas fa-play"></i></button>
-            <button class="follow-btn">SEGUIR</button>
-          </div>
-        </div>
-        <section class="popular-songs-list">
-          <h2 class="section-title">Populares</h2>
-          <div id="popularSongsList"></div>
-        </section>
-        <section id="discographySection">
-          <div class="section-header">
-            <h3>Álbuns</h3>
-            <span class="see-all-btn" data-type="albums">Ver todos</span>
-          </div>
-          <div class="horizontal-scroll-list" id="albumsList"></div>
-          <div class="section-header">
-            <h3>Singles & EPs</h3>
-            <span class="see-all-btn" data-type="singles">Ver todos</span>
-          </div>
-          <div class="horizontal-scroll-list" id="singlesList"></div>
-        </section>
-        <section id="recommendedSection">
-          <h2 class="section-title">Os fãs também curtem</h2>
-          <div id="recommendedGrid" class="artists-grid"></div>
-        </section>
-      </main>
+          <section class="popular-songs-list">
+            <h2 class="section-title">Populares</h2>
+            <div id="popularSongsList"></div>
+          </section>
+          <section id="discographySection">
+            <div class="section-header">
+              <h3>Álbuns</h3>
+              <span class="see-all-btn" data-type="albums">Ver todos</span>
+            </div>
+            <div class="horizontal-scroll-list" id="albumsList"></div>
+            <div class="section-header">
+              <h3>Singles & EPs</h3>
+              <span class="see-all-btn" data-type="singles">Ver todos</span>
+            </div>
+            <div class="horizontal-scroll-list" id="singlesList"></div>
+          </section>
+          <section id="recommendedSection">
+            <h2 class="section-title">Os fãs também curtem</h2>
+            <div id="recommendedGrid" class="artists-grid"></div>
+          </section>
+        </main>
     </div>
 
     <div id="albumDetail" class="page-view hidden">
-      <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
-      <header class="album-header">
-        <div class="header-bg" id="albumDetailBg"></div>
-        <div class="header-overlay"></div>
-        <div class="album-header-content">
-          <img id="albumDetailCover" src="" />
-          <h2 id="albumDetailTitle"></h2>
-          <p id="albumDetailInfo"></p>
-        </div>
-      </header>
-      <main class="page-detail-body">
-        <div class="page-actions">
-          <button class="main-play-btn"><i class="fas fa-play"></i></button>
-        </div>
-        <div id="albumTracklist"></div>
-      </main>
+        <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
+        <header class="album-header">
+          <div class="header-bg" id="albumDetailBg"></div>
+          <div class="header-overlay"></div>
+          <div class="album-header-content">
+            <img id="albumDetailCover" src="" />
+            <h2 id="albumDetailTitle"></h2>
+            <p id="albumDetailInfo"></p>
+          </div>
+        </header>
+        <main class="page-detail-body">
+          <div class="page-actions">
+            <button class="main-play-btn"><i class="fas fa-play"></i></button>
+          </div>
+          <div id="albumTracklist"></div>
+        </main>
     </div>
 
     <div id="discographyDetail" class="page-view hidden">
-      <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
-      <main class="content-section active">
-        <h2 class="section-title" id="discographyTypeTitle"></h2>
-        <div id="discographyGrid" class="full-page-grid"></div>
-      </main>
+         <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
+        <main class="content-section active">
+          <h2 class="section-title" id="discographyTypeTitle"></h2>
+          <div id="discographyGrid" class="full-page-grid"></div>
+        </main>
     </div>
 
     <div id="studioView" class="page-view hidden">
@@ -176,7 +176,7 @@
               <div class="studio-form-group">
                 <label for="singleArtistSelect">Artista Principal</label>
                 <select id="singleArtistSelect" required>
-                  <option value="">Selecione um jogador...</option>
+                  <option value="">Selecione...</option>
                 </select>
               </div>
               <div class="studio-form-group">
@@ -203,8 +203,7 @@
               </div>
               <div class="feat-section">
                 <label>Participações (Feat.)</label>
-                <div class="feat-list" id="singleFeatList">
-                  </div>
+                <div class="feat-list" id="singleFeatList"></div>
                 <button type="button" class="small-btn add-feat-btn" data-target="singleFeatList"><i class="fas fa-plus"></i> Adicionar Feat</button>
               </div>
               <button type="submit" class="submit-btn" id="submitNewSingle"> Lançar Single </button>
@@ -215,7 +214,7 @@
               <div class="studio-form-group">
                 <label for="albumArtistSelect">Artista Principal</label>
                 <select id="albumArtistSelect" required>
-                  <option value="">Selecione um jogador...</option>
+                  <option value="">Selecione...</option>
                 </select>
               </div>
               <div class="studio-form-group">
@@ -305,18 +304,39 @@
                     <option value="B-side">B-side</option>
                 </select>
             </div>
-            <div class="feat-section">
+
+            <div class="feat-section inline-feat-section">
                 <label>Participações (Feat.)</label>
-                <div class="feat-list" id="albumTrackFeatList">
-                  </div>
-                 <button type="button" class="small-btn add-feat-btn" data-target="albumTrackFeatList"><i class="fas fa-plus"></i> Adicionar Feat</button>
-              </div>
-            <div class="modal-actions">
+                <div class="feat-list" id="albumTrackFeatList"></div>
+                <button type="button" class="small-btn add-inline-feat-btn"><i class="fas fa-plus"></i> Adicionar Feat</button>
+
+                <div id="inlineFeatAdder" class="inline-feat-adder hidden">
+                    <div class="studio-form-group">
+                        <label for="inlineFeatArtistSelect">Selecionar Artista</label>
+                        <select id="inlineFeatArtistSelect">
+                            <option value="">Carregando...</option>
+                        </select>
+                    </div>
+                    <div class="studio-form-group">
+                        <label for="inlineFeatTypeSelect">Tipo de Colaboração</label>
+                        <select id="inlineFeatTypeSelect">
+                            <option value="Feat.">Feat. (Participação Curta)</option>
+                            <option value="Dueto/Grupo">Dueto / Grupo (&)</option>
+                        </select>
+                    </div>
+                    <div class="inline-feat-actions">
+                        <button type="button" class="small-btn confirm-inline-feat-btn" id="confirmInlineFeatBtn">Confirmar Feat</button>
+                        <button type="button" class="small-btn cancel-inline-feat-btn" id="cancelInlineFeatBtn">Cancelar</button>
+                    </div>
+                </div>
+            </div> <div class="modal-actions">
                 <button type="button" class="submit-btn" id="saveAlbumTrackBtn">Salvar Faixa</button>
                 <button type="button" class="cancel-btn" id="cancelAlbumTrackBtn">Cancelar</button>
             </div>
         </div>
     </div>
+
+
     <nav class="bottom-nav">
       <button class="bottom-nav-item active" data-tab="homeSection">
         <i class="fas fa-home"></i><span>Início</span>
