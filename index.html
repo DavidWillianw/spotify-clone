@@ -266,7 +266,23 @@
       </div>
     </div>
 
-
+    <div id="trackTypeModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Tipo de Faixa</h3>
+            <p class="modal-description">Esta faixa é a música principal (Single/A-side) ou uma faixa adicional (B-side)?</p>
+            <div class="studio-form-group">
+                <label for="trackTypeSelect">Tipo de Faixa</label>
+                <select id="trackTypeSelect">
+                    <option value="Single" selected>Single (A-side)</option>
+                    <option value="B-side">B-side</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="submit-btn" id="confirmTrackTypeBtn">Confirmar</button>
+                <button type="button" class="cancel-btn" id="cancelTrackTypeBtn">Cancelar</button>
+            </div>
+        </div>
+    </div>
     <nav class="bottom-nav">
       <button class="bottom-nav-item active" data-tab="homeSection">
         <i class="fas fa-home"></i><span>Início</span>
