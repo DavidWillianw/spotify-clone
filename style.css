@@ -319,41 +319,78 @@ body {
 
 /* Estilos do Editor de Tracklist e Feats */
 .track-list-editor { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
-.track-list-item { display: flex; flex-direction: column; gap: 10px; background-color: var(--background-tertiary); padding: 10px; border-radius: 6px; }
-.track-main-row { display: flex; align-items: center; width: 100%; gap: 10px;}
-.drag-handle { cursor: grab; color: var(--text-secondary); padding: 0 5px; }
-.drag-handle:active { cursor: grabbing; }
-.track-inputs { flex-grow: 1; display: flex; gap: 10px; align-items: center; }
-.track-inputs .track-number { font-size: 14px; font-weight: 700; color: var(--text-secondary); width: 20px; text-align: right; flex-shrink: 0; }
 
-/* CORREÇÃO AQUI: Aplica a inputs e selects */
-.track-inputs input[type="text"],
-.track-inputs select.track-type-select {
-    padding: 10px; font-size: 12px; margin: 0;
-    background-color: var(--background-primary); border: 1px solid #535353; border-radius: 4px; color: var(--text-primary);
+/* NOVO: Estilo para o item da lista de faixas (após adicionar via modal) */
+.track-list-item-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--background-tertiary);
+    padding: 12px;
+    border-radius: 6px;
+}
+.track-list-item-display .drag-handle {
+    cursor: grab;
+    color: var(--text-secondary);
+    padding: 0 5px;
+    align-self: flex-start; /* Alinha no topo */
+}
+.track-list-item-display .drag-handle:active { cursor: grabbing; }
+.track-list-item-display .track-info-display {
     flex-grow: 1;
-    width: auto;
-    min-width: 0;
-    font-family: "Montserrat", sans-serif; /* Garante a fonte */
+    min-width: 0; /* Para evitar overflow */
 }
-.track-inputs input.track-duration-input {
-    flex-grow: 0;
-    flex-shrink: 0;
-    width: 70px;
-    text-align: center;
+.track-list-item-display .track-title-display {
+    font-size: 14px;
+    font-weight: 600;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-/* Estilo específico para o select do tipo de faixa */
-.track-inputs select.track-type-select {
-    flex-grow: 0;
-    width: 120px; /* Largura específica para mobile */
+.track-list-item-display .track-details-display {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    display: flex; /* Para alinhar Duração e Tipo */
+    gap: 10px; /* Espaço entre Duração e Tipo */
+    flex-wrap: wrap; /* Quebra linha se necessário */
+}
+.track-list-item-display .track-details-display span {
+     white-space: nowrap; /* Evita quebra de linha interna */
+}
+.track-list-item-display .track-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center; /* Alinha botões verticalmente se quebrar linha */
+}
+.track-list-item-display .edit-track-btn,
+.track-list-item-display .remove-track-btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 5px;
+    color: var(--text-secondary);
+}
+.track-list-item-display .edit-track-btn:hover { color: var(--spotify-green); }
+.track-list-item-display .remove-track-btn { color: var(--trend-down-red); }
+.track-list-item-display .remove-track-btn:hover { color: #ff4d4d; }
+
+.track-list-item-display.sortable-ghost { opacity: 0.4; background: #3f3f3f; }
+
+/* Botão "Adicionar Faixa" que abre o modal */
+.add-track-modal-btn {
+    margin-top: 0; /* Remove margem superior se houver */
+    margin-bottom: 16px; /* Adiciona espaço antes da divisória */
 }
 
-.delete-track-btn { background: none; border: none; color: var(--trend-down-red); font-size: 16px; cursor: pointer; padding: 5px; }
-.track-list-item.sortable-ghost { opacity: 0.4; background: #3f3f3f; }
+
 .feat-target-hidden { display: none; }
 
 /* Seção de Feat (dentro de .track-list-item ou .feat-section do single) */
-.feat-section { margin-top: 10px; padding-left: 25px; }
+/* NOVO: Ajuste no padding-left para o novo item da lista */
+.track-list-item-display .feat-section { margin-top: 8px; padding-left: 25px; }
 .feat-section label { font-size: 11px; font-weight: 600; color: var(--spotify-green); margin-bottom: 5px; text-transform: uppercase; display: block; }
 .feat-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .feat-tag {
@@ -365,7 +402,7 @@ body {
 .add-feat-btn { font-size: 11px; padding: 4px 6px; }
 
 
-/* Estilos do Modal de Feat */
+/* Estilos do Modal de Feat (e outros modais) */
 .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex;
@@ -432,20 +469,17 @@ body {
   .studio-login-wrapper select { margin-bottom: 0; flex-grow: 1; }
   #loginButton { width: auto; }
 
-  /* Ajuste no editor de tracklist para Desktop */
-   .track-main-row { width: auto; }
-   .track-inputs {
-        display: grid;
-        grid-template-columns: 20px 1fr 100px 120px; /* Num, Título, Duração, TIPO */
-        gap: 12px; flex-grow: 1; align-items: center;
-    }
-    /* Garante que a largura volte ao normal no desktop */
-    .track-inputs input.track-duration-input,
-    .track-inputs select.track-type-select {
-        width: 100%; /* Ocupa a coluna do grid */
-    }
-  .track-list-item .track-number { line-height: inherit; }
-  .feat-section { padding-left: 45px; }
+  /* Ajuste na lista de faixas do álbum para Desktop */
+  .track-list-item-display {
+      /* Talvez não precise de mudanças aqui, flexbox se adapta bem */
+  }
+  .track-list-item-display .track-info-display {
+      /* Pode adicionar mais espaço se necessário */
+  }
+  .track-list-item-display .track-details-display {
+      flex-wrap: nowrap; /* Evita quebra de linha no desktop */
+      gap: 15px; /* Mais espaço */
+  }
 
 }
 
