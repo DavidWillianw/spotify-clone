@@ -230,7 +230,7 @@ body {
 .no-results { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
 .no-results i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
 .empty-state { text-align: center; padding: 20px; color: var(--text-secondary); font-size: 14px; }
-.empty-state-small { padding: 10px; color: var(--text-secondary); font-size: 12px; }
+.empty-state-small { padding: 10px; color: var(--text-secondary); font-size: 12px; text-align: center; }
 
 
 /* --- NAVEGAÇÃO MOBILE (PADRÃO) --- */
@@ -320,10 +320,10 @@ body {
 /* Estilos do Editor de Tracklist e Feats */
 .track-list-editor { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
 
-/* NOVO: Estilo para o item da lista de faixas (após adicionar via modal) */
+/* Item da lista de faixas (após adicionar via modal) */
 .track-list-item-display {
     display: flex;
-    align-items: center;
+    align-items: center; /* Alinha verticalmente */
     gap: 10px;
     background-color: var(--background-tertiary);
     padding: 12px;
@@ -336,6 +336,14 @@ body {
     align-self: flex-start; /* Alinha no topo */
 }
 .track-list-item-display .drag-handle:active { cursor: grabbing; }
+/* NOVO: Span para o número */
+.track-list-item-display .track-number-display {
+    font-weight: 700;
+    color: var(--text-secondary);
+    width: 25px;
+    text-align: right;
+    flex-shrink: 0;
+}
 .track-list-item-display .track-info-display {
     flex-grow: 1;
     min-width: 0; /* Para evitar overflow */
@@ -352,17 +360,18 @@ body {
     font-size: 12px;
     color: var(--text-secondary);
     margin-top: 4px;
-    display: flex; /* Para alinhar Duração e Tipo */
-    gap: 10px; /* Espaço entre Duração e Tipo */
-    flex-wrap: wrap; /* Quebra linha se necessário */
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 .track-list-item-display .track-details-display span {
-     white-space: nowrap; /* Evita quebra de linha interna */
+     white-space: nowrap;
 }
 .track-list-item-display .track-actions {
     display: flex;
     gap: 8px;
-    align-items: center; /* Alinha botões verticalmente se quebrar linha */
+    align-items: center;
+    flex-shrink: 0; /* Impede que os botões encolham */
 }
 .track-list-item-display .edit-track-btn,
 .track-list-item-display .remove-track-btn {
@@ -381,28 +390,61 @@ body {
 
 /* Botão "Adicionar Faixa" que abre o modal */
 .add-track-modal-btn {
-    margin-top: 0; /* Remove margem superior se houver */
-    margin-bottom: 16px; /* Adiciona espaço antes da divisória */
+    margin-top: 0;
+    margin-bottom: 16px;
 }
+.add-track-modal-btn i { margin-right: 8px; }
 
 
 .feat-target-hidden { display: none; }
 
-/* Seção de Feat (dentro de .track-list-item ou .feat-section do single) */
-/* NOVO: Ajuste no padding-left para o novo item da lista */
-.track-list-item-display .feat-section { margin-top: 8px; padding-left: 25px; }
+/* Seção de Feat (dentro do item da lista ou modal) */
+.feat-section { margin-top: 10px; }
+.feat-section.inline-feat-section { padding-left: 0; } /* Remove padding extra no inline */
 .feat-section label { font-size: 11px; font-weight: 600; color: var(--spotify-green); margin-bottom: 5px; text-transform: uppercase; display: block; }
-.feat-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.feat-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; min-height: 20px; /* Para mostrar a área mesmo vazia */ }
 .feat-tag {
     background-color: var(--background-primary); color: var(--text-secondary);
     padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;
     display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
 }
 .feat-tag:hover { color: var(--text-primary); }
-.add-feat-btn { font-size: 11px; padding: 4px 6px; }
+.feat-tag-display { /* Apenas para exibição na lista */
+    background-color: var(--background-primary); color: var(--text-secondary);
+    padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500;
+}
+.add-feat-btn, .add-inline-feat-btn { font-size: 11px; padding: 4px 6px; margin-left: 0; /* Remove margem padrão */}
+
+/* NOVO: Estilos para o Adicionador de Feat Inline */
+.inline-feat-adder {
+    background-color: var(--background-tertiary);
+    padding: 16px;
+    margin-top: 10px;
+    border-radius: 6px;
+    border: 1px solid #404040;
+}
+.inline-feat-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+.inline-feat-actions .small-btn {
+    flex-grow: 1; /* Faz botões ocuparem espaço */
+    margin-left: 0;
+}
+.inline-feat-actions .confirm-inline-feat-btn {
+    /* Estilo padrão já aplicado pelo .small-btn */
+}
+.inline-feat-actions .cancel-inline-feat-btn {
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+}
+.inline-feat-actions .cancel-inline-feat-btn:hover {
+    background: rgba(179, 179, 179, 0.1);
+}
 
 
-/* Estilos do Modal de Feat (e outros modais) */
+/* Estilos dos Modais */
 .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex;
@@ -411,6 +453,8 @@ body {
 .modal-content {
   background: var(--background-secondary); padding: 24px; border-radius: 12px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5); max-width: 400px; width: 90%;
+  max-height: 90vh; /* Limita altura */
+  overflow-y: auto; /* Adiciona scroll se necessário */
 }
 .modal-content h3 { color: var(--spotify-green); margin-bottom: 20px; }
 .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
@@ -423,7 +467,7 @@ body {
 
 .bottom-nav-item .fa-microphone-alt { font-size: 22px; }
 
-/* Estilo para a descrição do novo modal */
+/* Estilo para a descrição do modal */
 .modal-content p.modal-description {
     font-size: 14px;
     color: var(--text-secondary);
@@ -471,10 +515,7 @@ body {
 
   /* Ajuste na lista de faixas do álbum para Desktop */
   .track-list-item-display {
-      /* Talvez não precise de mudanças aqui, flexbox se adapta bem */
-  }
-  .track-list-item-display .track-info-display {
-      /* Pode adicionar mais espaço se necessário */
+      /* Pode precisar de ajustes se o layout quebrar */
   }
   .track-list-item-display .track-details-display {
       flex-wrap: nowrap; /* Evita quebra de linha no desktop */
