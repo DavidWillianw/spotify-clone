@@ -204,8 +204,8 @@
               <div class="feat-section">
                 <label>Participações (Feat.)</label>
                 <div class="feat-list" id="singleFeatList">
-                </div>
-                <button type="button" class="small-btn add-feat-btn" data-target="single"><i class="fas fa-plus"></i> Adicionar Feat</button>
+                  </div>
+                <button type="button" class="small-btn add-feat-btn" data-target="singleFeatList"><i class="fas fa-plus"></i> Adicionar Feat</button>
               </div>
               <button type="submit" class="submit-btn" id="submitNewSingle"> Lançar Single </button>
             </form>
@@ -233,8 +233,8 @@
               <hr class="form-divider" />
               <h4> Tracklist <span class="track-helper">(Arraste <i class="fas fa-bars"></i> para reordenar)</span></h4>
               <div id="albumTracklistEditor" class="track-list-editor">
-              </div>
-              <button type="button" class="small-btn" id="addTrackButton"><i class="fas fa-plus"></i> Adicionar Faixa</button>
+                  </div>
+              <button type="button" class="submit-btn add-track-modal-btn" id="openAddTrackModalBtn"><i class="fas fa-plus"></i> Adicionar Faixa</button>
               <hr class="form-divider" />
               <button type="submit" class="submit-btn" id="submitNewAlbum"> Lançar Álbum / EP </button>
             </form>
@@ -280,6 +280,40 @@
             <div class="modal-actions">
                 <button type="button" class="submit-btn" id="confirmTrackTypeBtn">Confirmar</button>
                 <button type="button" class="cancel-btn" id="cancelTrackTypeBtn">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="albumTrackModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="albumTrackModalTitle">Adicionar Nova Faixa</h3>
+            <input type="hidden" id="editingTrackItemId">
+
+            <div class="studio-form-group">
+                <label for="albumTrackNameInput">Nome da Faixa</label>
+                <input type="text" id="albumTrackNameInput" placeholder="Ex: Kitsch" required />
+            </div>
+            <div class="studio-form-group">
+                <label for="albumTrackDurationInput">Duração (formato MM:SS)</label>
+                <input type="text" id="albumTrackDurationInput" placeholder="Ex: 3:15" pattern="\d{1,2}:\d{2}" required />
+            </div>
+            <div class="studio-form-group">
+                <label for="albumTrackTypeSelect">Tipo de Faixa</label>
+                 <select id="albumTrackTypeSelect">
+                    <option value="Album Track" selected>Album Track</option>
+                    <option value="Single">Single (A-side)</option>
+                    <option value="B-side">B-side</option>
+                </select>
+            </div>
+            <div class="feat-section">
+                <label>Participações (Feat.)</label>
+                <div class="feat-list" id="albumTrackFeatList">
+                  </div>
+                 <button type="button" class="small-btn add-feat-btn" data-target="albumTrackFeatList"><i class="fas fa-plus"></i> Adicionar Feat</button>
+              </div>
+            <div class="modal-actions">
+                <button type="button" class="submit-btn" id="saveAlbumTrackBtn">Salvar Faixa</button>
+                <button type="button" class="cancel-btn" id="cancelAlbumTrackBtn">Cancelar</button>
             </div>
         </div>
     </div>
