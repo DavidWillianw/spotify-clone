@@ -1,3 +1,90 @@
+/* --- ESTILOS ADICIONAIS PARA SELEÇÃO DE FAIXA PRINCIPAL --- */
+
+.track-list-item .track-selection {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espaço entre número e estrela */
+    flex-shrink: 0; /* Impede que encolha */
+}
+
+.track-list-item .main-track-radio {
+    appearance: none; /* Esconde o radio button padrão */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 0;
+    height: 0;
+    margin: 0;
+    position: absolute; /* Tira do fluxo normal */
+}
+
+.track-list-item .main-track-label {
+    cursor: pointer;
+    color: var(--text-secondary); /* Cor padrão da estrela */
+    font-size: 16px; /* Tamanho do ícone */
+    padding: 5px; /* Área de clique maior */
+    line-height: 1;
+    display: inline-block;
+    transition: color 0.2s ease;
+}
+
+.track-list-item .main-track-label:hover {
+    color: var(--text-primary); /* Estrela branca no hover */
+}
+
+/* Estilo quando o radio button está selecionado */
+.track-list-item .main-track-radio:checked + .main-track-label {
+    color: var(--spotify-green); /* Estrela verde quando selecionado */
+}
+
+/* Indicador de Faixa Principal na página do Álbum */
+.track-row .track-info .main-track-indicator {
+    color: var(--spotify-green);
+    font-size: 0.8em; /* Menor que o texto */
+    margin-left: 6px;
+    vertical-align: middle; /* Alinha com o texto */
+}
+
+/* Ajustes finos no layout do editor de tracklist */
+.track-list-item .track-main-row {
+    align-items: flex-start; /* Alinha itens ao topo para melhor visual com feats */
+}
+.track-list-item .track-inputs {
+    /* Mantém flex em linha por padrão */
+    display: flex;
+    gap: 10px;
+    align-items: center; /* Alinha inputs verticalmente */
+}
+.track-list-item .track-inputs input.track-duration-input {
+     width: 70px; /* Largura menor padrão */
+}
+
+/* Ajustes Desktop para o seletor de faixa principal */
+@media (min-width: 768px) {
+    .track-list-item .track-inputs {
+        /* Restaura o grid do desktop, adicionando coluna para radio/label */
+       display: grid;
+       grid-template-columns: 1fr 100px; /* Título, Duração */
+       gap: 12px;
+       flex-grow: 1;
+       align-items: center;
+    }
+    .track-list-item .track-selection {
+        /* Posiciona número e estrela na primeira coluna implícita do grid pai (.track-main-row) */
+        gap: 10px;
+    }
+    .track-list-item .track-inputs input.track-duration-input {
+        width: 100%; /* Ocupa a coluna do grid */
+    }
+     .track-list-item .track-main-row {
+        /* Reajusta grid pai para acomodar a seleção */
+        display: grid;
+        grid-template-columns: auto auto 1fr auto auto; /* Drag, Seleção, Inputs, Feat, Del */
+        align-items: center;
+        gap: 10px;
+     }
+}
+
+/* (Cole o restante do seu CSS aqui se ele não estiver já incluído acima) */
 /* --- VARIAVEIS E ESTILOS GLOBAIS --- */
 :root {
   --spotify-green: #1db954;
@@ -20,6 +107,29 @@ body {
   overflow-x: hidden;
 }
 .hidden { display: none !important; }
+
+/* Adiciona classe de loading ao body */
+body.loading::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+body.loading::after {
+    content: 'Carregando...';
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-primary);
+    font-size: 1.2em;
+    font-weight: bold;
+    z-index: 10000;
+}
+
 
 .main-container { padding-bottom: 90px; }
 
@@ -63,7 +173,7 @@ body {
 
 /* --- GRADES DE ARTISTAS E ÁLBUNS --- */
 .artists-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; }
-.artist-card { text-align: center; cursor: pointer; position: relative; /* Para o rank RPG */ }
+.artist-card { text-align: center; cursor: pointer; position: relative; }
 .artist-card img {
   width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 50%;
   margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); transition: transform 0.3s ease;
@@ -272,6 +382,12 @@ body {
   width: 100%; background-color: var(--background-tertiary); border: 1px solid #535353;
   color: var(--text-primary); padding: 14px; border-radius: 6px; font-size: 14px;
   font-family: "Montserrat", sans-serif; margin-bottom: 16px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23b3b3b3' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10L8 11z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px;
+  padding-right: 40px;
 }
 #loginButton { width: 100%; }
 #loggedInInfo p { font-size: 14px; color: var(--text-secondary); }
@@ -321,9 +437,43 @@ body {
 .track-list-editor { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
 .track-list-item { display: flex; flex-direction: column; gap: 10px; background-color: var(--background-tertiary); padding: 10px; border-radius: 6px; }
 .track-main-row { display: flex; align-items: center; width: 100%; gap: 10px;}
-.drag-handle { cursor: grab; color: var(--text-secondary); padding: 0 5px; }
+.drag-handle { cursor: grab; color: var(--text-secondary); padding: 0 5px; flex-shrink: 0; }
 .drag-handle:active { cursor: grabbing; }
-.track-inputs { flex-grow: 1; display: flex; gap: 10px; align-items: center; }
+
+/* Wrapper para número e estrela */
+.track-list-item .track-selection {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+/* Esconde radio padrão */
+.track-list-item .main-track-radio {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 0; height: 0; margin: 0;
+    position: absolute;
+}
+/* Estilo da estrela clicável */
+.track-list-item .main-track-label {
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 16px;
+    padding: 5px;
+    line-height: 1;
+    display: inline-block;
+    transition: color 0.2s ease;
+}
+.track-list-item .main-track-label:hover {
+    color: var(--text-primary);
+}
+/* Estrela verde quando selecionada */
+.track-list-item .main-track-radio:checked + .main-track-label {
+    color: var(--spotify-green);
+}
+
+.track-inputs { flex-grow: 1; display: flex; gap: 10px; align-items: center; min-width: 0; /* Permite encolher */}
 .track-inputs .track-number { font-size: 14px; font-weight: 700; color: var(--text-secondary); width: 20px; text-align: right; flex-shrink: 0; }
 .track-inputs input[type="text"] {
     padding: 10px; font-size: 12px; margin: 0;
@@ -338,12 +488,12 @@ body {
     width: 70px;
     text-align: center;
 }
-.delete-track-btn { background: none; border: none; color: var(--trend-down-red); font-size: 16px; cursor: pointer; padding: 5px; }
+.delete-track-btn { background: none; border: none; color: var(--trend-down-red); font-size: 16px; cursor: pointer; padding: 5px; flex-shrink: 0; }
 .track-list-item.sortable-ghost { opacity: 0.4; background: #3f3f3f; }
 .feat-target-hidden { display: none; }
 
 /* Seção de Feat (dentro de .track-list-item ou .feat-section do single) */
-.feat-section { margin-top: 10px; padding-left: 25px; }
+.feat-section { margin-top: 10px; padding-left: 50px; /* Alinha com inputs, considerando número+estrela */ }
 .feat-section label { font-size: 11px; font-weight: 600; color: var(--spotify-green); margin-bottom: 5px; text-transform: uppercase; display: block; }
 .feat-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .feat-tag {
@@ -352,7 +502,7 @@ body {
     display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
 }
 .feat-tag:hover { color: var(--text-primary); }
-.add-feat-btn { font-size: 11px; padding: 4px 6px; }
+.add-feat-btn { font-size: 11px; padding: 4px 6px; flex-shrink: 0; }
 
 
 /* Estilos do Modal de Feat */
@@ -375,6 +525,20 @@ body {
 
 
 .bottom-nav-item .fa-microphone-alt { font-size: 22px; }
+
+/* Indicador de Faixa Principal na página do Álbum */
+.track-row .track-info .main-track-indicator {
+    color: var(--spotify-green);
+    font-size: 0.8em;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+/* Opcional: Destacar a linha da faixa principal */
+.track-row.main-track .track-title {
+    font-weight: 700;
+    /* color: var(--spotify-green);  Pode ser muito chamativo */
+}
+
 
 /* ========================================================== */
 /* ============= MELHORIAS PARA DESKTOP (PC) ================ */
@@ -414,17 +578,28 @@ body {
   #loginButton { width: auto; }
 
   /* Ajuste no editor de tracklist para Desktop */
-  .track-main-row { width: auto; }
+   .track-list-item .track-main-row {
+        /* Reajusta grid pai para acomodar a seleção */
+        display: grid;
+        grid-template-columns: auto auto 1fr auto auto; /* Drag, Seleção, Inputs, Feat, Del */
+        align-items: center;
+        gap: 10px;
+     }
   .track-inputs {
-    display: grid; grid-template-columns: 20px 1fr 100px; /* Num, Título, Duração */
-    gap: 12px; flex-grow: 1; align-items: center;
+    /* Muda para grid no desktop */
+    display: grid;
+    grid-template-columns: 1fr 100px; /* Título, Duração */
+    gap: 12px;
+    flex-grow: 1;
+    align-items: center;
+    width: 100%; /* Garante que o grid ocupe o espaço */
   }
    /* Garante que a largura volte ao normal no desktop */
   .track-inputs input.track-duration-input {
       width: 100%; /* Ocupa a coluna do grid */
   }
-  .track-list-item .track-number { line-height: inherit; }
-  .feat-section { padding-left: 45px; }
+  .track-list-item .track-number { line-height: inherit; width: auto; /* Deixa o grid controlar */}
+  .feat-section { padding-left: 65px; /* Ajusta o padding esquerdo */ }
 
 }
 
