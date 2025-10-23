@@ -325,12 +325,16 @@ body {
 .drag-handle:active { cursor: grabbing; }
 .track-inputs { flex-grow: 1; display: flex; gap: 10px; align-items: center; }
 .track-inputs .track-number { font-size: 14px; font-weight: 700; color: var(--text-secondary); width: 20px; text-align: right; flex-shrink: 0; }
-.track-inputs input[type="text"] {
+
+/* CORREÇÃO AQUI: Aplica a inputs e selects */
+.track-inputs input[type="text"],
+.track-inputs select.track-type-select {
     padding: 10px; font-size: 12px; margin: 0;
     background-color: var(--background-primary); border: 1px solid #535353; border-radius: 4px; color: var(--text-primary);
     flex-grow: 1;
     width: auto;
     min-width: 0;
+    font-family: "Montserrat", sans-serif; /* Garante a fonte */
 }
 .track-inputs input.track-duration-input {
     flex-grow: 0;
@@ -338,6 +342,12 @@ body {
     width: 70px;
     text-align: center;
 }
+/* Estilo específico para o select do tipo de faixa */
+.track-inputs select.track-type-select {
+    flex-grow: 0;
+    width: 120px; /* Largura específica para mobile */
+}
+
 .delete-track-btn { background: none; border: none; color: var(--trend-down-red); font-size: 16px; cursor: pointer; padding: 5px; }
 .track-list-item.sortable-ghost { opacity: 0.4; background: #3f3f3f; }
 .feat-target-hidden { display: none; }
@@ -375,6 +385,15 @@ body {
 
 
 .bottom-nav-item .fa-microphone-alt { font-size: 22px; }
+
+/* Estilo para a descrição do novo modal */
+.modal-content p.modal-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
 
 /* ========================================================== */
 /* ============= MELHORIAS PARA DESKTOP (PC) ================ */
@@ -414,15 +433,17 @@ body {
   #loginButton { width: auto; }
 
   /* Ajuste no editor de tracklist para Desktop */
-  .track-main-row { width: auto; }
-  .track-inputs {
-    display: grid; grid-template-columns: 20px 1fr 100px; /* Num, Título, Duração */
-    gap: 12px; flex-grow: 1; align-items: center;
-  }
-   /* Garante que a largura volte ao normal no desktop */
-  .track-inputs input.track-duration-input {
-      width: 100%; /* Ocupa a coluna do grid */
-  }
+   .track-main-row { width: auto; }
+   .track-inputs {
+        display: grid;
+        grid-template-columns: 20px 1fr 100px 120px; /* Num, Título, Duração, TIPO */
+        gap: 12px; flex-grow: 1; align-items: center;
+    }
+    /* Garante que a largura volte ao normal no desktop */
+    .track-inputs input.track-duration-input,
+    .track-inputs select.track-type-select {
+        width: 100%; /* Ocupa a coluna do grid */
+    }
   .track-list-item .track-number { line-height: inherit; }
   .feat-section { padding-left: 45px; }
 
