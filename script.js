@@ -808,29 +808,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     function populateFeatModalArtistSelect() {
         let currentMainArtistId = null;
 
-        // Verifica qual formulário ou modal está ativo para pegar o artista principal correto
         if (document.getElementById('newSingleForm').classList.contains('active')) {
             currentMainArtistId = singleArtistSelect.value;
         } else if (document.getElementById('newAlbumForm').classList.contains('active')) {
-             // Se o modal de faixa do album estiver aberto, pegamos dali, senão do select principal do album
-             if (!albumTrackModal.classList.contains('hidden') || editingTrackItem) {
-                 currentMainArtistId = albumArtistSelect.value; // Ainda pega do select principal do album
-             } else {
-                 currentMainArtistId = albumArtistSelect.value;
-             }
+             // Pega o artista principal do formulário do álbum, mesmo se o modal de faixa estiver aberto
+             currentMainArtistId = albumArtistSelect.value;
         } else {
              console.warn("Não foi possível determinar o artista principal para filtrar o select de feats.");
         }
 
 
         featArtistSelect.innerHTML = db.artists
-            .filter(a => a.id !== currentMainArtistId) // Filtra para não adicionar o artista principal como feat
+            .filter(a => a.id !== currentMainArtistId)
             .sort((a,b) => a.name.localeCompare(b.name))
             .map(a => `<option value="${a.id}">${a.name}</option>`)
             .join('');
     }
 
-    // ATUALIZADO: openFeatModal agora lida com múltiplos targets
     function openFeatModal(buttonElement) {
         const targetId = buttonElement.dataset.target; // Ex: 'singleFeatList' ou 'albumTrackFeatList'
         currentFeatTarget = document.getElementById(targetId);
@@ -847,10 +841,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function closeFeatModal() {
         featModal.classList.add('hidden');
-        currentFeatTarget = null; // Limpa o alvo ao fechar
+        currentFeatTarget = null;
     }
 
-    // ATUALIZADO: confirmFeat verifica o ID do alvo
     function confirmFeat() {
         const artistId = featArtistSelect.value;
         const artistName = featArtistSelect.options[featArtistSelect.selectedIndex].text;
@@ -866,10 +859,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         featTag.textContent = `${featType} ${artistName}`;
         featTag.dataset.artistId = artistId;
         featTag.dataset.featType = featType;
-        featTag.dataset.artistName = artistName; // Guarda o nome para exibição/edição
+        featTag.dataset.artistName = artistName;
         featTag.addEventListener('click', () => featTag.remove());
 
-        // Anexa a tag ao container correto
         currentFeatTarget.appendChild(featTag);
 
         closeFeatModal();
@@ -898,15 +890,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         confirmFeatBtn.addEventListener('click', confirmFeat);
         cancelFeatBtn.addEventListener('click', closeFeatModal);
 
-        // Listener de eventos delegado para botões "Adicionar Feat"
+        // Listener para botões "Adicionar Feat" DENTRO DOS FORMULÁRIOS PRINCIPAIS
         studioLaunchWrapper.addEventListener('click', (e) => {
             const addFeatButton = e.target.closest('.add-feat-btn');
-            if (addFeatButton) {
+            // Certifica que o botão clicado está DENTRO do #studioLaunchWrapper
+            // (Isso agora só deve pegar o botão do Single Form)
+            if (addFeatButton && studioLaunchWrapper.contains(addFeatButton)) {
                 openFeatModal(addFeatButton);
             }
         });
 
-        // Listener para o novo botão de abrir modal de faixa do álbum
+        // **NOVO LISTENER:** Para o botão "Adicionar Feat" DENTRO DO MODAL DE FAIXA DO ÁLBUM
+        if(albumTrackModal) {
+            albumTrackModal.addEventListener('click', (e) => {
+                 const addFeatButton = e.target.closest('.add-feat-btn');
+                 if(addFeatButton) {
+                     openFeatModal(addFeatButton);
+                 }
+            });
+        }
+
+        // Listener para o botão de abrir modal de faixa do álbum
         if (openAddTrackModalBtn) {
             openAddTrackModalBtn.addEventListener('click', () => openAlbumTrackModal());
         }
@@ -935,7 +939,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const item = removeButton.closest('.track-list-item-display');
                     if (item) {
                         item.remove();
-                        updateTrackNumbers(); // Atualiza a numeração após remover
+                        updateTrackNumbers();
                     }
                 }
             });
@@ -972,12 +976,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     function parseDurationToSeconds(durationStr) {
         if (!durationStr) return 0;
         const parts = durationStr.split(':');
-        if (parts.length !== 2) return 0; // Retorna 0 se o formato estiver errado
+        if (parts.length !== 2) return 0;
         const minutes = parseInt(parts[0], 10);
         const seconds = parseInt(parts[1], 10);
-        // Verifica se os números são válidos
         if (isNaN(minutes) || isNaN(seconds) || seconds < 0 || seconds > 59 || minutes < 0) {
-            return 0; // Retorna 0 se os valores não forem válidos
+            return 0;
         }
         return (minutes * 60) + seconds;
     }
@@ -1093,16 +1096,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ATUALIZADO: initAlbumForm apenas inicializa a lista e o botão
     function initAlbumForm() {
-        // Limpa a lista ao inicializar (ou re-inicializar após submit)
-        albumTracklistEditor.innerHTML = '';
-        updateTrackNumbers(); // Garante que a mensagem "nenhuma faixa" apareça se estiver vazia
+        albumTracklistEditor.innerHTML = ''; // Limpa a lista
+        updateTrackNumbers(); // Mostra msg "nenhuma faixa"
 
-        // Inicializa SortableJS na lista de exibição
         if (albumTracklistEditor && typeof Sortable !== 'undefined') {
+            // Destrói instância anterior se existir
+            if(albumTracklistSortable) {
+                albumTracklistSortable.destroy();
+            }
+            // Cria nova instância
             albumTracklistSortable = Sortable.create(albumTracklistEditor, {
                 animation: 150,
                 handle: '.drag-handle',
-                onEnd: updateTrackNumbers // Atualiza a numeração visual após arrastar
+                onEnd: updateTrackNumbers
             });
         } else if (typeof Sortable === 'undefined') {
             console.warn("SortableJS não está carregado. Reordenação de faixas desabilitada.");
@@ -1111,25 +1117,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // NOVO: Abre o modal de faixa do álbum (para adicionar ou editar)
     function openAlbumTrackModal(itemToEdit = null) {
-        // Limpa o formulário do modal
         albumTrackNameInput.value = '';
         albumTrackDurationInput.value = '';
-        albumTrackTypeSelect.value = 'Album Track'; // Padrão
+        albumTrackTypeSelect.value = 'Album Track';
         albumTrackFeatList.innerHTML = '';
-        editingTrackItemId.value = ''; // Limpa o ID de edição
-        editingTrackItem = null; // Limpa a referência ao item
+        editingTrackItemId.value = '';
+        editingTrackItem = null;
 
         if (itemToEdit) {
-            // Modo Edição: Preenche o modal com dados do item
             albumTrackModalTitle.textContent = 'Editar Faixa';
-            editingTrackItemId.value = itemToEdit.dataset.itemId || `temp_${Date.now()}`; // Usa ID temporário se não houver
-            editingTrackItem = itemToEdit; // Guarda a referência
+            // Usa ID real se existir, senão o temporário
+            editingTrackItemId.value = itemToEdit.id || itemToEdit.dataset.itemId;
+            editingTrackItem = itemToEdit;
 
             albumTrackNameInput.value = itemToEdit.dataset.trackName || '';
             albumTrackDurationInput.value = itemToEdit.dataset.durationStr || '';
             albumTrackTypeSelect.value = itemToEdit.dataset.trackType || 'Album Track';
 
-            // Recria as tags de feat
             const feats = JSON.parse(itemToEdit.dataset.feats || '[]');
             feats.forEach(feat => {
                 const featTag = document.createElement('span');
@@ -1143,8 +1147,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
         } else {
-            // Modo Adição
             albumTrackModalTitle.textContent = 'Adicionar Nova Faixa';
+            // Gera um ID temporário para o novo item
+            editingTrackItemId.value = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
         }
 
         albumTrackModal.classList.remove('hidden');
@@ -1153,7 +1158,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // NOVO: Fecha o modal de faixa do álbum
     function closeAlbumTrackModal() {
         albumTrackModal.classList.add('hidden');
-        editingTrackItem = null; // Limpa a referência ao item em edição
+        editingTrackItem = null;
         editingTrackItemId.value = '';
     }
 
@@ -1163,13 +1168,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const durationStr = albumTrackDurationInput.value.trim();
         const trackType = albumTrackTypeSelect.value;
         const durationSec = parseDurationToSeconds(durationStr);
+        const currentItemId = editingTrackItemId.value; // Pega o ID (real ou temp)
 
         if (!trackName || !durationStr || durationSec === 0) {
             alert("Por favor, preencha o Nome e uma Duração válida (MM:SS) para a faixa.");
             return;
         }
 
-        // Coleta os feats do modal
         const featTags = albumTrackFeatList.querySelectorAll('.feat-tag');
         const featsData = Array.from(featTags).map(tag => ({
             id: tag.dataset.artistId,
@@ -1177,35 +1182,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             name: tag.dataset.artistName
         }));
 
-        if (editingTrackItem) {
-            // --- ATUALIZAR ITEM EXISTENTE ---
-            editingTrackItem.dataset.trackName = trackName;
-            editingTrackItem.dataset.durationStr = durationStr;
-            editingTrackItem.dataset.trackType = trackType;
-            editingTrackItem.dataset.feats = JSON.stringify(featsData); // Guarda feats como JSON
+        // Tenta encontrar um item existente com o ID
+        let targetItem = editingTrackItem || albumTracklistEditor.querySelector(`[data-item-id="${currentItemId}"]`);
 
-            // Atualiza a exibição do item na lista
-            editingTrackItem.querySelector('.track-title-display').textContent = trackName;
-            editingTrackItem.querySelector('.track-details-display .duration').textContent = `Duração: ${durationStr}`;
-            editingTrackItem.querySelector('.track-details-display .type').textContent = `Tipo: ${trackType}`;
-            // Atualiza a exibição dos feats (opcional, mas bom ter)
-            const featDisplay = editingTrackItem.querySelector('.feat-list-display');
-            if(featDisplay) { // Limpa e recria feats visuais se necessário (ou apenas atualiza os dados)
+        if (targetItem) {
+            // --- ATUALIZAR ITEM EXISTENTE ---
+            targetItem.dataset.trackName = trackName;
+            targetItem.dataset.durationStr = durationStr;
+            targetItem.dataset.trackType = trackType;
+            targetItem.dataset.feats = JSON.stringify(featsData);
+
+            // Atualiza a exibição visual
+            targetItem.querySelector('.track-title-display').textContent = trackName;
+            targetItem.querySelector('.track-details-display .duration').textContent = `Duração: ${durationStr}`;
+            targetItem.querySelector('.track-details-display .type').textContent = `Tipo: ${trackType}`;
+            const featDisplay = targetItem.querySelector('.feat-list-display');
+            if(featDisplay) {
                  featDisplay.innerHTML = featsData.map(f => `<span class="feat-tag-display">${f.type} ${f.name}</span>`).join('');
             }
 
-
         } else {
             // --- ADICIONAR NOVO ITEM ---
-            const newItemId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
             const newItem = document.createElement('div');
             newItem.className = 'track-list-item-display';
-            // Guarda todos os dados no dataset
-            newItem.dataset.itemId = newItemId;
+            newItem.dataset.itemId = currentItemId; // Usa o ID temporário gerado
             newItem.dataset.trackName = trackName;
             newItem.dataset.durationStr = durationStr;
             newItem.dataset.trackType = trackType;
-            newItem.dataset.feats = JSON.stringify(featsData); // Guarda feats como JSON string
+            newItem.dataset.feats = JSON.stringify(featsData);
 
             newItem.innerHTML = `
                 <i class="fas fa-bars drag-handle"></i>
@@ -1215,7 +1219,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <span class="duration">Duração: ${durationStr}</span>
                         <span class="type">Tipo: ${trackType}</span>
                     </div>
-                     <div class="feat-list feat-list-display" style="margin-top: 5px;">
+                    <div class="feat-list feat-list-display" style="margin-top: 5px;">
                        ${featsData.map(f => `<span class="feat-tag-display">${f.type} ${f.name}</span>`).join('')}
                     </div>
                 </div>
@@ -1235,28 +1239,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ATUALIZADO: updateTrackNumbers para a nova lista de exibição
     function updateTrackNumbers() {
         const tracks = albumTracklistEditor.querySelectorAll('.track-list-item-display');
-         // Adiciona mensagem se a lista estiver vazia
+
         if (tracks.length === 0 && albumTracklistEditor.querySelector('.empty-state-small') === null) {
-            albumTracklistEditor.innerHTML = '<p class="empty-state-small">Nenhuma faixa adicionada ainda.</p>';
-        } else if (tracks.length > 0 && albumTracklistEditor.querySelector('.empty-state-small')) {
-            albumTracklistEditor.querySelector('.empty-state-small').remove(); // Remove a mensagem se adicionar faixa
+            // Só adiciona a mensagem se ela já não existir
+             if (!albumTracklistEditor.querySelector('.empty-state-small')) {
+                 albumTracklistEditor.innerHTML = '<p class="empty-state-small">Nenhuma faixa adicionada ainda.</p>';
+             }
+        } else if (tracks.length > 0) {
+            // Remove a mensagem se existir e houver faixas
+             const emptyState = albumTracklistEditor.querySelector('.empty-state-small');
+             if (emptyState) {
+                 emptyState.remove();
+             }
         }
 
+
         tracks.forEach((track, index) => {
-            // Adiciona ou atualiza o número da faixa visualmente (opcional, pode ser feito só no submit)
             let numSpan = track.querySelector('.track-number-display');
             if(!numSpan) {
                 numSpan = document.createElement('span');
                 numSpan.className = 'track-number-display';
-                // Insere antes do drag handle para manter a ordem visual
-                 track.insertBefore(numSpan, track.firstChild);
+                 track.insertBefore(numSpan, track.querySelector('.drag-handle').nextSibling); // Insere DEPOIS do drag handle
             }
              numSpan.textContent = `${index + 1}.`;
              numSpan.style.fontWeight = '700';
              numSpan.style.color = 'var(--text-secondary)';
-             numSpan.style.width = '25px'; // Espaço para o número
+             numSpan.style.width = '25px';
              numSpan.style.textAlign = 'right';
-             numSpan.style.marginRight = '5px';
+             // Remove margem direita se existir, o gap do flex container cuida disso
+             numSpan.style.marginRight = '0';
 
         });
     }
@@ -1269,7 +1280,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         const results = [];
         for (const chunk of chunks) {
-            console.log(`Enviando lote para ${tableName}:`, chunk); // Log antes de stringify
+            console.log(`Enviando lote para ${tableName}:`, chunk);
             try {
                 const response = await fetch(url, {
                     method: 'POST',
@@ -1312,7 +1323,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error("Campos obrigatórios do álbum faltando.");
             }
 
-            // Lê as faixas da lista de exibição
             const trackItems = albumTracklistEditor.querySelectorAll('.track-list-item-display');
             if (trackItems.length === 0) {
                 alert("O álbum/EP precisa ter pelo menos uma faixa.");
@@ -1322,7 +1332,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             let totalDurationSec = 0;
             const musicRecordsToCreate = [];
 
-            // Itera sobre os itens da lista para obter os dados
             for (let index = 0; index < trackItems.length; index++) {
                 const item = trackItems[index];
                 const trackName = item.dataset.trackName;
@@ -1332,29 +1341,27 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const durationSec = parseDurationToSeconds(durationStr);
 
                  if (!trackName || !durationStr || durationSec === 0) {
-                    // Isso não deveria acontecer se a validação no modal estiver correta
                     alert(`Dados inválidos encontrados na Faixa ${index + 1}. Por favor, edite-a.`);
                     throw new Error(`Dados inválidos na faixa ${index + 1}.`);
                 }
 
                 totalDurationSec += durationSec;
 
-                // Processa nome final e artistas com base nos feats
                 let finalTrackName = trackName;
                 let finalArtistIds = [artistId];
                 let collabType = null;
 
                 if (featsData.length > 0) {
-                     collabType = featsData[0].type; // Assume que todas feats na mesma faixa são do mesmo tipo
+                     collabType = featsData[0].type;
                      const featArtistIds = featsData.map(f => f.id);
                      const featArtistNames = featsData.map(f => f.name);
 
                      if (collabType === "Feat.") {
                          finalTrackName = `${trackName} (feat. ${featArtistNames.join(', ')})`;
-                         finalArtistIds = [artistId]; // Apenas o principal
+                         finalArtistIds = [artistId];
                      } else if (collabType === "Dueto/Grupo") {
                          finalTrackName = trackName;
-                         finalArtistIds = [artistId, ...featArtistIds]; // Todos
+                         finalArtistIds = [artistId, ...featArtistIds];
                      }
                 }
 
@@ -1362,9 +1369,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     "Nome da Faixa": finalTrackName,
                     "Artista": finalArtistIds,
                     "Duração": durationSec,
-                    "Nº da Faixa": index + 1, // Posição na lista
+                    "Nº da Faixa": index + 1,
                     "Tipo de Faixa": trackType
-                    // O link para Álbum ou Single/EP será adicionado depois
                 };
 
                 if (collabType) {
@@ -1372,16 +1378,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 musicRecordsToCreate.push(musicRecord);
-            } // Fim do loop for trackItems
+            }
 
-
-            // Determina se é Álbum ou EP/Single
             const isAlbum = totalDurationSec >= (30 * 60);
             const tableName = isAlbum ? 'Álbuns' : 'Singles e EPs';
             const nameField = isAlbum ? 'Nome do Álbum' : 'Nome do Single/EP';
             const coverField = isAlbum ? 'Capa do Álbum' : 'Capa';
 
-            // Cria o registro do Álbum/EP
             const releaseRecordResponse = await createAirtableRecord(tableName, {
                 [nameField]: albumTitle,
                 "Artista": [artistId],
@@ -1394,30 +1397,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             const releaseRecordId = releaseRecordResponse.id;
 
-            // Define o nome correto do campo de link na tabela Músicas
             const albumLinkFieldNameInMusicas = 'Álbuns';
             const singleLinkFieldNameInMusicas = 'Singles e EPs';
             const correctLinkField = isAlbum ? albumLinkFieldNameInMusicas : singleLinkFieldNameInMusicas;
 
-            // Adiciona o link do Álbum/EP a cada registro de música
             musicRecordsToCreate.forEach(record => {
                 record[correctLinkField] = [releaseRecordId];
             });
 
-            // Envia as músicas em lote para o Airtable
+
             const createdSongs = await batchCreateAirtableRecords('Músicas', musicRecordsToCreate);
 
             if (!createdSongs || createdSongs.length !== musicRecordsToCreate.length) {
                 console.error("Álbum/EP criado, mas falha ao criar as músicas vinculadas.");
-                // Opcional: Implementar rollback (deletar o álbum/EP)
                 throw new Error("Falha ao criar as faixas no Airtable.");
             }
 
             alert("Álbum/EP lançado com sucesso!");
-            newAlbumForm.reset(); // Limpa campos principais
-            albumReleaseDateInput.value = new Date().toISOString().split('T')[0]; // Reseta data
-            initAlbumForm(); // Limpa e reinicializa a lista de faixas
-            await refreshAllData(); // Atualiza toda a aplicação
+            newAlbumForm.reset();
+            albumReleaseDateInput.value = new Date().toISOString().split('T')[0];
+            initAlbumForm(); // Limpa e reinicializa a lista
+            await refreshAllData();
 
         } catch (error) {
             alert("Erro ao lançar o álbum/EP. Verifique o console e os campos preenchidos.");
@@ -1485,7 +1485,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!initializeData(data)) return;
 
             try {
-                initializeStudio();
+                initializeStudio(); // Configura listeners, incluindo os dos novos modais
 
                 if (newSingleForm) newSingleForm.addEventListener('submit', handleSingleSubmit);
                 if (newAlbumForm) newAlbumForm.addEventListener('submit', handleAlbumSubmit);
@@ -1505,6 +1505,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         submitBtn.textContent = 'Lançar Single';
                     });
                 }
+
 
                 renderRPGChart();
 
