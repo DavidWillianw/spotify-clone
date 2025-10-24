@@ -990,7 +990,6 @@ const renderChart = (type) => {
             console.error("Initialization failed: Data load error.");
         }
         document.body.classList.remove('loading');
-  m
     main();
 
 }); // Fim DOMContentLoaded
