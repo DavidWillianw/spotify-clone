@@ -1,23 +1,23 @@
 /* --- VARIAVEIS E ESTILOS GLOBAIS --- */
 :root {
-  --spotify-green: #1db954;
-  --background-primary: #121212;
-  --background-secondary: #181818;
-  --background-tertiary: #282828;
-  --text-primary: #ffffff;
-  --text-secondary: #b3b3b3;
-  --blur-background: rgba(18, 18, 18, 0.7);
-  --verified-blue: #3d91f4;
-  --trend-down-red: #e22134;
+  --spotify-green: #1db954;
+  --background-primary: #121212;
+  --background-secondary: #181818;
+  --background-tertiary: #282828;
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --blur-background: rgba(18, 18, 18, 0.7);
+  --verified-blue: #3d91f4;
+  --trend-down-red: #e22134;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: "Montserrat", sans-serif;
-  background-color: var(--background-primary);
-  color: var(--text-primary);
-  overflow-x: hidden;
+  font-family: "Montserrat", sans-serif;
+  background-color: var(--background-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
 }
 .hidden { display: none !important; }
 
@@ -27,28 +27,28 @@ body {
 
 /* --- BARRA SUPERIOR (TOPO) --- */
 .topbar {
-  background: var(--blur-background); padding: 16px; position: sticky;
-  top: 0; z-index: 100; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  background: var(--blur-background); padding: 16px; position: sticky;
+  top: 0; z-index: 100; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
 .search-bar {
-  background-color: var(--background-tertiary); border-radius: 500px; padding: 10px 16px;
-  display: flex; align-items: center; gap: 12px;
+  background-color: var(--background-tertiary); border-radius: 500px; padding: 10px 16px;
+  display: flex; align-items: center; gap: 12px;
 }
 .search-bar input {
-  background: none; border: none; color: var(--text-primary); font-size: 14px;
-  width: 100%; outline: none;
+  background: none; border: none; color: var(--text-primary); font-size: 14px;
+  width: 100%; outline: none;
 }
 .search-bar i { color: var(--text-secondary); }
 .nav-tabs {
-  display: flex; gap: 12px; overflow-x: auto; padding: 16px 0 8px;
-  scrollbar-width: none;
+  display: flex; gap: 12px; overflow-x: auto; padding: 16px 0 8px;
+  scrollbar-width: none;
 }
 .nav-tabs::-webkit-scrollbar { display: none; }
 .nav-tab {
-  background-color: var(--background-tertiary); color: var(--text-primary);
-  border: 1px solid transparent; padding: 8px 16px; border-radius: 500px;
-  font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
-  transition: all 0.2s ease;
+  background-color: var(--background-tertiary); color: var(--text-primary);
+  border: 1px solid transparent; padding: 8px 16px; border-radius: 500px;
+  font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  transition: all 0.2s ease;
 }
 .nav-tab.active { background-color: var(--spotify-green); border-color: var(--spotify-green); }
 .nav-tab:hover:not(.active) { background-color: #3f3f3f; }
@@ -65,218 +65,101 @@ body {
 .artists-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; }
 .artist-card { text-align: center; cursor: pointer; position: relative; /* Para o rank RPG */ }
 .artist-card img {
-  width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 50%;
-  margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); transition: transform 0.3s ease;
+  width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 50%;
+  margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); transition: transform 0.3s ease;
 }
 .artist-card:hover img { transform: scale(1.05); }
 .artist-card .artist-card-name {
-  font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden;
-  text-overflow: ellipsis; color: var(--text-primary);
+  font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; color: var(--text-primary);
 }
 .artist-card .artist-card-type {
-  font-size: 12px; color: var(--text-secondary);
+  font-size: 12px; color: var(--text-secondary);
 }
 
 .album-card-grid { cursor: pointer; }
 .album-card-grid img {
-  width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 8px;
-  margin-bottom: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 8px;
+  margin-bottom: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 .album-card-grid .album-title {
-  font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden;
-  text-overflow: ellipsis; margin-bottom: 4px;
+  font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; margin-bottom: 4px;
 }
 .album-card-grid .album-year { font-size: 12px; color: var(--text-secondary); }
 
-
-/* ========================================================== */
-/* ============= ESTILOS DOS CHARTS E INDICADORES (CORRETO) ============= */
-/* ========================================================== */
-
-/* --- Estilos Gerais do Header dos Charts --- */
+/* --- CHARTS --- */
 .chart-header {
-  background: linear-gradient(135deg, #1db954 0%, #1db954 100%); padding: 20px;
-  border-radius: 12px; margin-bottom: 16px; text-align: center;
+  background: linear-gradient(135deg, #1db954 0%, #1db954 100%); padding: 20px;
+  border-radius: 12px; margin-bottom: 16px; text-align: center;
 }
 .chart-header h3 { font-size: 18px; margin-bottom: 8px; }
 .chart-header p { font-size: 12px; color: black; }
-
-
-/* --- Layout do Chart em Lista (Músicas e Álbuns) --- */
 .chart-list .chart-item {
-  display: grid;
-  /* Colunas: Indicador (20px) | Rank (25px) | Imagem (50px) | Info (1fr) | Duração (auto) */
-  grid-template-columns: 20px 25px 50px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 4px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  display: grid; grid-template-columns: 25px 50px 1fr auto; align-items: center;
+  gap: 12px; padding: 10px 4px; border-radius: 6px; cursor: pointer;
+  transition: background-color 0.2s ease;
 }
-.chart-list .chart-item:hover {
-  background-color: var(--background-tertiary);
-}
-
-/* 1. Indicador (🔺, 🔻, ➖) */
-.chart-item .chart-rank-indicator {
-    width: 20px;
-    text-align: center;
-    font-size: 14px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* 2. Rank (#1, #2) */
+.chart-item:hover { background-color: var(--background-tertiary); }
 .chart-item .chart-rank {
-    font-size: 16px;
-    font-weight: 700;
-    text-align: right;
-    color: var(--text-secondary);
+    font-size: 16px; font-weight: 700; text-align: center;
 }
-
-/* 3. Imagem */
 .chart-item .chart-item-img {
-    width: 50px;
-    height: 50px;
-    border-radius: 4px;
-    object-fit: cover;
+    width: 50px; height: 50px; border-radius: 4px; object-fit: cover;
 }
-
-/* 4. Informações (Título, Artista) */
 .chart-item .chart-item-info {
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .chart-item .chart-item-title {
-    font-size: 14px;
-    font-weight: 600;
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 14px; font-weight: 600; display: block;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .chart-item .chart-item-artist {
-    font-size: 12px;
-    color: var(--text-secondary);
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 12px; color: var(--text-secondary); display: block;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-
-/* 5. Duração / Score */
 .chart-item-duration, .chart-item-score {
-    font-size: 12px;
-    font-weight: 500;
-    text-align: right;
-    color: var(--text-secondary);
+    font-size: 12px; font-weight: 500; text-align: right; color: var(--text-secondary);
 }
-
-
-/* --- Layout do Chart de RPG (Artist Cards) --- */
-
-/* Posição do Rank (#1, #2) no Card */
-/* Corrigindo a regra base para usar o posicionamento desejado */
-.rpg-rank {
-  position: absolute;
-  top: 8px; /* Ajustado */
-  left: 8px; /* Ajustado */
-  font-size: 14px; /* Ajustado */
-  font-weight: 700;
-  color: var(--text-primary);
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-  background: rgba(0,0,0,0.4);
-  padding: 3px 7px;
-  border-radius: 6px;
-  z-index: 2;
-  line-height: 1;
-}
-
-/* Posição do Indicador (🔺, 🔻, ➖) no Card */
-/* Esta é a regra correta para o indicador no canto superior direito */
-.chart-rank-indicator.rpg-indicator {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    left: auto; /* Garante que 'left' não interfira */
-    background: rgba(0,0,0,0.5);
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    z-index: 2;
-    transform: none; /* Garante que não haja transformações inesperadas */
-}
-
-
-/* --- Cores e Ícones dos Indicadores (Unificado) --- */
-
-.chart-rank-indicator.trend-up {
-    color: var(--spotify-green);
-}
-.chart-rank-indicator.trend-down {
-    color: var(--trend-down-red);
-}
-.chart-rank-indicator.trend-stable,
-.chart-rank-indicator.trend-new {
-    color: var(--text-secondary);
-}
-/* Faz o ícone de "estável" ou "novo" (fa-minus) ficar menor */
-.chart-rank-indicator.trend-stable .fa-minus,
-.chart-rank-indicator.trend-new .fa-minus {
-   font-size: 10px;
-}
-/* ========================================================== */
-/* ============= FIM ESTILOS DOS CHARTS E INDICADORES ========= */
-/* ========================================================== */
-
 
 /* --- PÁGINAS DE DETALHES --- */
 .back-btn {
-  background: rgba(0, 0, 0, 0.7); border: none; color: #fff; font-size: 16px;
-  cursor: pointer; position: fixed; top: 16px; left: 16px; z-index: 101;
-  width: 36px; height: 36px; border-radius: 50%; display: flex;
-  align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, 0.7); border: none; color: #fff; font-size: 16px;
+  cursor: pointer; position: fixed; top: 16px; left: 16px; z-index: 101;
+  width: 36px; height: 36px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center;
 }
 .artist-header { position: relative; display: flex; height: 300px; overflow: hidden; }
 .artist-header .header-bg {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background-size: cover; background-position: center; filter: none; transform: none;
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background-size: cover; background-position: center; filter: none; transform: none;
 }
 .artist-header .header-overlay {
-  background: linear-gradient( to top, var(--background-primary) 10%, rgba(18, 18, 18, 0.5) 50%, transparent 100% );
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient( to top, var(--background-primary) 10%, rgba(18, 18, 18, 0.5) 50%, transparent 100% );
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
 }
 .artist-header-content { position: relative; z-index: 1; padding: 0 16px; margin-top: -80px; margin-bottom: 32px; }
 .album-header {
-  text-align: center; height: auto; padding: 60px 24px 24px; position: relative; overflow: hidden;
+  text-align: center; height: auto; padding: 60px 24px 24px; position: relative; overflow: hidden;
 }
 .header-bg {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover;
-  background-position: center; filter: blur(20px) brightness(0.5); transform: scale(1.2);
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover;
+  background-position: center; filter: blur(20px) brightness(0.5); transform: scale(1.2);
 }
 .header-overlay {
-  position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient( to top, var(--background-primary) 10%, rgba(18, 18, 18, 0.5) 50%, transparent 100% );
+  position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient( to top, var(--background-primary) 10%, rgba(18, 18, 18, 0.5) 50%, transparent 100% );
 }
 .album-header-content { position: relative; z-index: 1; }
 .verified-artist {
-  display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700;
-  margin-top: 8px; justify-content: flex-start; text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700;
+  margin-top: 8px; justify-content: flex-start; text-transform: uppercase;
 }
 .verified-artist .fa-check-circle { color: var(--verified-blue); }
 #detailName { font-size: 48px; font-weight: 900; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); margin: 0; }
 #albumDetailCover {
-  width: 180px; height: 180px; object-fit: cover; border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); margin: 0 auto 16px;
+  width: 180px; height: 180px; object-fit: cover; border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); margin: 0 auto 16px;
 }
 #albumDetailTitle { font-size: 24px; font-weight: 800; }
 #albumDetailInfo { color: var(--text-secondary); font-size: 14px; margin-top: 8px; }
@@ -287,17 +170,17 @@ body {
 
 .page-actions { display: flex; align-items: center; gap: 20px; border-bottom: none; padding-bottom: 0; margin-top: 24px; }
 .follow-btn {
-  border: 1px solid var(--text-secondary); color: var(--text-primary); background: transparent;
-  padding: 8px 16px; border-radius: 500px; font-weight: 700; cursor: pointer; font-size: 12px;
+  border: 1px solid var(--text-secondary); color: var(--text-primary); background: transparent;
+  padding: 8px 16px; border-radius: 500px; font-weight: 700; cursor: pointer; font-size: 12px;
 }
 .main-play-btn {
-  background: var(--spotify-green); border: none; width: 56px; height: 56px; border-radius: 50%;
-  color: black; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  background: var(--spotify-green); border: none; width: 56px; height: 56px; border-radius: 50%;
+  color: black; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .popular-songs-list { margin-top: 32px; }
 .popular-songs-list .song-row {
-  display: grid; grid-template-columns: 16px 1fr auto; align-items: center; gap: 16px;
-  padding: 8px 4px; cursor: pointer; border-radius: 4px;
+  display: grid; grid-template-columns: 16px 1fr auto; align-items: center; gap: 16px;
+  padding: 8px 4px; cursor: pointer; border-radius: 4px;
 }
 .popular-songs-list .song-row:hover { background-color: var(--background-tertiary); }
 .song-row-info { display: flex; align-items: center; gap: 16px; min-width: 0; }
@@ -307,38 +190,38 @@ body {
 
 /* --- CARROSSEL HORIZONTAL E LISTAS --- */
 .horizontal-scroll-list {
-  display: flex; gap: 16px; overflow-x: auto; padding-bottom: 16px; margin: 0 -16px;
-  padding-left: 16px; padding-right: 16px; scrollbar-width: none;
+  display: flex; gap: 16px; overflow-x: auto; padding-bottom: 16px; margin: 0 -16px;
+  padding-left: 16px; padding-right: 16px; scrollbar-width: none;
 }
 .horizontal-scroll-list::-webkit-scrollbar { display: none; }
 .scroll-item {
-    flex: 0 0 140px; width: 140px; cursor: pointer;
+    flex: 0 0 140px; width: 140px; cursor: pointer;
 }
 .scroll-item img {
-  width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; margin-bottom: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 .scroll-item p {
-    font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;
+    font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;
 }
 .scroll-item span {
-    font-size: 12px; color: var(--text-secondary);
+    font-size: 12px; color: var(--text-secondary);
 }
 #albumTracklist { margin-top: 24px; }
 .track-row {
-  display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 16px;
-  padding: 12px 4px; border-bottom: 1px solid var(--background-tertiary);
+  display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 16px;
+  padding: 12px 4px; border-bottom: 1px solid var(--background-tertiary);
 }
 .track-row .track-artist-feat {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: 2px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .track-row:last-child { border-bottom: none; }
 .track-title {
-    font-weight: 500;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .track-duration { color: var(--text-secondary); font-size: 14px; }
 .full-page-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
@@ -352,12 +235,12 @@ body {
 
 /* --- NAVEGAÇÃO MOBILE (PADRÃO) --- */
 .bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0; background-color: #000; padding: 8px 0;
-  display: flex; justify-content: space-around; border-top: 1px solid var(--background-tertiary); z-index: 200;
+  position: fixed; bottom: 0; left: 0; right: 0; background-color: #000; padding: 8px 0;
+  display: flex; justify-content: space-around; border-top: 1px solid var(--background-tertiary); z-index: 200;
 }
 .bottom-nav-item {
-  background: none; border: none; color: var(--text-secondary); font-size: 24px;
-  padding: 8px 16px; cursor: pointer; transition: color 0.3s;
+  background: none; border: none; color: var(--text-secondary); font-size: 24px;
+  padding: 8px 16px; cursor: pointer; transition: color 0.3s;
 }
 .bottom-nav-item.active { color: var(--spotify-green); }
 .bottom-nav-item span { display: none; }
@@ -366,21 +249,29 @@ body {
 
 /* --- ESTILOS ADICIONADOS DO RPG --- */
 .small-btn {
-  background: transparent; border: 1px solid var(--spotify-green); color: var(--spotify-green);
-  padding: 6px 8px; border-radius: 6px; font-weight: 700; cursor: pointer;
-  margin-left: 6px; font-size: 12px;
+  background: transparent; border: 1px solid var(--spotify-green); color: var(--spotify-green);
+  padding: 6px 8px; border-radius: 6px; font-weight: 700; cursor: pointer;
+  margin-left: 6px; font-size: 12px;
 }
 .small-btn:hover { background: rgba(29, 185, 84, 0.06); }
-/* Removida a regra base .rpg-rank conflitante daqui - A correta está no bloco de charts */
+.rpg-rank {
+  position: absolute;
+  top: 5px;
+  left: 15px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
 .small-btn i { margin-right: 4px; }
 
 /* --- ESTILOS DO ESTÚDIO (ATUALIZADOS) --- */
 .studio-login-wrapper { background-color: var(--background-secondary); padding: 24px; border-radius: 12px; margin-bottom: 24px; }
 .studio-login-wrapper label { display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; }
 .studio-login-wrapper select {
-  width: 100%; background-color: var(--background-tertiary); border: 1px solid #535353;
-  color: var(--text-primary); padding: 14px; border-radius: 6px; font-size: 14px;
-  font-family: "Montserrat", sans-serif; margin-bottom: 16px;
+  width: 100%; background-color: var(--background-tertiary); border: 1px solid #535353;
+  color: var(--text-primary); padding: 14px; border-radius: 6px; font-size: 14px;
+  font-family: "Montserrat", sans-serif; margin-bottom: 16px;
 }
 #loginButton { width: 100%; }
 #loggedInInfo p { font-size: 14px; color: var(--text-secondary); }
@@ -389,8 +280,8 @@ body {
 
 .studio-tabs { display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 2px solid var(--background-tertiary); }
 .studio-tab-btn {
-  background: none; border: none; color: var(--text-secondary); font-size: 16px;
-  font-weight: 700; padding: 12px 0; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px;
+  background: none; border: none; color: var(--text-secondary); font-size: 16px;
+  font-weight: 700; padding: 12px 0; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px;
 }
 .studio-tab-btn.active { color: var(--text-primary); border-bottom-color: var(--spotify-green); }
 
@@ -406,22 +297,22 @@ body {
 .studio-form-group { margin-bottom: 16px; }
 .studio-form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; }
 .studio-form-group input, .studio-form-group select {
-  width: 100%; background-color: var(--background-tertiary); border: 1px solid #535353;
-  color: var(--text-primary); padding: 14px; border-radius: 6px; font-size: 14px;
-  font-family: "Montserrat", sans-serif;
+  width: 100%; background-color: var(--background-tertiary); border: 1px solid #535353;
+  color: var(--text-primary); padding: 14px; border-radius: 6px; font-size: 14px;
+  font-family: "Montserrat", sans-serif;
 }
 .studio-form-group input[type="date"] {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  color-scheme: dark;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  color-scheme: dark;
 }
 .studio-form-group input::placeholder { color: #757575; }
 
 .submit-btn {
-  background-color: var(--spotify-green); color: black; border: none; padding: 16px 24px;
-  width: 100%; border-radius: 500px; font-size: 16px; font-weight: 700; cursor: pointer;
-  margin-top: 16px; transition: transform 0.2s ease, background-color 0.2s ease;
+  background-color: var(--spotify-green); color: black; border: none; padding: 16px 24px;
+  width: 100%; border-radius: 500px; font-size: 16px; font-weight: 700; cursor: pointer;
+  margin-top: 16px; transition: transform 0.2s ease, background-color 0.2s ease;
 }
 .submit-btn:hover:not(:disabled) { transform: scale(1.02); background-color: #1ed760; }
 .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -431,65 +322,65 @@ body {
 
 /* Item da lista de faixas (após adicionar via modal) */
 .track-list-item-display {
-    display: flex;
-    align-items: center; /* Alinha verticalmente */
-    gap: 10px;
-    background-color: var(--background-tertiary);
-    padding: 12px;
-    border-radius: 6px;
+    display: flex;
+    align-items: center; /* Alinha verticalmente */
+    gap: 10px;
+    background-color: var(--background-tertiary);
+    padding: 12px;
+    border-radius: 6px;
 }
 .track-list-item-display .drag-handle {
-    cursor: grab;
-    color: var(--text-secondary);
-    padding: 0 5px;
-    align-self: flex-start; /* Alinha no topo */
+    cursor: grab;
+    color: var(--text-secondary);
+    padding: 0 5px;
+    align-self: flex-start; /* Alinha no topo */
 }
 .track-list-item-display .drag-handle:active { cursor: grabbing; }
 /* NOVO: Span para o número */
 .track-list-item-display .track-number-display {
-    font-weight: 700;
-    color: var(--text-secondary);
-    width: 25px;
-    text-align: right;
-    flex-shrink: 0;
+    font-weight: 700;
+    color: var(--text-secondary);
+    width: 25px;
+    text-align: right;
+    flex-shrink: 0;
 }
 .track-list-item-display .track-info-display {
-    flex-grow: 1;
-    min-width: 0; /* Para evitar overflow */
+    flex-grow: 1;
+    min-width: 0; /* Para evitar overflow */
 }
 .track-list-item-display .track-title-display {
-    font-size: 14px;
-    font-weight: 600;
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 14px;
+    font-weight: 600;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .track-list-item-display .track-details-display {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: 4px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 .track-list-item-display .track-details-display span {
-     white-space: nowrap;
+     white-space: nowrap;
 }
 .track-list-item-display .track-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-shrink: 0; /* Impede que os botões encolham */
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0; /* Impede que os botões encolham */
 }
 .track-list-item-display .edit-track-btn,
 .track-list-item-display .remove-track-btn {
-    background: none;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    padding: 5px;
-    color: var(--text-secondary);
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 5px;
+    color: var(--text-secondary);
 }
 .track-list-item-display .edit-track-btn:hover { color: var(--spotify-green); }
 .track-list-item-display .remove-track-btn { color: var(--trend-down-red); }
@@ -499,8 +390,8 @@ body {
 
 /* Botão "Adicionar Faixa" que abre o modal */
 .add-track-modal-btn {
-    margin-top: 0;
-    margin-bottom: 16px;
+    margin-top: 0;
+    margin-bottom: 16px;
 }
 .add-track-modal-btn i { margin-right: 8px; }
 
@@ -513,64 +404,64 @@ body {
 .feat-section label { font-size: 11px; font-weight: 600; color: var(--spotify-green); margin-bottom: 5px; text-transform: uppercase; display: block; }
 .feat-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; min-height: 20px; /* Para mostrar a área mesmo vazia */ }
 .feat-tag {
-    background-color: var(--background-primary); color: var(--text-secondary);
-    padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;
-    display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+    background-color: var(--background-primary); color: var(--text-secondary);
+    padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
 }
 .feat-tag:hover { color: var(--text-primary); }
 .feat-tag-display { /* Apenas para exibição na lista */
-    background-color: var(--background-primary); color: var(--text-secondary);
-    padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500;
+    background-color: var(--background-primary); color: var(--text-secondary);
+    padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500;
 }
 .add-feat-btn, .add-inline-feat-btn { font-size: 11px; padding: 4px 6px; margin-left: 0; /* Remove margem padrão */}
 
 /* NOVO: Estilos para o Adicionador de Feat Inline */
 .inline-feat-adder {
-    background-color: var(--background-tertiary);
-    padding: 16px;
-    margin-top: 10px;
-    border-radius: 6px;
-    border: 1px solid #404040;
+    background-color: var(--background-tertiary);
+    padding: 16px;
+    margin-top: 10px;
+    border-radius: 6px;
+    border: 1px solid #404040;
 }
 .inline-feat-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 16px;
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
 }
 .inline-feat-actions .small-btn {
-    flex-grow: 1; /* Faz botões ocuparem espaço */
-    margin-left: 0;
+    flex-grow: 1; /* Faz botões ocuparem espaço */
+    margin-left: 0;
 }
 .inline-feat-actions .confirm-inline-feat-btn {
-    /* Estilo padrão já aplicado pelo .small-btn */
+    /* Estilo padrão já aplicado pelo .small-btn */
 }
 .inline-feat-actions .cancel-inline-feat-btn {
-    border-color: var(--text-secondary);
-    color: var(--text-secondary);
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
 }
 .inline-feat-actions .cancel-inline-feat-btn:hover {
-    background: rgba(179, 179, 179, 0.1);
+    background: rgba(179, 179, 179, 0.1);
 }
 
 
 /* Estilos dos Modais */
 .modal-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex;
-  align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.3s ease;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex;
+  align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.3s ease;
 }
 .modal-content {
-  background: var(--background-secondary); padding: 24px; border-radius: 12px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5); max-width: 400px; width: 90%;
-  max-height: 90vh; /* Limita altura */
-  overflow-y: auto; /* Adiciona scroll se necessário */
+  background: var(--background-secondary); padding: 24px; border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5); max-width: 400px; width: 90%;
+  max-height: 90vh; /* Limita altura */
+  overflow-y: auto; /* Adiciona scroll se necessário */
 }
 .modal-content h3 { color: var(--spotify-green); margin-bottom: 20px; }
 .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
 .modal-actions .submit-btn { width: auto; flex-grow: 1; margin: 0;}
 .modal-actions .cancel-btn {
-  background: var(--background-tertiary); color: var(--text-primary); border: 1px solid #535353;
-  padding: 14px 20px; border-radius: 500px; font-weight: 600; cursor: pointer; margin: 0;
+  background: var(--background-tertiary); color: var(--text-primary); border: 1px solid #535353;
+  padding: 14px 20px; border-radius: 500px; font-weight: 600; cursor: pointer; margin: 0;
 }
 
 
@@ -578,10 +469,10 @@ body {
 
 /* Estilo para a descrição do modal */
 .modal-content p.modal-description {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-bottom: 16px;
-    line-height: 1.5;
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.5;
 }
 
 
@@ -589,51 +480,116 @@ body {
 /* ============= MELHORIAS PARA DESKTOP (PC) ================ */
 /* ========================================================== */
 @media (min-width: 768px) {
-  body { display: grid; grid-template-columns: 240px 1fr; grid-template-rows: auto 1fr; height: 100vh; }
-  .page-view { grid-column: 2 / 3; grid-row: 1 / span 2; overflow-y: auto; }
-  .topbar { position: sticky; grid-column: 2 / 3; grid-row: 1 / 2; padding: 16px 32px; z-index: 100; }
-  .main-container { padding: 24px 32px 32px; grid-column: 2 / 3; grid-row: 2 / 3; }
-  .nav-tabs { justify-content: center; overflow-x: visible; }
-  .bottom-nav {
-    position: static; grid-column: 1 / 2; grid-row: 1 / span 2;
-    background-color: #000;
-    flex-direction: column; justify-content: flex-start; align-items: flex-start;
-    padding: 24px; gap: 8px; border-top: none; border-right: 1px solid var(--background-tertiary);
-    height: 100%;
-  }
-  .bottom-nav-item {
-    display: flex; align-items: center; gap: 20px; padding: 12px 16px; width: 100%;
-    border-radius: 6px; font-size: 16px; font-weight: 700; color: var(--text-secondary);
-  }
-  .bottom-nav-item.active { color: var(--text-primary); background-color: var(--background-tertiary); }
-  .bottom-nav-item:hover { color: var(--text-primary); }
-  .bottom-nav-item span { display: inline; font-size: 14px; }
-  .back-btn { left: 264px; }
-  .page-detail-body { padding: 0 32px 32px; max-width: 1400px; margin: 0 auto; }
-  #detailName { font-size: 80px; }
-  .artist-header-content { margin-top: -100px; padding: 0 32px; }
-  #albumDetailCover { width: 230px; height: 230px; }
-  #albumDetailTitle { font-size: 40px; }
+  body { display: grid; grid-template-columns: 240px 1fr; grid-template-rows: auto 1fr; height: 100vh; }
+  .page-view { grid-column: 2 / 3; grid-row: 1 / span 2; overflow-y: auto; }
+  .topbar { position: sticky; grid-column: 2 / 3; grid-row: 1 / 2; padding: 16px 32px; z-index: 100; }
+  .main-container { padding: 24px 32px 32px; grid-column: 2 / 3; grid-row: 2 / 3; }
+  .nav-tabs { justify-content: center; overflow-x: visible; }
+  .bottom-nav {
+    position: static; grid-column: 1 / 2; grid-row: 1 / span 2;
+    background-color: #000;
+    flex-direction: column; justify-content: flex-start; align-items: flex-start;
+    padding: 24px; gap: 8px; border-top: none; border-right: 1px solid var(--background-tertiary);
+    height: 100%;
+  }
+  .bottom-nav-item {
+    display: flex; align-items: center; gap: 20px; padding: 12px 16px; width: 100%;
+    border-radius: 6px; font-size: 16px; font-weight: 700; color: var(--text-secondary);
+  }
+  .bottom-nav-item.active { color: var(--text-primary); background-color: var(--background-tertiary); }
+  .bottom-nav-item:hover { color: var(--text-primary); }
+  .bottom-nav-item span { display: inline; font-size: 14px; }
+  .back-btn { left: 264px; }
+  .page-detail-body { padding: 0 32px 32px; max-width: 1400px; margin: 0 auto; }
+  #detailName { font-size: 80px; }
+  .artist-header-content { margin-top: -100px; padding: 0 32px; }
+  #albumDetailCover { width: 230px; height: 230px; }
+  #albumDetailTitle { font-size: 40px; }
 
-  /* Layout do Estúdio em Desktop */
-  .studio-login-wrapper { display: flex; justify-content: space-between; align-items: center; }
-  .studio-login-wrapper #loginPrompt { display: flex; align-items: center; gap: 16px; width: 100%; }
-  .studio-login-wrapper label { margin-bottom: 0; }
-  .studio-login-wrapper select { margin-bottom: 0; flex-grow: 1; }
-  #loginButton { width: auto; }
+  /* Layout do Estúdio em Desktop */
+  .studio-login-wrapper { display: flex; justify-content: space-between; align-items: center; }
+  .studio-login-wrapper #loginPrompt { display: flex; align-items: center; gap: 16px; width: 100%; }
+  .studio-login-wrapper label { margin-bottom: 0; }
+  .studio-login-wrapper select { margin-bottom: 0; flex-grow: 1; }
+  #loginButton { width: auto; }
 
-  /* Ajuste na lista de faixas do álbum para Desktop */
-  .track-list-item-display {
-      /* Pode precisar de ajustes se o layout quebrar */
-  }
-  .track-list-item-display .track-details-display {
-      flex-wrap: nowrap; /* Evita quebra de linha no desktop */
-      gap: 15px; /* Mais espaço */
-  }
+  /* Ajuste na lista de faixas do álbum para Desktop */
+  .track-list-item-display {
+      /* Pode precisar de ajustes se o layout quebrar */
+  }
+  .track-list-item-display .track-details-display {
+      flex-wrap: nowrap; /* Evita quebra de linha no desktop */
+      gap: 15px; /* Mais espaço */
+  }
 
 }
 
 @media (min-width: 1200px) {
-  .artists-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px; }
-  .full-page-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; }
+  .artists-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px; }
+  .full-page-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; }
+}
+/* --- ESTILOS DOS INDICADORES DE CHART --- */
+.chart-rank-indicator {
+    width: 20px; /* Largura fixa para o indicador */
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    margin-right: 5px; /* Espaço entre indicador e rank */
+    display: flex; /* Para centralizar o ícone se necessário */
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-rank-indicator.trend-up {
+    color: var(--spotify-green);
+}
+
+.chart-rank-indicator.trend-down {
+    color: var(--trend-down-red);
+}
+
+.chart-rank-indicator.trend-stable,
+.chart-rank-indicator.trend-new {
+    color: var(--text-secondary); /* Cinza para estável ou novo */
+    /* Para o estável, podemos usar um ícone diferente se quisermos */
+}
+.chart-rank-indicator.trend-stable .fa-minus,
+.chart-rank-indicator.trend-new .fa-minus {
+   font-size: 10px; /* Deixa o traço um pouco menor */
+}
+
+
+/* Ajuste no Grid do Chart Item para incluir o indicador */
+.chart-list .chart-item {
+  display: grid;
+  /* Colunas: Indicador | Rank | Imagem | Info | Duração/Score */
+  grid-template-columns: 20px 25px 50px 1fr auto;
+  align-items: center;
+  gap: 10px; /* Ajuste o gap se necessário */
+  padding: 10px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+/* Ajuste no Rank para alinhar */
+.chart-item .chart-rank {
+    /* Mantém o estilo, mas o grid cuida do posicionamento */
+    text-align: right; /* Alinha o número à direita */
+}
+
+/* Ajuste para o RPG Chart (artistsGrid) se ele também tiver rank */
+/* Adapte se o #artistsGrid tiver outra estrutura */
+#artistsSection .artist-card .rpg-rank {
+    /* Ajuste posicionamento se necessário */
+    left: 5px; /* Exemplo: Mover um pouco para dar espaço ao indicador */
+}
+/* Adicionar um span para o indicador no RPG Chart se não existir */
+#artistsSection .artist-card .rpg-indicator {
+    position: absolute;
+    top: 5px;
+    left: 25px; /* Posição exemplo ao lado do rank */
+    font-size: 14px;
+    font-weight: bold;
+     /* Cores serão definidas pelas classes trend-* */
 }
