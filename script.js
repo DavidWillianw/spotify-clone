@@ -42,85 +42,118 @@ document.addEventListener('DOMContentLoaded', async () => {
     const PREVIOUS_RPG_CHART_KEY = 'spotifyRpg_previousRpgChart'; // Para o chart RPG
 
     // --- FUNÇÃO PARA INICIALIZAR ELEMENTOS DO DOM ---
-    function initializeDOMElements() {
-        console.log("Initializing DOM elements...");
-        try {
-            allViews = document.querySelectorAll('.page-view');
-            searchInput = document.getElementById('searchInput');
-            studioView = document.getElementById('studioView');
-            loginPrompt = document.getElementById('loginPrompt');
-            loggedInInfo = document.getElementById('loggedInInfo');
-            playerSelect = document.getElementById('playerSelect');
-            loginButton = document.getElementById('loginButton');
-            logoutButton = document.getElementById('logoutButton');
-            studioLaunchWrapper = document.getElementById('studioLaunchWrapper');
-            studioTabs = document.querySelectorAll('.studio-tab-btn');
-            studioForms = document.querySelectorAll('.studio-form-content');
-            newSingleForm = document.getElementById('newSingleForm');
-            singleArtistSelect = document.getElementById('singleArtistSelect');
-            singleReleaseDateInput = document.getElementById('singleReleaseDate');
-            singleFeatList = document.getElementById('singleFeatList');
-            newAlbumForm = document.getElementById('newAlbumForm');
-            albumArtistSelect = document.getElementById('albumArtistSelect');
-            albumReleaseDateInput = document.getElementById('albumReleaseDate');
-            // addTrackButton não é mais pego aqui, pois foi removido
-            albumTracklistEditor = document.getElementById('albumTracklistEditor'); // Mantido como lista
+// --- FUNÇÃO PARA INICIALIZAR ELEMENTOS DO DOM (MAIS SEGURA) ---
+    function initializeDOMElements() {
+        console.log("Initializing DOM elements...");
+        try {
+            // --- 1. Busque todos os elementos primeiro ---
+            allViews = document.querySelectorAll('.page-view');
+            searchInput = document.getElementById('searchInput');
+            studioView = document.getElementById('studioView');
+            loginPrompt = document.getElementById('loginPrompt');
+            loggedInInfo = document.getElementById('loggedInInfo');
+            playerSelect = document.getElementById('playerSelect');
+            loginButton = document.getElementById('loginButton');
+            logoutButton = document.getElementById('logoutButton');
+            studioLaunchWrapper = document.getElementById('studioLaunchWrapper');
+            studioTabs = document.querySelectorAll('.studio-tab-btn');
+            studioForms = document.querySelectorAll('.studio-form-content');
+            newSingleForm = document.getElementById('newSingleForm');
+            singleArtistSelect = document.getElementById('singleArtistSelect');
+            singleReleaseDateInput = document.getElementById('singleReleaseDate');
+            singleFeatList = document.getElementById('singleFeatList');
+            newAlbumForm = document.getElementById('newAlbumForm');
+            albumArtistSelect = document.getElementById('albumArtistSelect');
+            albumReleaseDateInput = document.getElementById('albumReleaseDate');
+            albumTracklistEditor = document.getElementById('albumTracklistEditor');
 
-            // Modal Feat (Original)
-            featModal = document.getElementById('featModal');
-            featArtistSelect = document.getElementById('featArtistSelect');
-            featTypeSelect = document.getElementById('featTypeSelect');
-            confirmFeatBtn = document.getElementById('confirmFeatBtn');
-            cancelFeatBtn = document.getElementById('cancelFeatBtn');
+            // Modal Feat (Original)
+            featModal = document.getElementById('featModal');
+            featArtistSelect = document.getElementById('featArtistSelect');
+            featTypeSelect = document.getElementById('featTypeSelect');
+            confirmFeatBtn = document.getElementById('confirmFeatBtn');
+            cancelFeatBtn = document.getElementById('cancelFeatBtn');
 
-            // Modal Tipo Faixa (Single)
-            trackTypeModal = document.getElementById('trackTypeModal');
-            trackTypeSelect = document.getElementById('trackTypeSelect');
-            confirmTrackTypeBtn = document.getElementById('confirmTrackTypeBtn');
-            cancelTrackTypeBtn = document.getElementById('cancelTrackTypeBtn');
+            // Modal Tipo Faixa (Single)
+            trackTypeModal = document.getElementById('trackTypeModal');
+            trackTypeSelect = document.getElementById('trackTypeSelect');
+            confirmTrackTypeBtn = document.getElementById('confirmTrackTypeBtn');
+            cancelTrackTypeBtn = document.getElementById('cancelTrackTypeBtn');
 
-            // Modal Faixa Álbum
-            albumTrackModal = document.getElementById('albumTrackModal');
-            albumTrackModalTitle = document.getElementById('albumTrackModalTitle');
-            openAddTrackModalBtn = document.getElementById('openAddTrackModalBtn'); // Novo botão
-            albumTrackNameInput = document.getElementById('albumTrackNameInput');
-            albumTrackDurationInput = document.getElementById('albumTrackDurationInput');
-            albumTrackTypeSelect = document.getElementById('albumTrackTypeSelect');
-            albumTrackFeatList = document.getElementById('albumTrackFeatList');
-            saveAlbumTrackBtn = document.getElementById('saveAlbumTrackBtn');
-            cancelAlbumTrackBtn = document.getElementById('cancelAlbumTrackBtn');
-            editingTrackItemId = document.getElementById('editingTrackItemId');
+            // Modal Faixa Álbum
+            albumTrackModal = document.getElementById('albumTrackModal'); // <--- PONTO DE FALHA 1
+            albumTrackModalTitle = document.getElementById('albumTrackModalTitle');
+            openAddTrackModalBtn = document.getElementById('openAddTrackModalBtn');
+            albumTrackNameInput = document.getElementById('albumTrackNameInput');
+            albumTrackDurationInput = document.getElementById('albumTrackDurationInput');
+            albumTrackTypeSelect = document.getElementById('albumTrackTypeSelect');
+            albumTrackFeatList = document.getElementById('albumTrackFeatList');
+            saveAlbumTrackBtn = document.getElementById('saveAlbumTrackBtn');
+            cancelAlbumTrackBtn = document.getElementById('cancelAlbumTrackBtn');
+            editingTrackItemId = document.getElementById('editingTrackItemId');
 
-            // Elementos do Adicionador Inline de Feat
-            inlineFeatAdder = document.getElementById('inlineFeatAdder');
-            inlineFeatArtistSelect = document.getElementById('inlineFeatArtistSelect');
-            inlineFeatTypeSelect = document.getElementById('inlineFeatTypeSelect');
-            confirmInlineFeatBtn = document.getElementById('confirmInlineFeatBtn');
-            cancelInlineFeatBtn = document.getElementById('cancelInlineFeatBtn');
-            addInlineFeatBtn = albumTrackModal.querySelector('.add-inline-feat-btn'); // Botão DENTRO do modal
+            // Elementos do Adicionador Inline de Feat
+            inlineFeatAdder = document.getElementById('inlineFeatAdder');
+            inlineFeatArtistSelect = document.getElementById('inlineFeatArtistSelect');
+            inlineFeatTypeSelect = document.getElementById('inlineFeatTypeSelect');
+            confirmInlineFeatBtn = document.getElementById('confirmInlineFeatBtn');
+            cancelInlineFeatBtn = document.getElementById('cancelInlineFeatBtn');
+            
+            // --- 2. Busque elementos filhos DE FORMA SEGURA ---
+            // Usamos '&&' para garantir que o querySelector só rode se 'albumTrackModal' NÃO for nulo.
+            addInlineFeatBtn = albumTrackModal && albumTrackModal.querySelector('.add-inline-feat-btn'); // <--- CORRIGIDO
 
+            // --- 3. Verificação de elementos essenciais MELHORADA ---
+            const essentialElements = {
+                'studioView': studioView,
+                'loginPrompt': loginPrompt,
+                'playerSelect': playerSelect,
+                'newSingleForm': newSingleForm,
+                'newAlbumForm': newAlbumForm,
+                'featModal': featModal,
+                'singleReleaseDateInput': singleReleaseDateInput,
+                'albumReleaseDateInput': albumReleaseDateInput,
+                'trackTypeModal': trackTypeModal,
+                'albumTrackModal': albumTrackModal,
+                'openAddTrackModalBtn': openAddTrackModalBtn,
+                'inlineFeatAdder': inlineFeatAdder,
+                'inlineFeatArtistSelect': inlineFeatArtistSelect,
+                'confirmInlineFeatBtn': confirmInlineFeatBtn,
+                'addInlineFeatBtn': addInlineFeatBtn // Botão DENTRO do modal
+            };
 
-            const essentialElements = [ studioView, loginPrompt, playerSelect, newSingleForm, newAlbumForm, featModal, singleReleaseDateInput, albumReleaseDateInput, trackTypeModal, albumTrackModal, openAddTrackModalBtn, inlineFeatAdder, inlineFeatArtistSelect, confirmInlineFeatBtn, addInlineFeatBtn ];
-            if (!allViews || allViews.length === 0 || essentialElements.some(el => !el)) {
-                 console.error("ERRO CRÍTICO: Elementos essenciais do HTML não foram encontrados!", { missing: essentialElements.map((el, i) => el ? null : `Index ${i}`).filter(Boolean) });
-                document.body.innerHTML = '<div style="color: red; padding: 20px;"><h1>Erro Interface</h1><p>Elementos não encontrados.</p></div>';
-                return false;
-            }
+            const missing = Object.keys(essentialElements).filter(key => !essentialElements[key]);
 
-            const today = new Date().toISOString().split('T')[0];
-            singleReleaseDateInput.value = today;
-            albumReleaseDateInput.value = today;
+            if (!allViews || allViews.length === 0 || missing.length > 0) {
+                const missingAll = !allViews || allViews.length === 0 ? ['allViews'] : [];
+                const allMissingElements = [...missingAll, ...missing];
+                
+                console.error("ERRO CRÍTICO: Elementos essenciais do HTML não foram encontrados!", { missing: allMissingElements });
+                document.body.innerHTML = `<div style="color: red; font-family: sans-serif; padding: 20px;">
+                    <h1>Erro na Interface</h1>
+                    <p>O script não encontrou os seguintes elementos no HTML:</p>
+                    <strong>${allMissingElements.join(', ')}</strong>
+                    <p>Verifique o HTML e os IDs.</p>
+                </div>`;
+                return false; // Para a execução
+            }
 
-            console.log("DOM elements initialized.");
-            return true;
-        } catch(error) {
-             console.error("Erro ao inicializar elementos do DOM:", error);
-             document.body.innerHTML = '<div style="color: red; padding: 20px;"><h1>Erro Interface</h1><p>Erro ao buscar elementos. Ver console.</p></div>';
-             return false;
-        }
-    }
+            const today = new Date().toISOString().split('T')[0];
+            singleReleaseDateInput.value = today;
+            albumReleaseDateInput.value = today;
 
-
+            console.log("DOM elements initialized.");
+            return true;
+        } catch(error) {
+             console.error("Erro fatal ao inicializar elementos do DOM:", error);
+             document.body.innerHTML = `<div style="color: red; padding: 20px;">
+                <h1>Erro de Interface</h1>
+                <p>Ocorreu um erro inesperado ao buscar elementos. Verifique o console.</p>
+                <pre>${error.message}</pre>
+             </div>`;
+             return false;
+        }
+    }
     // --- 1. CARREGAMENTO DE DADOS --- (Sem mudanças)
     async function fetchAllAirtablePages(baseUrl, fetchOptions) { /* ... */ }
     async function loadAllData() { /* ... */ }
