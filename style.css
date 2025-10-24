@@ -304,7 +304,30 @@ ficou melhor assim
 .bottom-nav-item i { display: block; margin: 0 auto; }
 .bottom-nav-item .fa-microphone-alt { font-size: 22px; }
 
-
+/* Estilos para o Toggle de Faixa Existente */
+.toggle-existing {
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+.checkbox-label input[type="checkbox"] {
+    width: auto; /* Tamanho padrão do checkbox */
+    accent-color: var(--spotify-green); /* Cor do check */
+    cursor: pointer;
+}
+#existingTrackGroup small {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
 /* --- ESTILOS ADICIONADOS DO RPG --- */
 .rpg-rank {
   position: absolute; top: 5px; left: 15px; font-size: 16px; font-weight: 700;
