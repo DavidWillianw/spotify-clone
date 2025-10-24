@@ -175,15 +175,35 @@
                             <label for="singleReleaseDate">Data de Lançamento</label>
                             <input type="date" id="singleReleaseDate" required />
                         </div>
-                        <hr class="form-divider" />
-                        <h4>Informações da Faixa</h4>
-                        <div class="studio-form-group">
-                            <label for="trackName">Nome da Faixa</label>
-                            <input type="text" id="trackName" placeholder="Ex: After Like" required />
+
+                        <div class="studio-form-group toggle-existing">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="launchExistingTrackCheck">
+                                Lançar uma faixa já existente (de Álbum/EP) como Single?
+                            </label>
                         </div>
-                        <div class="studio-form-group">
-                            <label for="trackDuration">Duração (formato MM:SS)</label>
-                            <input type="text" id="trackDuration" placeholder="Ex: 3:45" pattern="\d{1,2}:\d{2}" required />
+
+                        <div id="newTrackInfoGroup">
+                            <hr class="form-divider" />
+                            <h4>Informações da Nova Faixa</h4>
+                            <div class="studio-form-group">
+                                <label for="trackName">Nome da Nova Faixa</label>
+                                <input type="text" id="trackName" placeholder="Ex: After Like" required /> </div>
+                            <div class="studio-form-group">
+                                <label for="trackDuration">Duração da Nova Faixa (MM:SS)</label>
+                                <input type="text" id="trackDuration" placeholder="Ex: 3:45" pattern="\d{1,2}:\d{2}" required /> </div>
+                        </div>
+
+                        <div id="existingTrackGroup" class="hidden">
+                             <hr class="form-divider" />
+                            <h4>Selecionar Faixa Existente</h4>
+                            <div class="studio-form-group">
+                                <label for="existingTrackSelect">Faixa do Álbum/EP a ser lançada</label>
+                                <select id="existingTrackSelect" required>
+                                    <option value="">Selecione o artista primeiro...</option>
+                                </select>
+                                 <small>Apenas faixas de álbuns/EPs aparecerão aqui.</small>
+                            </div>
                         </div>
                         <div class="feat-section">
                             <label>Participações (Feat.)</label>
@@ -252,7 +272,7 @@
     <div id="trackTypeModal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Tipo de Faixa</h3>
-            <p class="modal-description">Esta faixa é a música principal (Single/A-side) ou uma faixa adicional (B-side)?</p>
+            <p class="modal-description">Esta nova faixa é a música principal (Single/A-side) ou uma faixa adicional (B-side)?</p>
             <div class="studio-form-group">
                 <label for="trackTypeSelect">Tipo de Faixa</label>
                 <select id="trackTypeSelect">
