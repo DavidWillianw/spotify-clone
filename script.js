@@ -917,3 +917,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function saveAlbumTrack() {
         const name = albumTrackName
+    }
