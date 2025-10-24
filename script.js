@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             inlineFeatTypeSelect = document.getElementById('inlineFeatTypeSelect');
             confirmInlineFeatBtn = document.getElementById('confirmInlineFeatBtn');
             cancelInlineFeatBtn = document.getElementById('cancelInlineFeatBtn');
-            // addInlineFeatBtn precisa ser pego dentro de initializeStudio OU aqui APÓS albumTrackModal ser definido
+             // addInlineFeatBtn precisa ser pego dentro de initializeStudio OU aqui APÓS albumTrackModal ser definido
              if (albumTrackModal) {
                  addInlineFeatBtn = albumTrackModal.querySelector('.add-inline-feat-btn');
              }
@@ -121,18 +121,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             ];
 
             // Verifica se todos os elementos essenciais foram encontrados
-            if (essentialElements.some(el => el === null || el === undefined || (el instanceof NodeList && el.length === 0)) || allViews.length === 0 ) {
+            if (essentialElements.some(el => el === null || el === undefined || (el instanceof NodeList && el.length === 0)) || !allViews || allViews.length === 0 ) {
                  const missing = essentialElements.map((el, index) => {
-                     // Dando nomes para facilitar o debug
                      const names = ["allViews", "searchInput", "studioView", "loginPrompt", "loggedInInfo", "playerSelect", "loginButton", "logoutButton", "studioLaunchWrapper", "studioTabs", "studioForms", "newSingleForm", "singleArtistSelect", "singleReleaseDateInput", "singleFeatList", "newAlbumForm", "albumArtistSelect", "albumReleaseDateInput", "albumTracklistEditor", "featModal", "featArtistSelect", "featTypeSelect", "confirmFeatBtn", "cancelFeatBtn", "trackTypeModal", "trackTypeSelect", "confirmTrackTypeBtn", "cancelTrackTypeBtn", "albumTrackModal", "albumTrackModalTitle", "openAddTrackModalBtn", "albumTrackNameInput", "albumTrackDurationInput", "albumTrackTypeSelect", "albumTrackFeatList", "saveAlbumTrackBtn", "cancelAlbumTrackBtn", "editingTrackItemId", "inlineFeatAdder", "inlineFeatArtistSelect", "inlineFeatTypeSelect", "confirmInlineFeatBtn", "cancelInlineFeatBtn", "addInlineFeatBtn", "trackNameInput", "trackDurationInput", "launchExistingTrackCheck", "newTrackInfoGroup", "existingTrackGroup", "existingTrackSelect"];
                      let elValue = el;
-                     if(el instanceof NodeList) elValue = el.length > 0 ? el : null; // Considera NodeList vazia como null para a checagem
+                     if(el instanceof NodeList) elValue = el.length > 0 ? el : null;
                      return elValue ? null : `Element ${names[index] || 'index ' + index}`;
                  }).filter(Boolean);
 
                  console.error("ERRO CRÍTICO: Elementos essenciais do HTML não foram encontrados!", { missing });
                  document.body.innerHTML = '<div style="color: red; padding: 20px;"><h1>Erro Interface</h1><p>Elementos essenciais não encontrados: ' + missing.join(', ') + '. Ver console.</p></div>';
-                 return false; // Falha na inicialização
+                 return false;
             }
 
             const today = new Date().toISOString().split('T')[0];
@@ -140,97 +139,233 @@ document.addEventListener('DOMContentLoaded', async () => {
             albumReleaseDateInput.value = today;
 
             console.log("DEBUG: initializeDOMElements successful.");
-            return true; // Sucesso
+            return true;
         } catch (error) {
              console.error("Erro CRÍTICO dentro de initializeDOMElements:", error);
              document.body.innerHTML = '<div style="color: red; padding: 20px;"><h1>Erro Interface</h1><p>Erro inesperado ao buscar elementos. Ver console.</p></div>';
-             return false; // Falha
+             return false;
         }
     }
 
 
     // --- 1. CARREGAMENTO DE DADOS ---
-    // ... (fetchAllAirtablePages, loadAllData, initializeData - sem mudanças, exceto logs internos) ...
-     async function fetchAllAirtablePages(baseUrl, fetchOptions) { /* ...código inalterado... */ }
-     async function loadAllData() { /* ...código inalterado... */ }
-     const initializeData = (data) => { /* ...código inalterado... */ };
+    // *** MODIFICADO com logs de debug ***
+    async function fetchAllAirtablePages(baseUrl, fetchOptions, tableNameForDebug = "Unknown") { // Added tableNameForDebug
+        let allRecords = [];
+        let offset = null;
+        console.log(`DEBUG fetchAll: Starting fetch for ${tableNameForDebug}... Base URL: ${baseUrl}`); // DEBUG
+        try {
+            do {
+                const sep = baseUrl.includes('?') ? '&' : '?';
+                const url = offset ? `${baseUrl}${sep}offset=${offset}` : baseUrl;
+                // console.log(`DEBUG fetchAll: Fetching page for ${tableNameForDebug}... URL: ${url}`); // Optional: Log each page fetch
+                const res = await fetch(url, fetchOptions);
+                if (!res.ok) {
+                    const errorBody = await res.text();
+                    console.error(`DEBUG fetchAll: FAILED fetch for ${tableNameForDebug}. Status: ${res.status}. URL: ${url}. Response: ${errorBody}`); // DEBUG
+                    // Throw a more informative error
+                    throw new Error(`Fetch failed for table ${tableNameForDebug}. Status: ${res.status}. Response: ${errorBody}`);
+                }
+                const data = await res.json();
+                if (data.records) {
+                    allRecords.push(...data.records);
+                }
+                offset = data.offset;
+            } while (offset);
+            console.log(`DEBUG fetchAll: Successfully fetched ${allRecords.length} records for ${tableNameForDebug}.`); // DEBUG
+            return { records: allRecords };
+        } catch (error) {
+            console.error(`DEBUG fetchAll: CRITICAL error during fetch for ${tableNameForDebug}:`, error); // DEBUG
+            throw error; // Re-throw the error so Promise.all catches it
+        }
+    }
 
-    // ... (saveChartDataToLocalStorage, refreshAllData - sem mudanças) ...
-     const saveChartDataToLocalStorage = (chartType) => { /* ...código inalterado... */ };
-     async function refreshAllData() { /* ...código inalterado... */ }
+    // *** MODIFICADO com logs de debug e tratamento de erro ***
+    async function loadAllData() {
+        const artistsURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Artists?filterByFormula=%7BArtista%20Principal%7D%3D1`;
+        const albumsURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent('Álbuns')}`;
+        const musicasURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent('Músicas')}`;
+        const singlesURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent('Singles e EPs')}`;
+        const playersURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Jogadores`;
 
-    // --- 2. NAVEGAÇÃO E UI ---
-    // ... (switchView, switchTab, handleBack, renderArtistsGrid, formatArtistString, getCoverUrl, renderChart - sem mudanças) ...
-     const switchView = (viewId, targetSectionId=null) => { /* ...código inalterado... */ };
-     const switchTab = (event, forceTabId=null) => { /* ...código inalterado... */ };
-     const handleBack = () => { /* ...código inalterado... */ };
-     const renderArtistsGrid = (containerId, artists) => { /* ...código inalterado... */ };
-     function formatArtistString(artistIds, collabType) { /* ...código inalterado... */ }
-     function getCoverUrl(albumId) { /* ...código inalterado... */ }
-     const renderChart = (type) => { /* ...código inalterado... */ };
+        const fetchOptions = { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } };
+        console.log("DEBUG loadAllData: Starting data loading..."); // DEBUG
+        try {
+            console.log("DEBUG loadAllData: Initiating Promise.all..."); // DEBUG
+            const [artistsData, albumsData, musicasData, singlesData, playersData] = await Promise.all([
+                fetchAllAirtablePages(artistsURL, fetchOptions, "Artists"),
+                fetchAllAirtablePages(albumsURL, fetchOptions, "Álbuns"),
+                fetchAllAirtablePages(musicasURL, fetchOptions, "Músicas"),
+                fetchAllAirtablePages(singlesURL, fetchOptions, "Singles e EPs"),
+                fetchAllAirtablePages(playersURL, fetchOptions, "Jogadores")
+            ]);
+            console.log("DEBUG loadAllData: Promise.all finished successfully."); // DEBUG
 
-    // ... (openArtistDetail, openAlbumDetail, openDiscographyDetail, handleSearch - sem mudanças) ...
-     const openArtistDetail = (artistName) => { /* ...código inalterado... */ };
-     const openAlbumDetail = (albumId) => { /* ...código inalterado... */ };
-     const openDiscographyDetail = (type) => { /* ...código inalterado... */ };
-     const handleSearch = () => { /* ...código inalterado... */ };
+            // --- Processamento de dados (copiado da sua versão anterior) ---
+            const musicasMap = new Map();
+            (musicasData.records || []).forEach(r => {
+                const artistIds = Array.isArray(r.fields['Artista']) ? r.fields['Artista'] : [r.fields['Artista']].filter(Boolean);
+                const pId = (r.fields['Álbuns']?.[0]) || (r.fields['Singles e EPs']?.[0]) || null;
+                musicasMap.set(r.id, {
+                    id: r.id, title: r.fields['Nome da Faixa']||'?',
+                    duration: r.fields['Duração']?new Date(r.fields['Duração']*1000).toISOString().substr(14,5):"0:00",
+                    trackNumber: r.fields['Nº da Faixa']||0, durationSeconds: r.fields['Duração']||0,
+                    artistIds: artistIds, collabType: r.fields['Tipo de Colaboração'], albumId: pId,
+                    streams: r.fields.Streams||0, totalStreams: r.fields['Streams Totais']||0,
+                    trackType: r.fields['Tipo de Faixa'] || 'Album Track'
+                });
+            });
 
-    // ... (setupCountdown, startAlbumCountdown - sem mudanças) ...
-     const setupCountdown = (timerId, chartType) => { /* ...código inalterado... */ };
-     function startAlbumCountdown(targetDateISO, containerId) { /* ...código inalterado... */ }
+            const artistsMapById = new Map();
+            const artistsList = (artistsData.records || []).map(r => {
+                const a = {
+                    id: r.id, name: r.fields.Name||'?',
+                    imageUrl: (r.fields['URL da Imagem']?.[0]?.url) || 'https://i.imgur.com/AD3MbBi.png',
+                    off: r.fields['Inspirações (Off)']||[], RPGPoints: r.fields.RPGPoints||0, LastActive: r.fields.LastActive||null
+                };
+                artistsMapById.set(a.id, a.name); return a;
+            });
 
-    // --- 3. SISTEMA DE RPG ---
-    // ... (calculateSimulatedStreams, computeChartData, renderRPGChart - sem mudanças) ...
-     const CHART_TOP_N = 20; const STREAMS_PER_POINT = 10000; const calculateSimulatedStreams = (points, lastActiveISO) => { /* ...código inalterado... */ }; const computeChartData = (artistsArray) => { /* ...código inalterado... */ }; function renderRPGChart() { /* ...código inalterado... */ }
+            const formatReleases = (records, isAlbum) => {
+                if (!records) return [];
+                return records.map(r => {
+                    const f=r.fields; const id=r.id;
+                    const tracks = Array.from(musicasMap.values()).filter(s => s.albumId===id).sort((a,b)=>(a.trackNumber||0)-(b.trackNumber||0));
+                    const dur = tracks.reduce((t, tr) => t+(tr.durationSeconds||0), 0);
+                    const totalAlbumStreams = tracks.reduce((t, tr) => t + (tr.totalStreams || 0), 0);
+                    const artId = Array.isArray(f['Artista']) ? f['Artista'][0] : (f['Artista']||null);
+                    const artName = artId ? artistsMapById.get(artId) : "?";
+                    const imgF = isAlbum?'Capa do Álbum':'Capa';
+                    const imgUrl = (f[imgF]?.[0]?.url)||'https://i.imgur.com/AD3MbBi.png';
+                    return {
+                        id: id, title: f['Nome do Álbum']||f['Nome do Single/EP']||'?',
+                        artist: artName, artistId: artId, metascore: f['Metascore']||0, imageUrl: imgUrl,
+                        releaseDate: f['Data de Lançamento']||'?', tracks: tracks, totalDurationSeconds: dur,
+                        weeklyStreams: f['Stream do album'] || 0, totalStreams: totalAlbumStreams
+                    };
+                });
+            };
 
-    // --- 4. SISTEMA DO ESTÚDIO ---
-    // ... (populateExistingTrackSelect, handleExistingTrackToggle - sem mudanças) ...
-     function populateExistingTrackSelect(artistId) { /* ...código inalterado... */ }
-     function handleExistingTrackToggle() { /* ...código inalterado... */ }
+            const formattedAlbums = formatReleases(albumsData.records, true);
+            const formattedSingles = formatReleases(singlesData.records, false);
+            const formattedPlayers = (playersData?.records || []).map(r => ({ id: r.id, name: r.fields.Nome, artists: r.fields.Artistas || [] }));
+            // --- Fim do Processamento ---
 
-    // ... (initializeStudio - sem mudanças internas, apenas chamado depois) ...
-     function initializeStudio() { /* ...código inalterado... */ }
+            console.log("DEBUG loadAllData: Data processing finished."); // DEBUG
+            return {
+                allArtists: artistsList, albums: formattedAlbums, singles: formattedSingles,
+                players: formattedPlayers, musicas: Array.from(musicasMap.values())
+            };
 
-    // ... (populateArtistSelector, loginPlayer, logoutPlayer - sem mudanças) ...
-     function populateArtistSelector(playerId) { /* ...código inalterado... */ }
-     function loginPlayer(playerId) { /* ...código inalterado... */ }
-     function logoutPlayer() { /* ...código inalterado... */ }
+        } catch (error) {
+            // Este catch agora recebe o erro detalhado de fetchAllAirtablePages
+            console.error("DEBUG loadAllData: CRITICAL error during Promise.all or data processing:", error.message); // DEBUG
+            // Mostra erro na tela para o usuário
+            document.body.innerHTML = `<div style="color: red; padding: 20px;"><h1>Erro Carregamento</h1><p>Falha ao buscar dados: ${error.message}. Verifique o console para detalhes técnicos (Status, Response).</p></div>`;
+            return null; // Indica falha
+        }
+    }
 
-    // ... (populateArtistSelectForFeat, openFeatModal, closeFeatModal, confirmFeat - sem mudanças) ...
-     function populateArtistSelectForFeat(targetSelectElement) { /* ...código inalterado... */ }
-     function openFeatModal(buttonElement) { /* ...código inalterado... */ }
-     function closeFeatModal() { /* ...código inalterado... */ }
-     function confirmFeat() { /* ...código inalterado... */ }
+    const initializeData = (data) => {
+        console.log("DEBUG: Running initializeData..."); // DEBUG
+        try {
+            try { // Carrega dados de charts anteriores
+                const prevMusic = localStorage.getItem(PREVIOUS_MUSIC_CHART_KEY); previousMusicChartData = prevMusic ? JSON.parse(prevMusic) : {};
+                const prevAlbum = localStorage.getItem(PREVIOUS_ALBUM_CHART_KEY); previousAlbumChartData = prevAlbum ? JSON.parse(prevAlbum) : {};
+                const prevRpg = localStorage.getItem(PREVIOUS_RPG_CHART_KEY); previousRpgChartData = prevRpg ? JSON.parse(prevRpg) : {};
+                console.log("DEBUG initializeData: Previous chart data loaded."); // DEBUG
+            } catch (e) { console.error("DEBUG initializeData: Error loading previous chart data:", e); previousMusicChartData = {}; previousAlbumChartData = {}; previousRpgChartData = {}; }
 
-    // ... (toggleInlineFeatAdder, confirmInlineFeat, cancelInlineFeat - sem mudanças) ...
-     function toggleInlineFeatAdder() { /* ...código inalterado... */ }
-     function confirmInlineFeat() { /* ...código inalterado... */ }
-     function cancelInlineFeat() { /* ...código inalterado... */ }
+            const artistsMapById = new Map();
+            db.artists = (data.allArtists || []).map(artist => {
+                const artistEntry = { ...artist, img: artist.imageUrl || 'https://i.imgur.com/AD3MbBi.png', albums: [], singles: [] };
+                artistsMapById.set(artist.id, artist.name); return artistEntry;
+            });
 
-    // ... (openAlbumTrackModal, closeAlbumTrackModal, saveAlbumTrack, updateTrackNumbers - sem mudanças) ...
-     function openAlbumTrackModal(itemToEdit=null) { /* ...código inalterado... */ }
-     function closeAlbumTrackModal() { /* ...código inalterado... */ }
-     function saveAlbumTrack() { /* ...código inalterado... */ }
-     function updateTrackNumbers() { /* ...código inalterado... */ }
+            const releaseDateMap = new Map();
+            const allReleasesForDateMap = [...(data.albums || []), ...(data.singles || [])];
+            allReleasesForDateMap.forEach(item => { releaseDateMap.set(item.id, item.releaseDate); });
 
-    // ... (createAirtableRecord, updateAirtableRecord, parseDurationToSeconds - sem mudanças) ...
-     async function createAirtableRecord(tableName, fields) { /* ...código inalterado... */ }
-     async function updateAirtableRecord(tableName, recordId, fields) { /* ...código inalterado... */ }
-     function parseDurationToSeconds(durationStr) { /* ...código inalterado... */ }
+            db.songs = (data.musicas || []).map(song => ({
+                ...song, streams: song.streams || 0, totalStreams: song.totalStreams || 0,
+                cover: 'https://i.imgur.com/AD3MbBi.png', artist: artistsMapById.get((song.artistIds || [])[0]) || '?',
+                parentReleaseDate: releaseDateMap.get(song.albumId) || null
+            }));
 
-    // ... (handleSingleSubmit, processSingleSubmission, processExistingSingleSubmission - sem mudanças) ...
-     async function handleSingleSubmit(event) { /* ...código inalterado... */ }
-     async function processSingleSubmission(trackType) { /* ...código inalterado... */ }
-     async function processExistingSingleSubmission(existingTrackId) { /* ...código inalterado... */ }
+            db.albums = []; db.singles = [];
+            const allReleases = [...(data.albums || []), ...(data.singles || [])];
+            const thirtyMinSec = 30 * 60;
 
-    // ... (initAlbumForm, batchCreateAirtableRecords, handleAlbumSubmit - sem mudanças) ...
-     function initAlbumForm() { /* ...código inalterado... */ }
-     async function batchCreateAirtableRecords(tableName, records) { /* ...código inalterado... */ }
-     async function handleAlbumSubmit(event) { /* ...código inalterado... */ }
+            allReleases.forEach(item => {
+                (item.tracks || []).forEach(tInfo => {
+                    const s = db.songs.find(sDb => sDb.id === tInfo.id);
+                    if (s) { s.cover = item.imageUrl; } else { console.warn(`DEBUG initializeData: Song ${tInfo.id} not found.`); }
+                });
+                const artistEntry = db.artists.find(a => a.id === item.artistId);
+                if ((item.totalDurationSeconds || 0) >= thirtyMinSec) {
+                    db.albums.push(item); if (artistEntry) { artistEntry.albums.push(item); }
+                } else {
+                    db.singles.push(item); if (artistEntry) { artistEntry.singles.push(item); }
+                }
+                if (!artistEntry && item.artist !== "?") { console.warn(`DEBUG initializeData: Artist ${item.artist} (ID: ${item.artistId}) not found for release ${item.title}.`); }
+            });
 
-    // --- 5. INICIALIZAÇÃO GERAL ---
+            db.players = data.players || [];
+
+            console.log(`DEBUG initializeData: DB Init - A${db.artists.length}, B${db.albums.length}, S${db.singles.length}, M${db.songs.length}, P${db.players.length}`); // DEBUG
+            return true;
+        } catch (error) {
+            console.error("DEBUG initializeData: CRITICAL error:", error); // DEBUG
+            alert("Erro GRAVE ao inicializar dados internos. Verifique o console.");
+            return false;
+        }
+    };
+
+    const saveChartDataToLocalStorage = (chartType) => { /* ...código inalterado... */ };
+    async function refreshAllData() { /* ...código inalterado... */ }
+    const switchView = (viewId, targetSectionId=null) => { /* ...código inalterado... */ };
+    const switchTab = (event, forceTabId=null) => { /* ...código inalterado... */ };
+    const handleBack = () => { /* ...código inalterado... */ };
+    const renderArtistsGrid = (containerId, artists) => { /* ...código inalterado... */ };
+    function formatArtistString(artistIds, collabType) { /* ...código inalterado... */ }
+    function getCoverUrl(albumId) { /* ...código inalterado... */ }
+    const renderChart = (type) => { /* ...código inalterado... */ };
+    const openArtistDetail = (artistName) => { /* ...código inalterado... */ };
+    const openAlbumDetail = (albumId) => { /* ...código inalterado... */ };
+    const openDiscographyDetail = (type) => { /* ...código inalterado... */ };
+    const handleSearch = () => { /* ...código inalterado... */ };
+    const setupCountdown = (timerId, chartType) => { /* ...código inalterado... */ };
+    function startAlbumCountdown(targetDateISO, containerId) { /* ...código inalterado... */ }
+    const CHART_TOP_N = 20; const STREAMS_PER_POINT = 10000; const calculateSimulatedStreams = (points, lastActiveISO) => { /* ...código inalterado... */ }; const computeChartData = (artistsArray) => { /* ...código inalterado... */ }; function renderRPGChart() { /* ...código inalterado... */ }
+    function populateExistingTrackSelect(artistId) { /* ...código inalterado... */ }
+    function handleExistingTrackToggle() { /* ...código inalterado... */ }
+    function initializeStudio() { /* ...código inalterado... */ }
+    function populateArtistSelector(playerId) { /* ...código inalterado... */ }
+    function loginPlayer(playerId) { /* ...código inalterado... */ }
+    function logoutPlayer() { /* ...código inalterado... */ }
+    function populateArtistSelectForFeat(targetSelectElement) { /* ...código inalterado... */ }
+    function openFeatModal(buttonElement) { /* ...código inalterado... */ }
+    function closeFeatModal() { /* ...código inalterado... */ }
+    function confirmFeat() { /* ...código inalterado... */ }
+    function toggleInlineFeatAdder() { /* ...código inalterado... */ }
+    function confirmInlineFeat() { /* ...código inalterado... */ }
+    function cancelInlineFeat() { /* ...código inalterado... */ }
+    function openAlbumTrackModal(itemToEdit=null) { /* ...código inalterado... */ }
+    function closeAlbumTrackModal() { /* ...código inalterado... */ }
+    function saveAlbumTrack() { /* ...código inalterado... */ }
+    function updateTrackNumbers() { /* ...código inalterado... */ }
+    async function createAirtableRecord(tableName, fields) { /* ...código inalterado... */ }
+    async function updateAirtableRecord(tableName, recordId, fields) { /* ...código inalterado... */ }
+    function parseDurationToSeconds(durationStr) { /* ...código inalterado... */ }
+    async function handleSingleSubmit(event) { /* ...código inalterado... */ }
+    async function processSingleSubmission(trackType) { /* ...código inalterado... */ }
+    async function processExistingSingleSubmission(existingTrackId) { /* ...código inalterado... */ }
+    function initAlbumForm() { /* ...código inalterado... */ }
+    async function batchCreateAirtableRecords(tableName, records) { /* ...código inalterado... */ }
+    async function handleAlbumSubmit(event) { /* ...código inalterado... */ }
     function initializeBodyClickListener() { /* ...código inalterado... */ }
 
+    // --- 5. INICIALIZAÇÃO GERAL ---
     async function main() {
         console.log("DEBUG: Entering main function..."); // DEBUG
         if (!initializeDOMElements()) {
@@ -244,9 +379,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const data = await loadAllData();
         console.log("DEBUG: Data load finished.", data ? "Data received." : "Data load FAILED."); // DEBUG
 
-        if (data && data.allArtists) {
+        if (data && data.allArtists) { // Verifica se dados essenciais carregaram
             console.log("DEBUG: Data seems valid, initializing data structure..."); // DEBUG
-            if (!initializeData(data)) {
+            if (!initializeData(data)) { // Sai se a inicialização interna falhar
                 console.error("DEBUG: initializeData failed. Exiting main."); // DEBUG
                 document.body.classList.remove('loading'); return;
             }
@@ -264,7 +399,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (confirmTrackTypeBtn) { confirmTrackTypeBtn.addEventListener('click', () => { processSingleSubmission(trackTypeSelect.value); }); console.log("DEBUG: Attached listener to confirmTrackTypeBtn."); } // DEBUG
                 else { console.warn("DEBUG: confirmTrackTypeBtn not found for listener."); } // DEBUG
-                if (cancelTrackTypeBtn) { cancelTrackTypeBtn.addEventListener('click', () => { /* ... */ }); console.log("DEBUG: Attached listener to cancelTrackTypeBtn."); } // DEBUG
+                if (cancelTrackTypeBtn) { cancelTrackTypeBtn.addEventListener('click', () => {
+                     trackTypeModal.classList.add('hidden');
+                     const btn = document.getElementById('submitNewSingle');
+                     if(btn) { btn.disabled = false; btn.textContent = 'Lançar Single';}
+                 }); console.log("DEBUG: Attached listener to cancelTrackTypeBtn."); } // DEBUG
                 else { console.warn("DEBUG: cancelTrackTypeBtn not found for listener."); } // DEBUG
 
                 console.log("DEBUG: Rendering initial components..."); // DEBUG
@@ -303,8 +442,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.body.innerHTML = '<div style="color: white; padding: 20px;"><h1>Erro Interface</h1><p>Ocorreu um erro ao configurar a interface. Ver console.</p></div>';
             }
         } else {
-            document.body.innerHTML = '<div style="color: white; padding: 20px;"><h1>Erro Crítico</h1><p>Não foi possível carregar os dados essenciais do Airtable. Verifique a conexão e as configurações da API.</p></div>';
-            console.error("DEBUG: Initialization failed: Data load error or invalid data."); // DEBUG
+            // Se loadAllData retornou null ou data.allArtists estava vazio
+            if (!data) { // Se loadAllData falhou completamente (já mostrou erro na tela)
+                 console.error("DEBUG: Initialization failed because loadAllData returned null.");
+            } else { // Se loadAllData funcionou mas não retornou artistas
+                 document.body.innerHTML = '<div style="color: white; padding: 20px;"><h1>Erro Crítico</h1><p>Não foi possível carregar os dados essenciais (Artistas). Verifique a base de dados.</p></div>';
+                 console.error("DEBUG: Initialization failed: Data loaded but no artists found.");
+            }
         }
         document.body.classList.remove('loading');
         console.log("DEBUG: Exiting main function."); // DEBUG
