@@ -1,364 +1,87 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Spotify RPG - Charts & Artists</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spotify RPG - Charts & Artists</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div id="mainView" class="page-view">
-        <header class="topbar">
-            <div class="search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Artistas, álbuns ou músicas" />
-            </div>
+        <div id="studioView" class="page-view hidden">
+        <main class="main-container">
+            <section id="studioSection" class="content-section active">
+                <h2 class="section-title">Meu Estúdio</h2>
 
-            <nav class="nav-tabs">
-                <button class="nav-tab active" data-tab="homeSection">Início</button>
-                <button class="nav-tab" data-tab="musicChartsSection">Top Músicas</button>
-                <button class="nav-tab" data-tab="albumChartsSection">Top Álbuns</button>
-                <button class="nav-tab" data-tab="artistsSection">Artistas</button>
-                <button class="nav-tab" data-tab="studioSection">Meu Estúdio</button>
-            </nav>
-        </header>
+                <div class="studio-login-wrapper">
+                    <div id="loginPrompt">
+                        <label for="playerSelect">Quem é você?</label>
+                        <select id="playerSelect">
+                            <option value="">Carregando jogadores...</option>
+                        </select>
+                        <button class="submit-btn" id="loginButton">Entrar</button>
+                    </div>
+                    <div id="loggedInInfo" class="hidden">
+                        <p>Logado como: <strong id="playerName"></strong></p>
+                        <button class="small-btn" id="logoutButton">Sair</button>
+                    </div>
+                </div>
 
-        <main class="main-container">
-            <section id="homeSection" class="content-section active">
-                <h2 class="section-title">Artistas em Destaque</h2>
-                <div id="homeGrid" class="artists-grid"></div>
-            </section>
-            <section id="musicChartsSection" class="content-section">
-                <div class="chart-header">
-                    <h3>🔥 Top Músicas da Semana</h3>
-                    <p>Atualiza em <span id="musicCountdownTimer"></span></p>
-                </div>
-                <div id="musicChartsList" class="chart-list"></div>
-            </section>
-            <section id="albumChartsSection" class="content-section">
-                <div class="chart-header">
-                    <h3>💿 Top Álbuns da Semana</h3>
-                    <p>Atualiza em <span id="albumCountdownTimer"></span></p>
-                </div>
-                <div id="albumChartsList" class="chart-list"></div>
-            </section>
-            <section id="artistsSection" class="content-section">
-                <h2 class="section-title">Todos os Artistas</h2>
-                <div id="artistsGrid" class="artists-grid"></div>
-            </section>
-            <section id="searchSection" class="content-section">
-                <h2 class="section-title">Resultados da Busca</h2>
-                <div id="searchResults" class="artists-grid"></div>
-                <div id="noResults" class="no-results hidden">
-                    <i class="fas fa-compact-disc"></i>
-                    <p>Não encontramos nada.</p>
-                </div>
-            </section>
-        </main>
-    </div>
+                <div id="studioLaunchWrapper" class="hidden">
+                    <nav class="studio-tabs">
+                        <button class="studio-tab-btn active" data-form="single">Lançar Single</button>
+                        <button class="studio-tab-btn" data-form="album">Lançar Álbum / EP</button>
+                    </nav>
 
-    <div id="artistDetail" class="page-view hidden">
-        <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
-        <header class="artist-header">
-            <div class="header-bg" id="detailBg"></div>
-            <div class="header-overlay"></div>
-        </header>
-        <main class="page-detail-body">
-            <div class="artist-header-content">
-                <h1 id="detailName"></h1>
-                <div class="verified-artist">
-                    <i class="fas fa-check-circle"></i> Artista Verificado
-                </div>
-                <div class="page-actions">
-                    <button class="main-play-btn"><i class="fas fa-play"></i></button>
-                    <button class="follow-btn">SEGUIR</button>
-                </div>
-            </div>
-            <section class="popular-songs-list">
-                <h2 class="section-title">Populares</h2>
-                <div id="popularSongsList"></div>
-            </section>
-            <section id="discographySection">
-                <div class="section-header">
-                    <h3>Álbuns</h3>
-                    <span class="see-all-btn" data-type="albums">Ver todos</span>
-                </div>
-                <div class="horizontal-scroll-list" id="albumsList"></div>
-                <div class="section-header">
-                    <h3>Singles & EPs</h3>
-                    <span class="see-all-btn" data-type="singles">Ver todos</span>
-                </div>
-                <div class="horizontal-scroll-list" id="singlesList"></div>
-            </section>
-            <section id="recommendedSection">
-                <h2 class="section-title">Os fãs também curtem</h2>
-                <div id="recommendedGrid" class="artists-grid"></div>
-            </section>
-        </main>
-    </div>
+                                        <form id="newSingleForm" class="studio-form studio-form-content active">
+                        <h3>🚀 Lançar Novo Single</h3>
+                        <div class="studio-form-group">
+                            <label for="singleArtistSelect">Artista Principal</label>
+                            <select id="singleArtistSelect" required>
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="studio-form-group">
+                            <label for="singleTitle">Nome do Single</label>
+                            <input type="text" id="singleTitle" placeholder="Ex: After Like" required />
+                        </div>
+                        <div class="studio-form-group">
+                            <label for="singleCoverUrl">URL da Capa</label>
+                            <input type="url" id="singleCoverUrl" placeholder="https://i.imgur.com/..." required />
+                        </div>
+                        <div class="studio-form-group">
+                            <label for="singleReleaseDate">Data de Lançamento</label>
+                            <input type="date" id="singleReleaseDate" required />
+                        </div>
 
-    <div id="albumDetail" class="page-view hidden">
-        <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
+                                                                        <div id="newTrackInfoGroup">
+                            <hr class="form-divider" />
+                            <h4>Informações da Nova Faixa</h4>
+                            <div class="studio-form-group">
+                                <label for="trackName">Nome da Nova Faixa</label>
+                                <input type="text" id="trackName" placeholder="Ex: After Like" required />
+                            </div>
+                            <div class="studio-form-group">
+                                <label for="trackDuration">Duração da Nova Faixa (MM:SS)</label>
+                                <input type="text" id="trackDuration" placeholder="Ex: 3:45" pattern="\d{1,2}:\d{2}" required />
+                            </div>
+                        </div>
 
-        <header class="album-header">
-            <div class="header-bg" id="albumDetailBg"></div>
-            <div class="header-overlay"></div>
-            <div class="album-header-content">
-                <img id="albumDetailCover" src="https://i.imgur.com/AD3MbBi.png" alt="Capa do Álbum"> <h1 id="albumDetailTitle">Nome do Álbum</h1> <div id="albumNormalInfoContainer">
-                    <p id="albumDetailInfo">Carregando informações...</p> </div>
+                        <div class="feat-section">
+                            <label>Participações (Feat.)</label>
+                            <div class="feat-list" id="singleFeatList"></div>
+                            <button type="button" class="small-btn add-feat-btn" data-target="singleFeatList"><i class="fas fa-plus"></i> Adicionar Feat</button>
+                        </div>
+                        <button type="submit" class="submit-btn" id="submitNewSingle"> Lançar Single </button>
+                    </form>
+                                                        </div>
+            </section>
+        </main>
+    </div>
 
-                <div id="albumCountdownContainer" class="hidden">
-                    <div id="albumCountdownTimer">
-                        </div>
-                    <p class="release-date-text">Lançamento em <span id="albumCountdownReleaseDate">...</span></p>
-                </div>
-                 </div>
-        </header> <main class="page-detail-body">
-            <div id="albumTracklist" class="tracklist-container">
-                </div>
-        </main> </div>
-
-    <div id="discographyDetail" class="page-view hidden">
-        <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
-        <main class="content-section active">
-            <h2 class="section-title" id="discographyTypeTitle"></h2>
-            <div id="discographyGrid" class="full-page-grid"></div>
-        </main>
-    </div>
-
-    <div id="studioView" class="page-view hidden">
-        <main class="main-container">
-            <section id="studioSection" class="content-section active">
-                <h2 class="section-title">Meu Estúdio</h2>
-
-                <div class="studio-login-wrapper">
-                    <div id="loginPrompt">
-                        <label for="playerSelect">Quem é você?</label>
-                        <select id="playerSelect">
-                            <option value="">Carregando jogadores...</option>
-                        </select>
-                        <button class="submit-btn" id="loginButton">Entrar</button>
-                    </div>
-                    <div id="loggedInInfo" class="hidden">
-                        <p>Logado como: <strong id="playerName"></strong></p>
-                        <button class="small-btn" id="logoutButton">Sair</button>
-                    </div>
-                </div>
-
-                <div id="studioLaunchWrapper" class="hidden">
-                    <nav class="studio-tabs">
-                        <button class="studio-tab-btn active" data-form="single">Lançar Single</button>
-                        <button class="studio-tab-btn" data-form="album">Lançar Álbum / EP</button>
-                    </nav>
-
-                    <form id="newSingleForm" class="studio-form studio-form-content active">
-                        <h3>🚀 Lançar Novo Single</h3>
-                        <div class="studio-form-group">
-                            <label for="singleArtistSelect">Artista Principal</label>
-                            <select id="singleArtistSelect" required>
-                                <option value="">Selecione...</option>
-                            </select>
-                        </div>
-                        <div class="studio-form-group">
-                            <label for="singleTitle">Nome do Single</label>
-                            <input type="text" id="singleTitle" placeholder="Ex: After Like" required />
-                        </div>
-                        <div class="studio-form-group">
-                            <label for="singleCoverUrl">URL da Capa</label>
-                            <input type="url" id="singleCoverUrl" placeholder="https://i.imgur.com/..." required />
-                        </div>
-                        <div class="studio-form-group">
-                            <label for="singleReleaseDate">Data de Lançamento</label>
-                            <input type="date" id="singleReleaseDate" required />
-                        </div>
-
-                        <div class="studio-form-group toggle-existing">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="launchExistingTrackCheck">
-                                Lançar uma faixa já existente (de Álbum/EP) como Single?
-                            </label>
-                        </div>
-
-                        <div id="newTrackInfoGroup">
-                            <hr class="form-divider" />
-                            <h4>Informações da Nova Faixa</h4>
-                            <div class="studio-form-group">
-                                <label for="trackName">Nome da Nova Faixa</label>
-                                <input type="text" id="trackName" placeholder="Ex: After Like" required /> </div>
-                            <div class="studio-form-group">
-                                <label for="trackDuration">Duração da Nova Faixa (MM:SS)</label>
-                                <input type="text" id="trackDuration" placeholder="Ex: 3:45" pattern="\d{1,2}:\d{2}" required /> </div>
-                        </div>
-
-                        <div id="existingTrackGroup" class="hidden">
-                             <hr class="form-divider" />
-                            <h4>Selecionar Faixa Existente</h4>
-                            <div class="studio-form-group">
-                                <label for="existingTrackSelect">Faixa do Álbum/EP a ser lançada</label>
-                                <select id="existingTrackSelect" required>
-                                    <option value="">Selecione o artista primeiro...</option>
-                                </select>
-                                 <small>Apenas faixas de álbuns/EPs aparecerão aqui.</small>
-                            </div>
-                        </div>
-                        <div class="feat-section">
-                            <label>Participações (Feat.)</label>
-                            <div class="feat-list" id="singleFeatList"></div>
-                            <button type="button" class="small-btn add-feat-btn" data-target="singleFeatList"><i class="fas fa-plus"></i> Adicionar Feat</button>
-                        </div>
-                        <button type="submit" class="submit-btn" id="submitNewSingle"> Lançar Single </button>
-                    </form>
-
-                    <form id="newAlbumForm" class="studio-form studio-form-content">
-                        <h3>💿 Lançar Novo Álbum / EP</h3>
-                        <div class="studio-form-group">
-                            <label for="albumArtistSelect">Artista Principal</label>
-                            <select id="albumArtistSelect" required>
-                                <option value="">Selecione...</option>
-                            </select>
-                        </div>
-                        <div class="studio-form-group">
-                            <label for="albumTitle">Nome do Álbum / EP</label>
-                            <input type="text" id="albumTitle" placeholder="Ex: I've IVE" required />
-                        </div>
-                        <div class="studio-form-group">
-                            <label for="albumCoverUrl">URL da Capa</label>
-                            <input type="url" id="albumCoverUrl" placeholder="https://i.imgur.com/..." required />
-                        </div>
-                         <div class="studio-form-group">
-                            <label for="albumReleaseDate">Data de Lançamento</label>
-                            <input type="date" id="albumReleaseDate" required />
-                        </div>
-                        <hr class="form-divider" />
-                        <h4> Tracklist <span class="track-helper">(Arraste <i class="fas fa-bars"></i> para reordenar)</span></h4>
-                        <div id="albumTracklistEditor" class="track-list-editor">
-                            </div>
-                        <button type="button" class="submit-btn add-track-modal-btn" id="openAddTrackModalBtn"><i class="fas fa-plus"></i> Adicionar Faixa</button>
-                        <hr class="form-divider" />
-                        <button type="submit" class="submit-btn" id="submitNewAlbum"> Lançar Álbum / EP </button>
-                    </form>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <div id="featModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>Adicionar Participação</h3>
-            <div class="studio-form-group">
-                <label for="featArtistSelect">Selecionar Artista</label>
-                <select id="featArtistSelect">
-                    <option value="">Carregando...</option>
-                </select>
-            </div>
-            <div class="studio-form-group">
-                <label for="featTypeSelect">Tipo de Colaboração</label>
-                <select id="featTypeSelect">
-                    <option value="Feat.">Feat. (Participação Curta)</option>
-                    <option value="Dueto/Grupo">Dueto / Grupo (&)</option>
-                </select>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="submit-btn" id="confirmFeatBtn">Adicionar</button>
-                <button type="button" class="cancel-btn" id="cancelFeatBtn">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="trackTypeModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>Tipo de Faixa</h3>
-            <p class="modal-description">Esta nova faixa é a música principal (Single/A-side) ou uma faixa adicional (B-side)?</p>
-            <div class="studio-form-group">
-                <label for="trackTypeSelect">Tipo de Faixa</label>
-                <select id="trackTypeSelect">
-                    <option value="Single" selected>Single (A-side)</option>
-                    <option value="B-side">B-side</option>
-                </select>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="submit-btn" id="confirmTrackTypeBtn">Confirmar</button>
-                <button type="button" class="cancel-btn" id="cancelTrackTypeBtn">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="albumTrackModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3 id="albumTrackModalTitle">Adicionar Nova Faixa</h3>
-            <input type="hidden" id="editingTrackItemId">
-
-            <div class="studio-form-group">
-                <label for="albumTrackNameInput">Nome da Faixa</label>
-                <input type="text" id="albumTrackNameInput" placeholder="Ex: Kitsch" required />
-            </div>
-            <div class="studio-form-group">
-                <label for="albumTrackDurationInput">Duração (formato MM:SS)</label>
-                <input type="text" id="albumTrackDurationInput" placeholder="Ex: 3:15" pattern="\d{1,2}:\d{2}" required />
-            </div>
-            <div class="studio-form-group">
-                <label for="albumTrackTypeSelect">Tipo de Faixa</label>
-                 <select id="albumTrackTypeSelect">
-                    <option value="Album Track" selected>Album Track</option>
-                    <option value="Single">Single (A-side)</option>
-                    <option value="B-side">B-side</option>
-                </select>
-            </div>
-
-            <div class="feat-section inline-feat-section">
-                <label>Participações (Feat.)</label>
-                <div class="feat-list" id="albumTrackFeatList"></div>
-                <button type="button" class="small-btn add-inline-feat-btn"><i class="fas fa-plus"></i> Adicionar Feat</button>
-
-                <div id="inlineFeatAdder" class="inline-feat-adder hidden">
-                    <div class="studio-form-group">
-                        <label for="inlineFeatArtistSelect">Selecionar Artista</label>
-                        <select id="inlineFeatArtistSelect">
-                            <option value="">Carregando...</option>
-                        </select>
-                    </div>
-                    <div class="studio-form-group">
-                        <label for="inlineFeatTypeSelect">Tipo de Colaboração</label>
-                        <select id="inlineFeatTypeSelect">
-                            <option value="Feat.">Feat. (Participação Curta)</option>
-                            <option value="Dueto/Grupo">Dueto / Grupo (&)</option>
-                        </select>
-                    </div>
-                    <div class="inline-feat-actions">
-                        <button type="button" class="small-btn confirm-inline-feat-btn" id="confirmInlineFeatBtn">Confirmar Feat</button>
-                        <button type="button" class="small-btn cancel-inline-feat-btn" id="cancelInlineFeatBtn">Cancelar</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-actions">
-                <button type="button" class="submit-btn" id="saveAlbumTrackBtn">Salvar Faixa</button>
-                <button type="button" class="cancel-btn" id="cancelAlbumTrackBtn">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <nav class="bottom-nav">
-        <button class="bottom-nav-item active" data-tab="homeSection">
-            <i class="fas fa-home"></i><span>Início</span>
-        </button>
-        <button class="bottom-nav-item" data-tab="musicChartsSection">
-            <i class="fas fa-music"></i><span>Top Músicas</span>
-        </button>
-        <button class="bottom-nav-item" data-tab="albumChartsSection">
-            <i class="fas fa-compact-disc"></i><span>Top Álbuns</span>
-        </button>
-        <button class="bottom-nav-item" data-tab="artistsSection">
-            <i class="fas fa-users"></i><span>Artistas</span>
-        </button>
-        <button class="bottom-nav-item" data-tab="studioSection">
-            <i class="fas fa-microphone-alt"></i><span>Estúdio</span>
-        </button>
-    </nav>
-    <script src="script.js"></script>
+        <script src="script.js"></script>
 </body>
 </html>
