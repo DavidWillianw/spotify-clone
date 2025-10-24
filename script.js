@@ -383,19 +383,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     function formatArtistString(artistIds, collabType) { if (!artistIds || artistIds.length === 0) return "?"; const names = artistIds.map(id => { const a = db.artists.find(art => art.id === id); return a ? a.name : "?"; }); const main = names[0]; if (names.length === 1) return main; const others = names.slice(1).join(', '); if (collabType === 'Dueto/Grupo') { return `${main} & ${others}`; } else { return main; } }
     function getCoverUrl(albumId) { if (!albumId) return 'https://i.imgur.com/AD3MbBi.png'; const r = [...db.albums, ...db.singles].find(a => a.id === albumId); return (r ? r.imageUrl : 'https://i.imgur.com/AD3MbBi.png'); }
 
-    const renderChart = (type) => {
+const renderChart = (type) => {
         let containerId, dataList, previousData;
-        
+
         if (type === 'music') {
             containerId = 'musicChartsList';
-            dataList = [...db.songs].sort((a, b) => (b.streams || 0) - (a.streams || 0)).slice(0, 50); 
+            dataList = [...db.songs].sort((a, b) => (b.streams || 0) - (a.streams || 0)).slice(0, 50);
             previousData = previousMusicChartData;
-        } else {
+        } else { // type === 'album'
             containerId = 'albumChartsList';
-            dataList = [...db.albums].sort((a, b) => (b.weeklyStreams || 0) - (a.weeklyStreams || 0)).slice(0, 50); 
+            dataList = [...db.albums].sort((a, b) => (b.weeklyStreams || 0) - (a.weeklyStreams || 0)).slice(0, 50); // Já ordena por weeklyStreams
             previousData = previousAlbumChartData;
         }
-        
+
         const container = document.getElementById(containerId);
         if (!container) { console.error(`Chart ${containerId} not found.`); return; }
         if (!dataList || dataList.length === 0) { container.innerHTML = `<p class="empty-state">Nenhum item.</p>`; return; }
@@ -405,16 +405,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             const previousRank = previousData[item.id];
             let iconClass = 'fa-minus';
             let trendClass = 'trend-stable';
-            if (previousRank === undefined) { trendClass = 'trend-new'; } 
-            else if (currentRank < previousRank) { iconClass = 'fa-caret-up'; trendClass = 'trend-up'; } 
+            if (previousRank === undefined) { trendClass = 'trend-new'; }
+            else if (currentRank < previousRank) { iconClass = 'fa-caret-up'; trendClass = 'trend-up'; }
             else if (currentRank > previousRank) { iconClass = 'fa-caret-down'; trendClass = 'trend-down'; }
             const indicatorHtml = `<span class="chart-rank-indicator ${trendClass}"><i class="fas ${iconClass}"></i></span>`;
-            
+
             if (type === 'music') {
                 const artistName = formatArtistString(item.artistIds, item.collabType);
+                // Exibe streams semanais da música
                 return `<div class="chart-item" data-song-id="${item.id}">${indicatorHtml}<span class="chart-rank">${currentRank}</span><img src="${item.cover || getCoverUrl(item.albumId)}" alt="${item.title}" class="chart-item-img"><div class="chart-item-info"><span class="chart-item-title">${item.title}</span><span class="chart-item-artist">${artistName}</span></div><span class="chart-item-duration">${(item.streams || 0).toLocaleString('pt-BR')}</span></div>`;
-            } else {
+            } else { // type === 'album'
+                // --- LINHA MODIFICADA ---
+                // Exibe weeklyStreams (streams semanais do álbum) em vez de metascore
                 return `<div class="chart-item" data-album-id="${item.id}">${indicatorHtml}<span class="chart-rank">${currentRank}</span><img src="${item.imageUrl}" alt="${item.title}" class="chart-item-img"><div class="chart-item-info"><span class="chart-item-title">${item.title}</span><span class="chart-item-artist">${item.artist}</span></div><span class="chart-item-score">${(item.weeklyStreams || 0).toLocaleString('pt-BR')}</span></div>`;
+                // --- FIM DA MODIFICAÇÃO ---
             }
         }).join('');
     };
