@@ -252,7 +252,7 @@ ficou melhor assim
   flex-shrink: 0; /* Impede que encolha */
   padding-left: 193px; /* Espaço antes dos streams */
   line-height: 1.4; /* Tenta alinhar verticalmente com a primeira linha do título */
-  margin-left: auto; /* Empurra para a direita */
+     margin-left: 71px; /* Empurra para a direita */
 }
 
 /* --- ESTILOS PRÉ-LANÇAMENTO (AJUSTADOS SEM NÚMERO) --- */
