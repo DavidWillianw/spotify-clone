@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let previousMusicChartData = {};
     let previousAlbumChartData = {};
     let previousRpgChartData = {};
-    let albumCountdownInterval = null; // Timer do pré-lançamento
+    let albumCountdownInterval = null; // Timer do pré-lançamento
 
 
     // --- ELEMENTOS DO DOM ---
@@ -599,6 +599,35 @@ const renderChart = (type) => {
     // --- 4. SISTEMA DO ESTÚDIO ---
     console.log("Defining initializeStudio function...");
 
+    // *** NOVA FUNÇÃO ADICIONADA ***
+    function populateExistingTracks(artistId) {
+        const existingTrackSelect = document.getElementById('existingTrackSelect');
+        if (!artistId) {
+            existingTrackSelect.innerHTML = '<option value="">Selecione o artista...</option>';
+            return;
+        }
+        
+        // Encontra faixas que são de Álbuns (não de Singles/EPs)
+        let tracks = [];
+        const artistAlbums = db.albums.filter(a => a.artistId === artistId);
+        artistAlbums.forEach(album => {
+           // Adiciona tracks de álbuns, garantindo que tenham ID
+           tracks.push(...(album.tracks || []).filter(t => t.id));
+        });
+        // Remove duplicatas
+        tracks = [...new Map(tracks.map(item => [item['id'], item])).values()];
+    
+        if (tracks.length === 0) {
+            existingTrackSelect.innerHTML = '<option value="">Nenhuma faixa de álbum encontrada</option>';
+            return;
+        }
+
+        existingTrackSelect.innerHTML = '<option value="">Selecione uma faixa...</option>' +
+            tracks.sort((a,b) => a.title.localeCompare(b.title))
+                  .map(t => `<option value="${t.id}">${t.title}</option>`).join('');
+    }
+
+    // *** FUNÇÃO initializeStudio ATUALIZADA ***
     function initializeStudio() {
         console.log("Running initializeStudio..."); 
         if (!playerSelect) {
@@ -638,6 +667,48 @@ const renderChart = (type) => {
                 }
             });
         }
+
+        // --- INÍCIO DAS NOVAS ADIÇÕES ---
+        
+        const launchExistingTrackCheck = document.getElementById('launchExistingTrackCheck');
+        const newTrackInfoGroup = document.getElementById('newTrackInfoGroup');
+        const existingTrackGroup = document.getElementById('existingTrackGroup');
+        const trackNameInput = document.getElementById('trackName');
+        const trackDurationInput = document.getElementById('trackDuration');
+        const existingTrackSelect = document.getElementById('existingTrackSelect');
+
+        if (launchExistingTrackCheck) {
+            launchExistingTrackCheck.addEventListener('change', () => {
+                const isExisting = launchExistingTrackCheck.checked;
+                
+                newTrackInfoGroup.classList.toggle('hidden', isExisting);
+                existingTrackGroup.classList.toggle('hidden', !isExisting);
+
+                // Esta é a correção CRÍTICA:
+                trackNameInput.required = !isExisting;
+                trackDurationInput.required = !isExisting;
+                existingTrackSelect.required = isExisting;
+
+                // Popula as faixas se o artista já estiver selecionado
+                if (isExisting && singleArtistSelect.value) {
+                    populateExistingTracks(singleArtistSelect.value);
+                }
+            });
+        }
+
+        // Adiciona listener para popular faixas existentes quando o artista muda
+        if (singleArtistSelect) {
+            singleArtistSelect.addEventListener('change', () => {
+                const existingTrackSelect = document.getElementById('existingTrackSelect');
+                existingTrackSelect.innerHTML = '<option value="">Selecione uma faixa...</option>';
+                
+                if (document.getElementById('launchExistingTrackCheck').checked) {
+                     populateExistingTracks(singleArtistSelect.value);
+                }
+            });
+        }
+        
+        // --- FIM DAS NOVAS ADIÇÕES ---
 
         if (openAddTrackModalBtn) {
             openAddTrackModalBtn.addEventListener('click', () => openAlbumTrackModal());
@@ -689,8 +760,181 @@ const renderChart = (type) => {
     function updateTrackNumbers() { const tracks=albumTracklistEditor.querySelectorAll('.track-list-item-display'); if(tracks.length===0&&!albumTracklistEditor.querySelector('.empty-state-small')){if(!albumTracklistEditor.querySelector('.empty-state-small')){albumTracklistEditor.innerHTML='<p class="empty-state-small">Nenhuma faixa.</p>';}} else if(tracks.length>0){const empty=albumTracklistEditor.querySelector('.empty-state-small'); if(empty){empty.remove();}} tracks.forEach((t, i)=>{let num=t.querySelector('.track-number-display'); if(!num){num=document.createElement('span'); num.className='track-number-display'; t.insertBefore(num, t.querySelector('.drag-handle'));} num.textContent=`${i+1}.`; num.style.fontWeight='700'; num.style.color='var(--text-secondary)'; num.style.width='25px'; num.style.textAlign='right'; num.style.marginRight='5px';}); }
     async function createAirtableRecord(tableName, fields) { const url=`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(tableName)}`; try{const r=await fetch(url,{method:'POST',headers:{'Authorization':`Bearer ${AIRTABLE_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({fields:fields})}); if(!r.ok){const e=await r.json(); console.error(`Erro Airtable ${tableName}:`,JSON.stringify(e,null,2)); throw new Error(`Airtable error: ${r.status}`);} return await r.json();} catch(e){console.error(`Falha req ${tableName}:`,e); return null;} }
     function parseDurationToSeconds(durationStr) { if(!durationStr)return 0; const p=durationStr.split(':'); if(p.length!==2)return 0; const m=parseInt(p[0],10); const s=parseInt(p[1],10); if(isNaN(m)||isNaN(s)||s<0||s>59||m<0){return 0;} return (m*60)+s; }
-    async function handleSingleSubmit(event) { event.preventDefault(); const btn=document.getElementById('submitNewSingle'); const artistId=singleArtistSelect.value; const title=document.getElementById('singleTitle').value; const cover=document.getElementById('singleCoverUrl').value; const date=singleReleaseDateInput.value; const track=document.getElementById('trackName').value; const dur=document.getElementById('trackDuration').value; if(!artistId||!title||!cover||!date||!track||!dur||parseDurationToSeconds(dur)===0){alert("Preencha tudo (duração MM:SS).");return;} btn.disabled=true; btn.textContent='Aguardando...'; trackTypeModal.classList.remove('hidden'); }
-    async function processSingleSubmission(trackType) { const btn=document.getElementById('submitNewSingle'); trackTypeModal.classList.add('hidden'); btn.textContent='Enviando...'; try{const artistId=singleArtistSelect.value; const title=document.getElementById('singleTitle').value; const cover=document.getElementById('singleCoverUrl').value; const date=singleReleaseDateInput.value; const track=document.getElementById('trackName').value; const durStr=document.getElementById('trackDuration').value; const durSec=parseDurationToSeconds(durStr); const singleRes=await createAirtableRecord('Singles e EPs',{"Nome do Single/EP":title, "Artista":[artistId], "Capa":[{"url":cover}], "Data de Lançamento":date}); if(!singleRes||!singleRes.id){throw new Error("Falha criar Single/EP.");} const singleId=singleRes.id; const featTags=document.querySelectorAll('#singleFeatList .feat-tag'); let fTrack=track; let fArtists=[artistId]; let collab=null; if(featTags.length>0){const fIds=[]; const fNames=[]; collab=featTags[0].dataset.featType; featTags.forEach(t=>{fIds.push(t.dataset.artistId); fNames.push(t.dataset.artistName);}); if(collab==="Feat."){fTrack=`${track} (feat. ${fNames.join(', ')})`; fArtists=[artistId];} else if(collab==="Dueto/Grupo"){fTrack=track; fArtists=[artistId,...fIds];}} const musicFields={"Nome da Faixa":fTrack, "Artista":fArtists, "Duração":durSec, "Nº da Faixa":1, "Singles e EPs":[singleId], "Tipo de Faixa":trackType}; if(collab){musicFields["Tipo de Colaboração"]=collab;} console.log('DEBUG Single Musica:', musicFields); const musicRes=await createAirtableRecord('Músicas', musicFields); if(!musicRes||!musicRes.id){console.error("Single criado, música falhou."); throw new Error("Falha criar música.");} alert("Single lançado!"); newSingleForm.reset(); singleReleaseDateInput.value=new Date().toISOString().split('T')[0]; document.getElementById('singleFeatList').innerHTML=''; await refreshAllData();} catch(e){alert("Erro lançar single."); console.error("Erro processSingle:", e);} finally{btn.disabled=false; btn.textContent='Lançar Single';} }
+    
+    // *** FUNÇÃO handleSingleSubmit SUBSTITUÍDA ***
+    async function handleSingleSubmit(event) {
+        event.preventDefault();
+        const btn = document.getElementById('submitNewSingle');
+        
+        // Validação básica
+        const artistId = singleArtistSelect.value;
+        const title = document.getElementById('singleTitle').value;
+        const cover = document.getElementById('singleCoverUrl').value;
+        const date = singleReleaseDateInput.value;
+        
+        if (!artistId || !title || !cover || !date) {
+            alert("Preencha Artista, Título, Capa e Data.");
+            return;
+        }
+
+        const isExisting = document.getElementById('launchExistingTrackCheck').checked;
+        
+        // Validação condicional
+        if (isExisting) {
+            const existingTrackId = document.getElementById('existingTrackSelect').value;
+            if (!existingTrackId) {
+                alert("Selecione uma faixa existente para lançar.");
+                return;
+            }
+        } else {
+            const track = document.getElementById('trackName').value;
+            const dur = document.getElementById('trackDuration').value;
+            if (!track || !dur || parseDurationToSeconds(dur) === 0) {
+                alert("Preencha o Nome e a Duração (MM:SS) da nova faixa.");
+                return;
+            }
+        }
+        
+        btn.disabled = true;
+        btn.textContent = 'Aguardando...';
+
+        // Se for uma faixa existente, não precisamos perguntar o tipo,
+        // assumimos que é 'Single'
+        if (isExisting) {
+            await processSingleSubmission('Single'); // Pula o modal
+        } else {
+            trackTypeModal.classList.remove('hidden'); // Mostra o modal para nova faixa
+        }
+    }
+
+    // *** FUNÇÃO processSingleSubmission SUBSTITUÍDA ***
+    async function processSingleSubmission(trackType) {
+        const btn = document.getElementById('submitNewSingle');
+        trackTypeModal.classList.add('hidden');
+        btn.textContent = 'Enviando...';
+        try {
+            const artistId = singleArtistSelect.value;
+            const title = document.getElementById('singleTitle').value;
+            const cover = document.getElementById('singleCoverUrl').value;
+            const date = singleReleaseDateInput.value;
+            const isExisting = document.getElementById('launchExistingTrackCheck').checked;
+
+            // 1. Criar o registro do "Single/EP" (é igual para os dois casos)
+            const singleRes = await createAirtableRecord('Singles e EPs', {
+                "Nome do Single/EP": title,
+                "Artista": [artistId],
+                "Capa": [{"url": cover}],
+                "Data de Lançamento": date
+            });
+
+            if (!singleRes || !singleRes.id) {
+                throw new Error("Falha ao criar o registro do Single/EP.");
+            }
+            const singleId = singleRes.id;
+
+            // 2. Preparar os dados da "Música"
+            let musicFields = {};
+            const featTags = document.querySelectorAll('#singleFeatList .feat-tag');
+            let fArtists = [artistId];
+            let collab = null;
+            let fTrackName = ""; // Nome final da faixa
+            let featNames = []; // Nomes dos feats
+            
+            // Processa feats do *Single* (que podem ser diferentes da faixa original)
+            if (featTags.length > 0) {
+                const fIds = [];
+                collab = featTags[0].dataset.featType;
+                featTags.forEach(t => { fIds.push(t.dataset.artistId); featNames.push(t.dataset.artistName); });
+                
+                if (collab === "Feat.") {
+                    // fTrackName será definido abaixo
+                    fArtists = [artistId]; // Feat não muda o artista principal
+                } else if (collab === "Dueto/Grupo") {
+                    // fTrackName será definido abaixo
+                    fArtists = [artistId, ...fIds]; // Dueto/Grupo adiciona artistas
+                }
+            }
+
+            if (isExisting) {
+                // --- Cenário 1: Faixa Existente ---
+                const existingTrackId = document.getElementById('existingTrackSelect').value;
+                const existingSong = db.songs.find(s => s.id === existingTrackId);
+                
+                if (!existingSong) throw new Error("Música existente não encontrada no DB interno.");
+
+                const baseTrackName = existingSong.title;
+                // Aplica o feat. ao nome da faixa
+                fTrackName = collab === "Feat." ? `${baseTrackName} (feat. ${featNames.join(', ')})` : baseTrackName;
+                
+                musicFields = {
+                    "Nome da Faixa": fTrackName,
+                    "Artista": fArtists, // Artistas definidos pelos feats do single
+                    "Duração": existingSong.durationSeconds,
+                    "Nº da Faixa": 1,
+                    "Singles e EPs": [singleId],
+                    "Tipo de Faixa": trackType, // 'Single' (passado pela função)
+                };
+                if (collab) {
+                    musicFields["Tipo de Colaboração"] = collab;
+                }
+
+            } else {
+                // --- Cenário 2: Nova Faixa (código original) ---
+                const track = document.getElementById('trackName').value;
+                const durStr = document.getElementById('trackDuration').value;
+                const durSec = parseDurationToSeconds(durStr);
+
+                // Aplica o feat. ao nome da faixa
+                fTrackName = collab === "Feat." ? `${track} (feat. ${featNames.join(', ')})` : track;
+
+                musicFields = {
+                    "Nome da Faixa": fTrackName,
+                    "Artista": fArtists,
+                    "Duração": durSec,
+                    "Nº da Faixa": 1,
+                    "Singles e EPs": [singleId],
+                    "Tipo de Faixa": trackType, // Veio do Modal
+                };
+                 if (collab) {
+                    musicFields["Tipo de Colaboração"] = collab;
+                }
+            }
+
+            // 3. Criar o registro da "Música"
+            console.log('Enviando Música para Airtable:', musicFields);
+            const musicRes = await createAirtableRecord('Músicas', musicFields);
+
+            if (!musicRes || !musicRes.id) {
+                console.error("Single criado, mas falha ao criar registro da Música.");
+                throw new Error("Falha ao criar a música.");
+            }
+
+            alert("Single lançado com sucesso!");
+            newSingleForm.reset();
+            singleReleaseDateInput.value = new Date().toISOString().split('T')[0];
+            document.getElementById('singleFeatList').innerHTML = '';
+            
+            // Reseta o formulário do checkbox
+            document.getElementById('launchExistingTrackCheck').checked = false;
+            document.getElementById('newTrackInfoGroup').classList.remove('hidden');
+            document.getElementById('existingTrackGroup').classList.add('hidden');
+            document.getElementById('trackName').required = true;
+            document.getElementById('trackDuration').required = true;
+            document.getElementById('existingTrackSelect').required = false;
+            document.getElementById('existingTrackSelect').innerHTML = '<option value="">Selecione o artista primeiro...</option>';
+
+
+            await refreshAllData();
+
+        } catch (e) {
+            alert("Erro ao lançar o single. Verifique o console.");
+            console.error("Erro em processSingleSubmission:", e);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Lançar Single';
+        }
+    }
+
     function initAlbumForm() { albumTracklistEditor.innerHTML=''; updateTrackNumbers(); if(albumTracklistEditor&&typeof Sortable!=='undefined'){if(albumTracklistSortable){albumTracklistSortable.destroy();} albumTracklistSortable=Sortable.create(albumTracklistEditor,{animation:150, handle:'.drag-handle', onEnd:updateTrackNumbers});} else if(typeof Sortable==='undefined'){console.warn("SortableJS não carregado.");} }
     async function batchCreateAirtableRecords(tableName, records) { const url=`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(tableName)}`; const chunks=[]; for(let i=0; i<records.length; i+=10){chunks.push(records.slice(i, i+10));} const results=[]; for(const chunk of chunks){console.log(`Enviando lote ${tableName}:`, chunk); try{const res=await fetch(url,{method:'POST',headers:{'Authorization':`Bearer ${AIRTABLE_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({"records":chunk.map(fields=>({fields}))})}); if(!res.ok){const e=await res.json(); console.error(`Erro lote ${tableName}:`,JSON.stringify(e,null,2)); throw new Error(`Airtable batch error: ${res.status}`);} const data=await res.json(); results.push(...data.records);} catch(e){console.error(`Falha req batch ${tableName}:`,e); return null;}} return results; }
     async function handleAlbumSubmit(event) { event.preventDefault(); const btn=document.getElementById('submitNewAlbum'); btn.disabled=true; btn.textContent='Enviando...'; try{const artistId=albumArtistSelect.value; const title=document.getElementById('albumTitle').value; const cover=document.getElementById('albumCoverUrl').value; const date=albumReleaseDateInput.value; if(!artistId||!title||!cover||!date){alert("Preencha Álbum/EP."); throw new Error("Campos Álbum faltando.");} const items=albumTracklistEditor.querySelectorAll('.track-list-item-display'); if(items.length===0){alert("Pelo menos uma faixa."); throw new Error("Nenhuma faixa.");} let totalDur=0; const musicRecs=[]; for(let i=0; i<items.length; i++){const item=items[i]; const name=item.dataset.trackName; const durStr=item.dataset.durationStr; const type=item.dataset.trackType; const feats=JSON.parse(item.dataset.feats||'[]'); const durSec=parseDurationToSeconds(durStr); if(!name||!durStr||durSec===0){alert(`Dados inválidos Faixa ${i+1}.`); throw new Error(`Dados inválidos ${i+1}.`);} totalDur+=durSec; let fName=name; let fArts=[artistId]; let collab=null; if(feats.length>0){collab=feats[0].type; const fIds=feats.map(f=>f.id); const fNames=feats.map(f=>f.name); if(collab==="Feat."){fName=`${name} (feat. ${fNames.join(', ')})`; fArts=[artistId];} else if(collab==="Dueto/Grupo"){fName=name; fArts=[artistId,...fIds];}} const rec={"Nome da Faixa":fName, "Artista":fArts, "Duração":durSec, "Nº da Faixa":i+1, "Tipo de Faixa":type}; if(collab){rec["Tipo de Colaboração"]=collab;} musicRecs.push(rec);} const isAlbum=totalDur>=(30*60); const tName=isAlbum?'Álbuns':'Singles e EPs'; const nFld=isAlbum?'Nome do Álbum':'Nome do Single/EP'; const cFld=isAlbum?'Capa do Álbum':'Capa'; const relRes=await createAirtableRecord(tName,{[nFld]:title, "Artista":[artistId], [cFld]:[{"url":cover}], "Data de Lançamento":date}); if(!relRes||!relRes.id){throw new Error("Falha criar Álbum/EP.");} const relId=relRes.id; const albLink='Álbuns'; const sngLink='Singles e EPs'; const linkFld=isAlbum?albLink:sngLink; musicRecs.forEach(rec=>{rec[linkFld]=[relId];}); const created=await batchCreateAirtableRecords('Músicas',musicRecs); if(!created||created.length!==musicRecs.length){console.error("Álbum/EP criado, músicas falharam."); throw new Error("Falha criar faixas.");} alert("Álbum/EP lançado!"); newAlbumForm.reset(); albumReleaseDateInput.value=new Date().toISOString().split('T')[0]; initAlbumForm(); await refreshAllData();} catch(e){alert("Erro lançar álbum/EP."); console.error("Erro handleAlbumSubmit:", e);} finally{btn.disabled=false; btn.textContent='Lançar Álbum / EP';} }
@@ -746,8 +990,7 @@ const renderChart = (type) => {
             console.error("Initialization failed: Data load error.");
         }
         document.body.classList.remove('loading');
-    }
-
+  m
     main();
 
 }); // Fim DOMContentLoaded
