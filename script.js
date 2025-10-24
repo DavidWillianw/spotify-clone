@@ -739,7 +739,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // saveChartDataToLocalStorage('album');
                 // saveChartDataToLocalStorage('rpg');
                 
-                renderRPGChart();s
+                renderRPGChart();
                 renderChart('music'); 
                 renderChart('album');
 
