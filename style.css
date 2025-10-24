@@ -250,7 +250,7 @@ ficou melhor assim
   text-align: right;
   white-space: nowrap;
   flex-shrink: 0; /* Impede que encolha */
-  padding-left: 10px; /* Espaço antes dos streams */
+  padding-left: 193px; /* Espaço antes dos streams */
   line-height: 1.4; /* Tenta alinhar verticalmente com a primeira linha do título */
   margin-left: auto; /* Empurra para a direita */
 }
