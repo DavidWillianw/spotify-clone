@@ -1367,7 +1367,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <span class="edit-release-title">${release.title}</span>
                     <span class="edit-release-artist">${release.artist} - ${new Date(release.releaseDate).getFullYear()}</span>
                 </div>
-                <div class="action-buttons"> {/* Container para os botões */}
+                <div class="action-buttons"> 
                     <button type="button" class="small-btn edit-release-btn"
                             data-release-id="${release.id}"
                             data-release-type="${release.type}"
