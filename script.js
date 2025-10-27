@@ -407,7 +407,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } else if (chartType === 'album') {
             storageKey = PREVIOUS_ALBUM_CHART_KEY;
-            dataList = [...db.albums].sort((a,b)=>(b.weeklyStreams||0)-(a.weeklyStreams||0)).slice(0,50);
+            // Corrigido para incluir álbuns E singles/EPs no chart de álbuns
+             dataList = [...db.albums, ...db.singles]
+                 .filter(item => (item.weeklyStreams || 0) > 0) // Considera apenas com streams > 0
+                 .sort((a, b) => (b.weeklyStreams || 0) - (a.weeklyStreams || 0))
+                 .slice(0, 50);
             currentChartData = dataList.reduce((acc,item,index)=>{ acc[item.id]=index+1; return acc; },{});
             previousAlbumChartData=currentChartData;
 
@@ -432,6 +436,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function refreshAllData() {
         console.log("Atualizando dados...");
+        document.body.classList.add('loading'); // Adiciona loading visual
         const data = await loadAllData();
         if (data && data.allArtists) {
             if (initializeData(data)) {
@@ -446,88 +451,171 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (document.querySelector('.studio-tab-btn[data-form="edit"]')?.classList.contains('active')) {
                         populateEditableReleases();
                         // Se o formulário de edição estava aberto, volta para a lista
-                        editReleaseForm.classList.add('hidden');
-                        editReleaseListContainer.classList.remove('hidden');
+                        editReleaseForm?.classList.add('hidden');
+                        editReleaseListContainer?.classList.remove('hidden');
                     }
                 }
-                if (activeArtist && !document.getElementById('artistDetail').classList.contains('hidden')) {
+                if (activeArtist && !document.getElementById('artistDetail')?.classList.contains('hidden')) {
                     const refreshed = db.artists.find(a=>a.id===activeArtist.id);
                     if(refreshed){ openArtistDetail(refreshed.name); } else { handleBack(); }
                 }
+                // Reatribui listeners APÓS a renderização completa
+                try {
+                    const allNavs = [...document.querySelectorAll('.nav-tab'), ...document.querySelectorAll('.bottom-nav-item')];
+                    console.log(`Re-attaching listeners to ${allNavs.length} nav buttons.`);
+                    allNavs.forEach(nav => {
+                        nav.removeEventListener('click', switchTab); // Garante remover antes de adicionar
+                        nav.addEventListener('click', switchTab);
+                    });
+                } catch (listenerError) {
+                    console.error("Erro ao reatribuir listeners de navegação:", listenerError);
+                }
+                document.body.classList.remove('loading'); // Remove loading visual
                 return true;
             }
         }
         console.error("Falha ao atualizar.");
         alert("Não foi possível atualizar.");
+        document.body.classList.remove('loading'); // Remove loading visual em caso de erro
         return false;
     }
 
+
     // --- 2. NAVEGAÇÃO E UI ---
     const switchView = (viewId, targetSectionId = null) => {
-        if (albumCountdownInterval) { clearInterval(albumCountdownInterval); albumCountdownInterval = null; }
+        // Não limpa o interval aqui, pois switchTab pode chamá-lo para mainView
+        // if (albumCountdownInterval) { clearInterval(albumCountdownInterval); albumCountdownInterval = null; }
         console.log(`Switching view: ${viewId}`);
+
+        // Limpa o timer do countdown de álbum APENAS se estiver saindo da view de detalhe do álbum
+        const currentView = document.querySelector('.page-view:not(.hidden)');
+        if (currentView && currentView.id === 'albumDetail' && viewId !== 'albumDetail' && albumCountdownInterval) {
+            console.log("Clearing album countdown interval.");
+            clearInterval(albumCountdownInterval);
+            albumCountdownInterval = null;
+        }
+
         allViews.forEach(v => v.classList.add('hidden'));
         const target = document.getElementById(viewId);
         if (target) {
             target.classList.remove('hidden');
             window.scrollTo(0,0);
-            if (viewId==='mainView'&&targetSectionId) {
-                switchTab(null, targetSectionId);
-            }
-            if (viewId!=='mainView'&&viewId!=='studioView') {
-                if (viewHistory.length===0||viewHistory[viewHistory.length-1]!==viewId) {
+
+             // Se entrando na mainView E um targetSection foi especificado, ativa essa section
+             // (A lógica de ativar a section foi movida para switchTab para maior clareza)
+            // if (viewId === 'mainView' && targetSectionId) {
+            //     activateMainViewSection(targetSectionId);
+            // }
+
+            // Atualiza o histórico apenas para views que não são 'mainView' ou 'studioView' (páginas de detalhe)
+            if (viewId !== 'mainView' && viewId !== 'studioView') {
+                // Adiciona ao histórico apenas se for diferente da última entrada (evita duplicatas no back)
+                if (viewHistory.length === 0 || viewHistory[viewHistory.length - 1] !== viewId) {
                     viewHistory.push(viewId);
                 }
-            } else if (viewId==='mainView') {
-                viewHistory=[];
+            } else if (viewId === 'mainView') {
+                 // Limpa o histórico ao voltar para a visualização principal
+                 viewHistory = [];
             }
+             console.log("View history:", viewHistory);
         } else {
             console.error(`View ${viewId} not found.`);
         }
     };
 
+
+    // Função auxiliar para ativar uma seção dentro da mainView
+    function activateMainViewSection(sectionId) {
+        document.querySelectorAll('#mainView .content-section').forEach(s => s.classList.remove('active'));
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection && document.getElementById('mainView').contains(targetSection)) {
+            targetSection.classList.add('active');
+        } else {
+            console.warn(`Section with ID ${sectionId} not found inside mainView.`);
+            // Fallback para homeSection se a seção não for encontrada
+            document.getElementById('homeSection')?.classList.add('active');
+            return 'homeSection'; // Retorna o ID do fallback
+        }
+        return sectionId; // Retorna o ID ativado
+    }
+
+
+    // *** REVISED switchTab function ***
     const switchTab = (event, forceTabId = null) => {
         let tabId;
+        console.log("switchTab triggered. Event:", event, "forceTabId:", forceTabId);
+
         if (forceTabId) {
              tabId = forceTabId;
         } else if (event) {
              event.preventDefault();
-             tabId = event.currentTarget.dataset.tab;
+             // Get tabId from the closest button element that has the data-tab attribute
+             const clickedButton = event.target.closest('[data-tab]');
+             if (!clickedButton) {
+                 console.log("switchTab exiting: Click target or parent does not have data-tab");
+                 return; // Exit if the click wasn't on a valid tab button
+             }
+             tabId = clickedButton.dataset.tab;
         } else {
-            return;
+            console.log("switchTab exiting: No event or forceTabId");
+            return; // Exit if no valid trigger
         }
+        console.log("Target Tab ID:", tabId);
 
-        // Se for a aba Estúdio, apenas muda a view principal
+        // --- View and Section Switching Logic ---
         if (tabId === 'studioSection') {
+            console.log("Switching view TO studioView");
             switchView('studioView');
-            // Marca a aba do estúdio como ativa na navegação inferior/superior
-            document.querySelectorAll('.nav-tab, .bottom-nav-item').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll(`.nav-tab[data-tab="${tabId}"], .bottom-nav-item[data-tab="${tabId}"]`).forEach(b => b.classList.add('active'));
-            // Não faz nada com as seções internas do mainView
-            return;
+            // Check which internal studio tab is active and potentially populate data
+            const activeStudioTabButton = document.querySelector('.studio-tab-btn.active');
+            if (activeStudioTabButton?.dataset.form === 'edit') {
+                populateEditableReleases(); // Populate if edit tab is active
+                 // Ensure list is shown, form is hidden initially
+                 editReleaseListContainer?.classList.remove('hidden');
+                 editReleaseForm?.classList.add('hidden');
+            }
+        } else {
+            // Any other tab implies it should be within mainView
+            const isMainViewHidden = document.getElementById('mainView')?.classList.contains('hidden');
+            if (isMainViewHidden) {
+                console.log("Switching view TO mainView");
+                switchView('mainView'); // Ensure mainView is visible
+            } else {
+                console.log("mainView is already visible.");
+            }
+
+            // Activate the specific section within mainView
+            console.log("Activating section inside mainView:", tabId);
+            tabId = activateMainViewSection(tabId); // Activate section and get potentially corrected tabId (fallback)
         }
 
-        // Se não for a aba Estúdio, garante que a mainView está visível
-        if (document.getElementById('studioView').contains(event?.target) || forceTabId && forceTabId !== 'studioSection') {
-             switchView('mainView');
-        }
-
-        // Lógica para abas dentro da mainView
-        document.querySelectorAll('#mainView .content-section').forEach(s => s.classList.remove('active'));
+        // --- Navigation Button Activation Logic (Common to all switches) ---
+        console.log("Updating navigation button active states for tab:", tabId);
         document.querySelectorAll('.nav-tab, .bottom-nav-item').forEach(b => b.classList.remove('active'));
-        const targetSection = document.getElementById(tabId);
-        if (targetSection) {
-             targetSection.classList.add('active');
-        }
         document.querySelectorAll(`.nav-tab[data-tab="${tabId}"], .bottom-nav-item[data-tab="${tabId}"]`).forEach(b => b.classList.add('active'));
+
+        // Optional: Clear search when leaving search section
+        if (tabId !== 'searchSection' && searchInput) {
+            // searchInput.value = '';
+        }
     };
+
 
     const handleBack = () => {
-        if (albumCountdownInterval) { clearInterval(albumCountdownInterval); albumCountdownInterval = null; }
-        viewHistory.pop();
-        const prevId = viewHistory.pop() || 'mainView';
-        switchView(prevId);
+        // Limpa countdown se estiver saindo do albumDetail via back button
+        const currentView = document.querySelector('.page-view:not(.hidden)');
+         if (currentView && currentView.id === 'albumDetail' && albumCountdownInterval) {
+            console.log("Clearing album countdown interval on back.");
+            clearInterval(albumCountdownInterval);
+            albumCountdownInterval = null;
+         }
+
+        viewHistory.pop(); // Remove a view atual do histórico
+        const prevId = viewHistory.pop() || 'mainView'; // Pega a anterior ou volta para mainView
+        console.log("Going back to view:", prevId);
+        switchView(prevId); // Usa switchView, que não adiciona ao histórico
     };
+
 
     const renderArtistsGrid = (containerId, artists) => { const c = document.getElementById(containerId); if(!c){console.error(`Grid ${containerId} not found.`); return;} if(!artists||artists.length===0){c.innerHTML='<p class="empty-state">Nenhum artista.</p>'; return;} c.innerHTML = artists.map(a => `<div class="artist-card" data-artist-name="${a.name}"><img src="${a.img||a.imageUrl||'https://i.imgur.com/AD3MbBi.png'}" alt="${a.name}" class="artist-card-img"><p class="artist-card-name">${a.name}</p><span class="artist-card-type">Artista</span></div>`).join(''); };
     function formatArtistString(artistIds, collabType) { if (!artistIds || artistIds.length === 0) return "?"; const names = artistIds.map(id => { const a = db.artists.find(art => art.id === id); return a ? a.name : "?"; }); const main = names[0]; if (names.length === 1) return main; const others = names.slice(1).join(', '); if (collabType === 'Dueto/Grupo') { return `${main} & ${others}`; } else { return main; /* Exibe só o principal em feats */ } }
@@ -613,7 +701,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const album = [...db.albums, ...db.singles].find(a => a.id === albumId);
         if (!album) { console.error(`Álbum/Single ID "${albumId}" não encontrado.`); return; }
 
-        if (albumCountdownInterval) { clearInterval(albumCountdownInterval); albumCountdownInterval = null; }
+        // Limpa timer anterior SE ele existir (evita múltiplos timers)
+        if (albumCountdownInterval) {
+            clearInterval(albumCountdownInterval);
+            albumCountdownInterval = null;
+            console.log("Cleared previous album countdown interval.");
+        }
 
         const countdownContainer = document.getElementById('albumCountdownContainer');
         const normalInfoContainer = document.getElementById('albumNormalInfoContainer');
@@ -629,11 +722,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const artistObj = db.artists.find(a => a.id === album.artistId);
 
         if (isPreRelease) {
-            normalInfoContainer.classList.add('hidden');
-            countdownContainer.classList.remove('hidden');
+            normalInfoContainer?.classList.add('hidden');
+            countdownContainer?.classList.remove('hidden');
 
             const releaseDateStr = releaseDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
             document.getElementById('albumCountdownReleaseDate').textContent = releaseDateStr;
+            // Passa o ID correto do elemento do timer para esta view específica
             startAlbumCountdown(album.releaseDate, 'albumCountdownTimer'); // ID correto aqui
 
             tracklistContainer.innerHTML = (album.tracks || []).map(track => {
@@ -660,7 +754,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             </div>`;
                 } else {
                     return `<div class="track-row unavailable">
-                                <span class="track-number">${trackNumDisplay}</span> {/* Mostra o número real */}
+                                <span class="track-number">${trackNumDisplay}</span>
                                 <div class="track-info">
                                     <span class="track-title">${track.title}</span>
                                     <span class="track-artist-feat">${artistName}</span>
@@ -671,8 +765,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }).join('');
 
         } else {
-            normalInfoContainer.classList.remove('hidden');
-            countdownContainer.classList.add('hidden');
+            normalInfoContainer?.classList.remove('hidden');
+            countdownContainer?.classList.add('hidden');
 
             const releaseYear = releaseDate.getFullYear();
             const totalAlbumStreamsFormatted = (album.totalStreams || 0).toLocaleString('pt-BR');
@@ -685,7 +779,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const trackNumDisplay = song.trackNumber ? song.trackNumber : '?';
 
                 return `<div class="track-row" data-song-id="${song.id}">
-                            <span class="track-number">${trackNumDisplay}</span> {/* Mostra o número real */}
+                            <span class="track-number">${trackNumDisplay}</span>
                             <div class="track-info">
                                 <span class="track-title">${song.title}</span>
                                 <span class="track-artist-feat">${artistName}</span>
@@ -702,21 +796,55 @@ document.addEventListener('DOMContentLoaded', async () => {
     const openDiscographyDetail = (type) => { if (!activeArtist) { console.error("Nenhum artista ativo."); handleBack(); return; } const data = (type==='albums')?(activeArtist.albums || []).sort((a,b)=>new Date(b.releaseDate)-new Date(a.releaseDate)):(activeArtist.singles||[]).sort((a,b)=>new Date(b.releaseDate)-new Date(a.releaseDate)); const title = (type==='albums')?`Álbuns de ${activeArtist.name}`:`Singles & EPs de ${activeArtist.name}`; document.getElementById('discographyTypeTitle').textContent = title; const grid = document.getElementById('discographyGrid'); grid.innerHTML = data.map(item => `<div class="scroll-item" data-album-id="${item.id}"><img src="${item.imageUrl}" alt="${item.title}"><p>${item.title}</p><span>${new Date(item.releaseDate).getFullYear()}</span></div>`).join('') || '<p class="empty-state">Nenhum lançamento.</p>'; switchView('discographyDetail'); };
     const handleSearch = () => { const query = searchInput.value.toLowerCase().trim(); if (!query) { switchTab(null, 'homeSection'); return; } const resultsContainer = document.getElementById('searchResults'); const noResultsEl = document.getElementById('noResults'); const filteredArtists = db.artists.filter(a => a.name.toLowerCase().includes(query)); const filteredAlbums = [...db.albums, ...db.singles].filter(a => a.title.toLowerCase().includes(query)); let html = ''; let count = 0; if (filteredArtists.length > 0) { html += '<h3 class="section-title">Artistas</h3>'; html += filteredArtists.map(a => { count++; return `<div class="artist-card" data-artist-name="${a.name}"><img src="${a.img}" alt="${a.name}" class="artist-card-img"><p class="artist-card-name">${a.name}</p><span class="artist-card-type">Artista</span></div>`; }).join(''); } if (filteredAlbums.length > 0) { html += '<h3 class="section-title">Álbuns & Singles</h3>'; html += filteredAlbums.map(al => { count++; return `<div class="artist-card" data-album-id="${al.id}"><img src="${al.imageUrl}" alt="${al.title}" class="artist-card-img"><p class="artist-card-name">${al.title}</p><span class="artist-card-type">${al.artist}</span></div>`; }).join(''); } resultsContainer.innerHTML = html; if (count > 0) { noResultsEl.classList.add('hidden'); resultsContainer.classList.remove('hidden'); } else { noResultsEl.classList.remove('hidden'); resultsContainer.classList.add('hidden'); } switchTab(null, 'searchSection'); };
 
-    const setupCountdown = (timerId, chartType) => { const timerElement = document.getElementById(timerId); if (!timerElement) return; const calculateTargetDate = () => { const now = new Date(); const target = new Date(now); let daysToMonday = (1 + 7 - now.getDay()) % 7; if (daysToMonday === 0 && now.getHours() >= 0) { daysToMonday = 7; } target.setDate(now.getDate() + daysToMonday); target.setHours(0, 0, 0, 0); return target; }; let targetDate = calculateTargetDate(); const updateTimerDisplay = (distance) => { const days = Math.floor(distance / 864e5); const hours = Math.floor((distance % 864e5) / 36e5); const minutes = Math.floor((distance % 36e5) / 6e4); const seconds = Math.floor((distance % 6e4) / 1e3); const f = (n) => (n < 10 ? '0' + n : n); timerElement.textContent = distance < 0 ? `00d 00h 00m 00s` : `${f(days)}d ${f(hours)}h ${f(minutes)}m ${f(seconds)}s`; }; const updateTimer = () => { const now = new Date().getTime(); const distance = targetDate.getTime() - now; if (distance < 0) { console.log(`Timer ${timerId} finished. Saving ${chartType} chart.`); saveChartDataToLocalStorage(chartType); targetDate = calculateTargetDate(); if (chartType === 'music') renderChart('music'); else if (chartType === 'album') renderChart('album'); else if (chartType === 'rpg') renderRPGChart(); updateTimerDisplay(targetDate.getTime() - new Date().getTime()); return; } updateTimerDisplay(distance); }; updateTimer(); setInterval(updateTimer, 1000); };
+    const setupCountdown = (timerId, chartType) => { const timerElement = document.getElementById(timerId); if (!timerElement) return; const calculateTargetDate = () => { const now = new Date(); const target = new Date(now); let daysToMonday = (1 + 7 - now.getDay()) % 7; if (daysToMonday === 0 && now.getHours() >= 0) { daysToMonday = 7; } target.setDate(now.getDate() + daysToMonday); target.setHours(0, 0, 0, 0); return target; }; let targetDate = calculateTargetDate(); const updateTimerDisplay = (distance) => { const days = Math.floor(distance / 864e5); const hours = Math.floor((distance % 864e5) / 36e5); const minutes = Math.floor((distance % 36e5) / 6e4); const seconds = Math.floor((distance % 6e4) / 1e3); const f = (n) => (n < 10 ? '0' + n : n); timerElement.textContent = distance < 0 ? `00d 00h 00m 00s` : `${f(days)}d ${f(hours)}h ${f(minutes)}m ${f(seconds)}s`; }; const intervalId = setInterval(() => { // Guardar ID do interval
+        const now = new Date().getTime();
+        const distance = targetDate.getTime() - now;
+        if (distance < 0) {
+            console.log(`Timer ${timerId} finished. Saving ${chartType} chart.`);
+            saveChartDataToLocalStorage(chartType);
+            targetDate = calculateTargetDate(); // Recalcula para a próxima segunda
+            if (chartType === 'music') renderChart('music');
+            else if (chartType === 'album') renderChart('album');
+            else if (chartType === 'rpg') renderRPGChart();
+            updateTimerDisplay(targetDate.getTime() - new Date().getTime()); // Atualiza display imediatamente
+            // Não precisa limpar o interval aqui, ele continua para a próxima semana
+            return;
+        }
+        updateTimerDisplay(distance);
+     }, 1000);
+     updateTimerDisplay(targetDate.getTime() - new Date().getTime()); // Chamada inicial
+     // Não retorna intervalId aqui, pois ele é contínuo
+    };
 
     function startAlbumCountdown(targetDateISO, containerId) {
+        // Limpa timer anterior se existir ao iniciar um novo
+        if (albumCountdownInterval) {
+            clearInterval(albumCountdownInterval);
+            console.log("Cleared previous album countdown interval before starting new one.");
+        }
+
         const container = document.getElementById(containerId); // Usar ID correto
         if (!container) { console.error(`Countdown container ${containerId} not found.`); return; }
         const targetTime = new Date(targetDateISO).getTime();
         const updateTimer = () => {
             const now = new Date().getTime(); const distance = targetTime - now;
-            if (distance < 0) { container.innerHTML = '<p>Lançado!</p>'; if (albumCountdownInterval) clearInterval(albumCountdownInterval); return; }
+            if (distance < 0) {
+                 container.innerHTML = '<p>Lançado!</p>';
+                 if (albumCountdownInterval) {
+                     clearInterval(albumCountdownInterval);
+                     albumCountdownInterval = null; // Zera a variável global
+                 }
+                 return;
+            }
             const d = Math.floor(distance / 864e5); const h = Math.floor((distance % 864e5) / 36e5); const m = Math.floor((distance % 36e5) / 6e4); const s = Math.floor((distance % 6e4) / 1e3);
             container.innerHTML = `<div class="countdown-item"><span>${d}</span><label>Dias</label></div><div class="countdown-item"><span>${h}</span><label>Horas</label></div><div class="countdown-item"><span>${m}</span><label>Minutos</label></div><div class="countdown-item"><span>${s}</span><label>Segundos</label></div>`;
         };
-        if (albumCountdownInterval) { clearInterval(albumCountdownInterval); }
-        updateTimer(); albumCountdownInterval = setInterval(updateTimer, 1000);
+
+        updateTimer(); // Chamada inicial
+        albumCountdownInterval = setInterval(updateTimer, 1000); // Armazena o ID na variável global
+        console.log("Started new album countdown interval:", albumCountdownInterval);
     }
+
 
     // --- 3. SISTEMA DE RPG ---
     const CHART_TOP_N = 20; const STREAMS_PER_POINT = 10000;
@@ -914,6 +1042,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function handleSingleSubmit(event) {
         event.preventDefault();
         const btn = document.getElementById('submitNewSingle');
+        if (!btn) return;
 
         const artistId = singleArtistSelect.value;
         const title = document.getElementById('singleTitle').value;
@@ -1277,6 +1406,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     function togglePlay() { if (isPlaying) { pauseAudio(); } else { playAudio(); } }
     function playNext() {
+        if (!currentQueue || currentQueue.length === 0) return; // Add guard clause
         if (isShuffle) { currentQueueIndex = Math.floor(Math.random() * currentQueue.length); }
         else { currentQueueIndex++; }
         if (currentQueueIndex >= currentQueue.length) {
@@ -1287,6 +1417,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (isPlaying) { playAudio(); }
     }
     function playPrevious() {
+        if (!currentQueue || currentQueue.length === 0) return; // Add guard clause
         if (isShuffle) { currentQueueIndex = Math.floor(Math.random() * currentQueue.length); }
         else { currentQueueIndex--; }
         if (currentQueueIndex < 0) {
@@ -1327,8 +1458,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             const artistLink = e.target.closest('.artist-link[data-artist-name]');
             const discogLink = e.target.closest('.see-all-btn[data-type]');
 
+            // Prioritize back button
+            if (e.target.closest('.back-btn')) {
+                 handleBack();
+                 return;
+             }
+
             if (discogLink) { openDiscographyDetail(discogLink.dataset.type); return; }
-            if (albumCard && !albumCard.closest('.release-edit-list')) { openAlbumDetail(albumCard.dataset.albumId); return; } // Não abre detalhe se clicado na lista de edição
+            // Prevent opening album detail if the click was inside the edit list item's info/cover area
+            if (albumCard && !albumCard.closest('.edit-release-item')) {
+                 openAlbumDetail(albumCard.dataset.albumId);
+                 return;
+             }
             if (artistCard) { openArtistDetail(artistCard.dataset.artistName); return; }
             if (artistLink) { openArtistDetail(artistLink.dataset.artistName); return; }
             if (songCard) {
@@ -1345,6 +1486,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         searchInput?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { handleSearch(); } });
     }
 
+     // Function to attach main navigation listeners
+     function attachNavigationListeners() {
+        try {
+            const allNavs = [...document.querySelectorAll('.nav-tab'), ...document.querySelectorAll('.bottom-nav-item')];
+            console.log(`Attaching listeners to ${allNavs.length} nav buttons.`);
+            allNavs.forEach(nav => {
+                nav.removeEventListener('click', switchTab); // Ensure no duplicates
+                nav.addEventListener('click', switchTab);
+            });
+            document.querySelectorAll('.back-btn').forEach(btn => {
+                btn.removeEventListener('click', handleBack); // Ensure no duplicates
+                btn.addEventListener('click', handleBack);
+            });
+        } catch (listenerError) {
+             console.error("Erro ao atribuir listeners de navegação:", listenerError);
+         }
+     }
+
+
     async function main() {
         console.log("Iniciando Aplicação...");
         if (!initializeDOMElements()) return;
@@ -1353,11 +1513,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const data = await loadAllData();
 
         if (data && data.allArtists) {
-            if (!initializeData(data)) return;
+            if (!initializeData(data)) {
+                document.body.classList.remove('loading');
+                return;
+            }
 
             try {
                 console.log("Calling initializeStudio function...");
-                initializeStudio();
+                initializeStudio(); // Initializes studio-specific listeners
 
                 if (newSingleForm) newSingleForm.addEventListener('submit', handleSingleSubmit);
                 if (newAlbumForm) newAlbumForm.addEventListener('submit', handleAlbumSubmit);
@@ -1365,22 +1528,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (confirmTrackTypeBtn) { confirmTrackTypeBtn.addEventListener('click', () => { processSingleSubmission(trackTypeSelect?.value); }); }
                 if (cancelTrackTypeBtn) { cancelTrackTypeBtn.addEventListener('click', () => { trackTypeModal?.classList.add('hidden'); const btn = document.getElementById('submitNewSingle'); if(btn){ btn.disabled = false; btn.textContent = 'Lançar Single'; } }); }
 
-                initializePlayerListeners();
+                initializePlayerListeners(); // Initializes player listeners
+                initializeBodyClickListener(); // Initializes general body clicks (cards, links etc.)
+                attachNavigationListeners(); // Attaches main tab/back navigation listeners
 
                 renderRPGChart();
                 renderChart('music');
                 renderChart('album');
-
-                const allNavs = [...document.querySelectorAll('.nav-tab'), ...document.querySelectorAll('.bottom-nav-item')];
-                allNavs.forEach(nav => { nav.removeEventListener('click', switchTab); nav.addEventListener('click', switchTab); });
                 renderArtistsGrid('homeGrid', [...(db.artists || [])].sort(() => 0.5 - Math.random()).slice(0, 10));
 
                 setupCountdown('musicCountdownTimer', 'music');
-                setupCountdown('albumCountdownTimer', 'album'); // ID correto
+                setupCountdown('albumCountdownTimer', 'album'); // Passa o ID correto
 
-                initializeBodyClickListener();
-                document.querySelectorAll('.back-btn').forEach(btn => btn.addEventListener('click', handleBack));
-                switchTab(null, 'homeSection'); // Garante que a aba inicial correta está ativa
+
+                switchTab(null, 'homeSection'); // Set initial active tab and view correctly
                 console.log("Aplicação Iniciada.");
 
             } catch (uiError) {
