@@ -19,6 +19,7 @@ body {
   color: var(--text-primary);
   overflow-x: hidden;
 }
+
 .hidden { display: none !important; }
 
 .main-container { padding-bottom: 90px; }
@@ -708,7 +709,102 @@ body.player-open {
 .player-btn#playerRepeatBtn.active {
   color: var(--spotify-green);
 }
+/* --- ESTILOS ADICIONAIS PARA SEÇÃO DE EDIÇÃO --- */
+#editReleaseSection h3 {
+    color: var(--spotify-green);
+    margin-bottom: 20px;
+}
 
+.edit-instructions {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.release-edit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.edit-release-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background-color: var(--background-tertiary);
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.edit-release-cover {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.edit-release-info {
+    flex-grow: 1;
+    min-width: 0; /* Para ellipsis funcionar */
+}
+
+.edit-release-title {
+    font-size: 14px;
+    font-weight: 600;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-primary);
+}
+
+.edit-release-artist {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.edit-release-btn {
+    flex-shrink: 0; /* Impede que o botão encolha */
+    padding: 8px 12px;
+}
+
+/* Estilos para o formulário de edição */
+#editReleaseForm .display-value {
+    font-size: 14px;
+    color: var(--text-primary);
+    padding: 14px 0; /* Alinha verticalmente com inputs */
+}
+
+.edit-warning {
+    font-size: 12px;
+    color: #ffcc00; /* Amarelo para aviso */
+    margin-top: 10px;
+    margin-bottom: 16px;
+    background-color: rgba(255, 204, 0, 0.1);
+    padding: 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#editReleaseForm .modal-actions {
+    margin-top: 24px; /* Espaçamento antes dos botões */
+}
+
+/* Ajustes no Desktop */
+@media (min-width: 768px) {
+    .release-edit-list {
+        max-height: 400px; /* Limita altura da lista no desktop */
+        overflow-y: auto;
+    }
+}
 /* ========================================================== */
 /* ============= MELHORIAS PARA DESKTOP (PC) ================ */
 /* ========================================================== */
