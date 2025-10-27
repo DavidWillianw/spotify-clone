@@ -14,6 +14,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     let previousRpgChartData = {};
     let albumCountdownInterval = null; // Timer do pré-lançamento
 
+    // --- VARIÁVEIS DO PLAYER ---
+    let audioElement = null;
+    let musicPlayerView = null;
+    let playerCloseBtn = null;
+    let playerAlbumTitle = null;
+    let playerCoverArt = null;
+    let playerSongTitle = null;
+    let playerArtistName = null;
+    let playerSeekBar = null;
+    let playerCurrentTime = null;
+    let playerTotalTime = null;
+    let playerShuffleBtn = null;
+    let playerPrevBtn = null;
+    let playerPlayPauseBtn = null;
+    let playerNextBtn = null;
+    let playerRepeatBtn = null;
+
+    let currentSong = null;
+    let currentQueue = [];
+    let currentQueueIndex = 0;
+    let isPlaying = false;
+    let isShuffle = false;
+    let repeatMode = 'none'; // 'none', 'all', 'one'
+
 
     // --- ELEMENTOS DO DOM ---
     let allViews, searchInput, studioView, loginPrompt, loggedInInfo, playerSelect,
@@ -47,7 +71,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             studioView = document.getElementById('studioView');
             loginPrompt = document.getElementById('loginPrompt');
             loggedInInfo = document.getElementById('loggedInInfo');
-            playerSelect = document.getElementById('playerSelect');
+            
+            // playerSelect NÃO é mais usado para login, mas é pego se outro código usar
+            playerSelect = document.getElementById('playerSelect'); 
+            
             loginButton = document.getElementById('loginButton');
             logoutButton = document.getElementById('logoutButton');
             studioLaunchWrapper = document.getElementById('studioLaunchWrapper');
@@ -91,8 +118,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             cancelInlineFeatBtn = document.getElementById('cancelInlineFeatBtn');
             addInlineFeatBtn = albumTrackModal.querySelector('.add-inline-feat-btn');
 
+            // --- INICIALIZAÇÃO DO PLAYER ---
+            audioElement = document.getElementById('audioElement');
+            musicPlayerView = document.getElementById('musicPlayer');
+            playerCloseBtn = document.querySelector('.player-close-btn');
+            playerAlbumTitle = document.getElementById('playerAlbumTitle');
+            playerCoverArt = document.getElementById('playerCoverArt');
+            playerSongTitle = document.getElementById('playerSongTitle');
+            playerArtistName = document.getElementById('playerArtistName');
+            playerSeekBar = document.getElementById('playerSeekBar');
+            playerCurrentTime = document.getElementById('playerCurrentTime');
+            playerTotalTime = document.getElementById('playerTotalTime');
+            playerShuffleBtn = document.getElementById('playerShuffleBtn');
+            playerPrevBtn = document.getElementById('playerPrevBtn');
+            playerPlayPauseBtn = document.getElementById('playerPlayPauseBtn');
+            playerNextBtn = document.getElementById('playerNextBtn');
+            playerRepeatBtn = document.getElementById('playerRepeatBtn');
 
-            const essentialElements = [ studioView, loginPrompt, playerSelect, newSingleForm, newAlbumForm, featModal, singleReleaseDateInput, albumReleaseDateInput, trackTypeModal, albumTrackModal, openAddTrackModalBtn, inlineFeatAdder, inlineFeatArtistSelect, confirmInlineFeatBtn, addInlineFeatBtn ];
+            const playerElements = [audioElement, musicPlayerView, playerCloseBtn, playerPlayPauseBtn, playerSeekBar, playerNextBtn, playerPrevBtn];
+            if (playerElements.some(el => !el)) {
+                 console.error("ERRO CRÍTICO: Elementos essenciais do PLAYER não foram encontrados!");
+                 return false;
+            }
+            // --- FIM DA INICIALIZAÇÃO DO PLAYER ---
+
+
+            const essentialElements = [ studioView, loginPrompt, /* playerSelect (agora é opcional) */, newSingleForm, newAlbumForm, featModal, singleReleaseDateInput, albumReleaseDateInput, trackTypeModal, albumTrackModal, openAddTrackModalBtn, inlineFeatAdder, inlineFeatArtistSelect, confirmInlineFeatBtn, addInlineFeatBtn ];
             if (!allViews || allViews.length === 0 || essentialElements.some(el => !el)) {
                  console.error("ERRO CRÍTICO: Elementos essenciais do HTML não foram encontrados!", { missing: essentialElements.map((el, i) => el ? null : `Index ${i}`).filter(Boolean) });
                 document.body.innerHTML = '<div style="color: red; padding: 20px;"><h1>Erro Interface</h1><p>Elementos não encontrados.</p></div>';
@@ -209,7 +260,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const formattedAlbums = formatReleases(albumsData.records, true);
             const formattedSingles = formatReleases(singlesData.records, false);
-            const formattedPlayers = (playersData?.records||[]).map(r => ({ id: r.id, name: r.fields.Nome, artists: r.fields.Artistas||[] }));
+            
+            // ==================================
+            // ========== JS ALTERADO =========
+            // ==================================
+            // Busca o nome, a senha e os artistas de cada jogador
+            const formattedPlayers = (playersData?.records||[]).map(r => ({ 
+                id: r.id, 
+                name: r.fields.Nome, 
+                password: r.fields.Senha, // <-- ADICIONADO
+                artists: r.fields.Artistas||[] 
+            }));
+            // ==================================
+            // ======== FIM DA ALTERAÇÃO ========
+            // ==================================
             
             console.log("Dados carregados.");
             return {
@@ -295,6 +359,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
 
+            // A 'data.players' agora contém a senha, que será armazenada em 'db.players'
             db.players = data.players || [];
 
             console.log(`DB Init: A${db.artists.length}, B${db.albums.length}, S${db.singles.length}, M${db.songs.length}, P${db.players.length}`);
@@ -535,7 +600,7 @@ const renderChart = (type) => {
         switchView('albumDetail');
     };
 
-    const openDiscographyDetail = (type) => { if (!activeArtist) { console.error("Nenhum artista ativo."); handleBack(); return; } const data = (type==='albums')?(activeArtist.albums||[]).sort((a,b)=>new Date(b.releaseDate)-new Date(a.releaseDate)):(activeArtist.singles||[]).sort((a,b)=>new Date(b.releaseDate)-new Date(a.releaseDate)); const title = (type==='albums')?`Álbuns de ${activeArtist.name}`:`Singles & EPs de ${activeArtist.name}`; document.getElementById('discographyTypeTitle').textContent = title; const grid = document.getElementById('discographyGrid'); grid.innerHTML = data.map(item => `<div class="scroll-item" data-album-id="${item.id}"><img src="${item.imageUrl}" alt="${item.title}"><p>${item.title}</p><span>${new Date(item.releaseDate).getFullYear()}</span></div>`).join('') || '<p class="empty-state">Nenhum lançamento.</p>'; switchView('discographyDetail'); };
+    const openDiscographyDetail = (type) => { if (!activeArtist) { console.error("Nenhum artista ativo."); handleBack(); return; } const data = (type==='albums')?(activeArtist.albums || []).sort((a,b)=>new Date(b.releaseDate)-new Date(a.releaseDate)):(activeArtist.singles||[]).sort((a,b)=>new Date(b.releaseDate)-new Date(a.releaseDate)); const title = (type==='albums')?`Álbuns de ${activeArtist.name}`:`Singles & EPs de ${activeArtist.name}`; document.getElementById('discographyTypeTitle').textContent = title; const grid = document.getElementById('discographyGrid'); grid.innerHTML = data.map(item => `<div class="scroll-item" data-album-id="${item.id}"><img src="${item.imageUrl}" alt="${item.title}"><p>${item.title}</p><span>${new Date(item.releaseDate).getFullYear()}</span></div>`).join('') || '<p class="empty-state">Nenhum lançamento.</p>'; switchView('discographyDetail'); };
     const handleSearch = () => { const query = searchInput.value.toLowerCase().trim(); if (!query) { switchTab(null, 'homeSection'); return; } const resultsContainer = document.getElementById('searchResults'); const noResultsEl = document.getElementById('noResults'); const filteredArtists = db.artists.filter(a => a.name.toLowerCase().includes(query)); const filteredAlbums = [...db.albums, ...db.singles].filter(a => a.title.toLowerCase().includes(query)); let html = ''; let count = 0; if (filteredArtists.length > 0) { html += '<h3 class="section-title">Artistas</h3>'; html += filteredArtists.map(a => { count++; return `<div class="artist-card" data-artist-name="${a.name}"><img src="${a.img}" alt="${a.name}" class="artist-card-img"><p class="artist-card-name">${a.name}</p><span class="artist-card-type">Artista</span></div>`; }).join(''); } if (filteredAlbums.length > 0) { html += '<h3 class="section-title">Álbuns & Singles</h3>'; html += filteredAlbums.map(al => { count++; return `<div class="artist-card" data-album-id="${al.id}"><img src="${al.imageUrl}" alt="${al.title}" class="artist-card-img"><p class="artist-card-name">${al.title}</p><span class="artist-card-type">${al.artist}</span></div>`; }).join(''); } resultsContainer.innerHTML = html; if (count > 0) { noResultsEl.classList.add('hidden'); resultsContainer.classList.remove('hidden'); } else { noResultsEl.classList.remove('hidden'); resultsContainer.classList.add('hidden'); } switchTab(null, 'searchSection'); };
     
     const setupCountdown = (timerId, chartType) => { const timerElement = document.getElementById(timerId); if (!timerElement) return; const calculateTargetDate = () => { const now = new Date(); const target = new Date(now); let daysToMonday = (1 + 7 - now.getDay()) % 7; if (daysToMonday === 0 && now.getHours() >= 0) { daysToMonday = 7; } target.setDate(now.getDate() + daysToMonday); target.setHours(0, 0, 0, 0); return target; }; let targetDate = calculateTargetDate(); const updateTimerDisplay = (distance) => { const days = Math.floor(distance / 864e5); const hours = Math.floor((distance % 864e5) / 36e5); const minutes = Math.floor((distance % 36e5) / 6e4); const seconds = Math.floor((distance % 6e4) / 1e3); const f = (n) => (n < 10 ? '0' + n : n); timerElement.textContent = distance < 0 ? `00d 00h 00m 00s` : `${f(days)}d ${f(hours)}h ${f(minutes)}m ${f(seconds)}s`; }; const updateTimer = () => { const now = new Date().getTime(); const distance = targetDate.getTime() - now; if (distance < 0) { console.log(`Timer ${timerId} finished. Saving ${chartType} chart.`); saveChartDataToLocalStorage(chartType); targetDate = calculateTargetDate(); if (chartType === 'music') renderChart('music'); else if (chartType === 'album') renderChart('album'); else if (chartType === 'rpg') renderRPGChart(); updateTimerDisplay(targetDate.getTime() - new Date().getTime()); return; } updateTimerDisplay(distance); }; updateTimer(); setInterval(updateTimer, 1000); };
@@ -565,17 +630,24 @@ const renderChart = (type) => {
 
     function initializeStudio() {
         console.log("Running initializeStudio..."); 
-        if (!playerSelect) { console.error("initializeStudio failed: playerSelect element not found."); return; }
+        // ==================================
+        // ========== JS ALTERADO =========
+        // ==================================
+        
+        // Não precisamos mais preencher o select, então a checagem por 'playerSelect' foi removida
+        // A lógica de preenchimento do select foi removida.
 
-        if (db.players && db.players.length > 0) {
-            playerSelect.innerHTML = '<option value="">Selecione...</option>' + db.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-        } else {
-            playerSelect.innerHTML = '<option value="">Nenhum jogador encontrado</option>';
-            console.warn("Nenhum jogador carregado para o estúdio.");
-        }
-
-        loginButton.addEventListener('click', () => loginPlayer(playerSelect.value));
+        // Altera o listener do botão de login
+        loginButton.addEventListener('click', () => {
+            const username = document.getElementById('usernameInput').value;
+            const password = document.getElementById('passwordInput').value;
+            loginPlayer(username, password);
+        });
+        
         logoutButton.addEventListener('click', logoutPlayer);
+        // ==================================
+        // ======== FIM DA ALTERAÇÃO ========
+        // ==================================
 
         studioTabs.forEach(tab => {
             tab.addEventListener('click', (e) => {
@@ -624,8 +696,52 @@ const renderChart = (type) => {
     }
 
     function populateArtistSelector(playerId) { const p=db.players.find(pl=>pl.id===playerId); if(!p)return; const ids=p.artists||[]; const opts=ids.map(id=>{const a=db.artists.find(ar=>ar.id===id); return a?`<option value="${a.id}">${a.name}</option>`:'';}).join(''); singleArtistSelect.innerHTML=`<option value="">Selecione...</option>${opts}`; albumArtistSelect.innerHTML=`<option value="">Selecione...</option>${opts}`; }
-    function loginPlayer(playerId) { if(!playerId){alert("Selecione.");return;} currentPlayer=db.players.find(p=>p.id===playerId); if(currentPlayer){document.getElementById('playerName').textContent=currentPlayer.name; loginPrompt.classList.add('hidden'); loggedInInfo.classList.remove('hidden'); studioLaunchWrapper.classList.remove('hidden'); populateArtistSelector(currentPlayer.id);} }
-    function logoutPlayer() { currentPlayer=null; document.getElementById('playerName').textContent=''; loginPrompt.classList.remove('hidden'); loggedInInfo.classList.add('hidden'); studioLaunchWrapper.classList.add('hidden'); }
+    
+    // ==================================
+    // ========== JS ALTERADO =========
+    // ==================================
+    // Função reescrita para aceitar usuário/senha em vez de playerId
+    function loginPlayer(username, password) {
+        if (!username || !password) {
+            alert("Por favor, insira nome de usuário e senha.");
+            return;
+        }
+
+        // Procura o jogador pelo nome de usuário (ignorando maiúsculas/minúsculas)
+        const foundPlayer = db.players.find(p => p.name.toLowerCase() === username.toLowerCase());
+
+        // Verifica se o jogador foi encontrado E se a senha bate
+        if (foundPlayer && foundPlayer.password === password) {
+            // Sucesso
+            currentPlayer = foundPlayer;
+            document.getElementById('playerName').textContent = currentPlayer.name;
+            loginPrompt.classList.add('hidden');
+            loggedInInfo.classList.remove('hidden');
+            studioLaunchWrapper.classList.remove('hidden');
+            populateArtistSelector(currentPlayer.id);
+        } else {
+            // Falha
+            alert("Usuário ou senha inválidos.");
+            // Limpa o campo de senha por segurança
+            document.getElementById('passwordInput').value = '';
+        }
+    }
+    // ==================================
+    // ======== FIM DA ALTERAÇÃO ========
+    // ==================================
+
+    function logoutPlayer() { 
+        currentPlayer=null; 
+        document.getElementById('playerName').textContent=''; 
+        loginPrompt.classList.remove('hidden'); 
+        loggedInInfo.classList.add('hidden'); 
+        studioLaunchWrapper.classList.add('hidden'); 
+        
+        // Limpa os campos de login ao sair
+        document.getElementById('usernameInput').value = '';
+        document.getElementById('passwordInput').value = '';
+    }
+
     function populateArtistSelectForFeat(targetSelectElement) { let currentMainId=null; let selectEl=targetSelectElement; if(document.getElementById('newSingleForm').classList.contains('active')){currentMainId=singleArtistSelect.value; selectEl=featArtistSelect;} else if(document.getElementById('newAlbumForm').classList.contains('active')){currentMainId=albumArtistSelect.value; selectEl=inlineFeatArtistSelect;} else {selectEl=featArtistSelect;} if(!selectEl){console.error("Select feats não encontrado!"); return;} selectEl.innerHTML = db.artists.filter(a=>a.id!==currentMainId).sort((a,b)=>a.name.localeCompare(b.name)).map(a=>`<option value="${a.id}">${a.name}</option>`).join(''); if(selectEl.innerHTML===''){selectEl.innerHTML='<option value="">Nenhum outro</option>';} }
     function openFeatModal(buttonElement) { const targetId=buttonElement.dataset.target; currentFeatTarget=document.getElementById(targetId); if(!currentFeatTarget){console.error("Alvo feat não encontrado:", targetId); return;} populateArtistSelectForFeat(featArtistSelect); featModal.classList.remove('hidden'); }
     function closeFeatModal() { featModal.classList.add('hidden'); currentFeatTarget=null; }
@@ -856,16 +972,269 @@ const renderChart = (type) => {
     }
 
 
-    // --- 5. INICIALIZAÇÃO GERAL ---
+    // --- 5. LÓGICA DO PLAYER DE MÚSICA (MODO VISUAL) ---
+    
+    function openPlayer(songId, clickedElement) {
+        const song = db.songs.find(s => s.id === songId);
+        if (!song) {
+            console.error(`Música com ID ${songId} não encontrada.`);
+            return;
+        }
 
-    function initializeBodyClickListener() { document.body.addEventListener('click', (e) => { const artistCard = e.target.closest('.artist-card[data-artist-name]'); const albumCard = e.target.closest('[data-album-id]'); const songCard = e.target.closest('.song-row[data-song-id], .track-row[data-song-id], .chart-item[data-song-id]'); const artistLink = e.target.closest('.artist-link[data-artist-name]'); const discogLink = e.target.closest('.see-all-btn[data-type]'); if (discogLink) { openDiscographyDetail(discogLink.dataset.type); return; } if (albumCard) { openAlbumDetail(albumCard.dataset.albumId); return; } if (artistCard) { openArtistDetail(artistCard.dataset.artistName); return; } if (artistLink) { openArtistDetail(artistLink.dataset.artistName); return; } if (songCard) { console.log("Clicou música ID:", songCard.dataset.songId); } }); searchInput.addEventListener('input', handleSearch); searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { handleSearch(); } }); }
+        // Tenta construir a fila de reprodução a partir do contexto
+        const parentList = clickedElement.closest('.popular-songs-list, .tracklist-container, .chart-list');
+        if (parentList) {
+            const songElements = parentList.querySelectorAll('[data-song-id]');
+            currentQueue = Array.from(songElements)
+                .map(el => db.songs.find(s => s.id === el.dataset.songId))
+                .filter(Boolean); // Filtra músicas não encontradas
+        } else {
+            // Fila de fallback: apenas a música clicada
+            currentQueue = [song];
+        }
+
+        currentQueueIndex = currentQueue.findIndex(s => s.id === songId);
+        if (currentQueueIndex === -1) {
+            currentQueue = [song];
+            currentQueueIndex = 0;
+        }
+
+        currentSong = song;
+        loadSong(song);
+        musicPlayerView.classList.remove('hidden');
+        document.body.classList.add('player-open');
+        
+        // playAudio(); // <-- DESATIVADO PARA MODO VISUAL
+    }
+
+    function closePlayer() {
+        musicPlayerView.classList.add('hidden');
+        document.body.classList.remove('player-open');
+        
+        // Se o player estava "visualmente" tocando, pausa ao fechar
+        if (isPlaying) {
+            togglePlay();
+        }
+    }
+
+    function loadSong(song) {
+        currentSong = song;
+        
+        // Atualiza a UI do Player
+        playerSongTitle.textContent = song.title;
+        playerArtistName.textContent = formatArtistString(song.artistIds, song.collabType);
+        
+        const parentRelease = [...db.albums, ...db.singles].find(r => r.id === song.albumId);
+        if (parentRelease) {
+            playerCoverArt.src = parentRelease.imageUrl;
+            playerAlbumTitle.textContent = parentRelease.title;
+        } else {
+            playerCoverArt.src = 'https://i.imgur.com/AD3MbBi.png'; // Fallback
+            playerAlbumTitle.textContent = 'Single';
+        }
+
+        // *** ÁUDIO DESATIVADO PARA MODO VISUAL ***
+        // audioElement.src = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+        // audioElement.load();
+        
+        // Define tempos e barra de seek visuais
+        const durationSec = song.durationSeconds || 180; // Pega a duração real ou usa 3:00 (180s)
+        playerSeekBar.value = 0;
+        playerSeekBar.max = durationSec;
+        playerCurrentTime.textContent = "0:00";
+        playerTotalTime.textContent = formatTime(durationSec); // Usa a duração real da música
+    }
+
+    function playAudio() {
+        // DESATIVADO PARA MODO VISUAL
+        // audioElement.play().then(() => {
+            isPlaying = true;
+            playerPlayPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        // }).catch(error => {
+        //     console.error("Erro ao tocar áudio:", error);
+        //     isPlaying = false;
+        // });
+    }
+
+    function pauseAudio() {
+        // audioElement.pause(); // DESATIVADO PARA MODO VISUAL
+        isPlaying = false;
+        playerPlayPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+    }
+
+    function togglePlay() {
+        if (isPlaying) {
+            pauseAudio();
+        } else {
+            playAudio();
+        }
+    }
+
+    function playNext() {
+        if (isShuffle) {
+            currentQueueIndex = Math.floor(Math.random() * currentQueue.length);
+        } else {
+            currentQueueIndex++;
+        }
+
+        if (currentQueueIndex >= currentQueue.length) {
+            if (repeatMode === 'all') {
+                currentQueueIndex = 0; // Volta ao início
+            } else {
+                currentQueueIndex = currentQueue.length - 1; // Para no final
+                pauseAudio(); // Para de "tocar" visualmente
+                return;
+            }
+        }
+        
+        loadSong(currentQueue[currentQueueIndex]);
+        // Se estava tocando, continua tocando a próxima
+        if (isPlaying) {
+            playAudio();
+        }
+    }
+
+    function playPrevious() {
+        // No modo visual, voltar sempre vai para a música anterior
+        // if (audioElement.currentTime > 3) { // Lógica de áudio removida
+        //     audioElement.currentTime = 0;
+        //     return;
+        // }
+
+        if (isShuffle) {
+            currentQueueIndex = Math.floor(Math.random() * currentQueue.length);
+        } else {
+            currentQueueIndex--;
+        }
+
+        if (currentQueueIndex < 0) {
+            if (repeatMode === 'all') {
+                currentQueueIndex = currentQueue.length - 1; // Vai para o final
+            } else {
+                currentQueueIndex = 0; // Para no início
+            }
+        }
+
+        loadSong(currentQueue[currentQueueIndex]);
+        // Se estava tocando, continua tocando a anterior
+        if (isPlaying) {
+            playAudio();
+        }
+    }
+
+    function toggleShuffle() {
+        isShuffle = !isShuffle;
+        playerShuffleBtn.classList.toggle('active', isShuffle);
+        console.log("Shuffle:", isShuffle);
+    }
+
+    function toggleRepeat() {
+        const icon = playerRepeatBtn.querySelector('i');
+        if (repeatMode === 'none') {
+            repeatMode = 'all';
+            playerRepeatBtn.classList.add('active');
+            icon.className = 'fas fa-repeat';
+        } else if (repeatMode === 'all') {
+            repeatMode = 'one';
+            playerRepeatBtn.classList.add('active');
+            icon.className = 'fas fa-repeat-1'; // FontAwesome 6+
+        } else { // repeatMode === 'one'
+            repeatMode = 'none';
+            playerRepeatBtn.classList.remove('active');
+            icon.className = 'fas fa-repeat';
+        }
+        console.log("Repeat Mode:", repeatMode);
+    }
+    
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    // Esta função não é mais chamada, mas pode ser útil se um dia reativar
+    function updateSeekBar() {
+        if (!isNaN(audioElement.duration)) {
+            playerSeekBar.value = audioElement.currentTime;
+            playerCurrentTime.textContent = formatTime(audioElement.currentTime);
+        }
+    }
+    
+    function initializePlayerListeners() {
+        playerCloseBtn.addEventListener('click', closePlayer);
+        playerPlayPauseBtn.addEventListener('click', togglePlay);
+        playerNextBtn.addEventListener('click', playNext);
+        playerPrevBtn.addEventListener('click', playPrevious);
+        playerShuffleBtn.addEventListener('click', toggleShuffle);
+        playerRepeatBtn.addEventListener('click', toggleRepeat);
+
+        // --- LISTENERS DE ÁUDIO DESATIVADOS PARA MODO VISUAL ---
+        // audioElement.addEventListener('loadedmetadata', () => {
+        //     playerSeekBar.max = audioElement.duration;
+        //     playerTotalTime.textContent = formatTime(audioElement.duration);
+        // });
+
+        // O 'timeupdate' não vai disparar, então a barra não se move sozinha
+        // audioElement.addEventListener('timeupdate', updateSeekBar);
+
+        // O 'ended' não vai disparar
+        // audioElement.addEventListener('ended', () => {
+        //     if (repeatMode === 'one') {
+        //         audioElement.currentTime = 0;
+        //         playAudio();
+        //     } else {
+        //         playNext();
+        //     }
+        // });
+        
+        // Permite que o usuário arraste a barra e veja o tempo mudar
+        playerSeekBar.addEventListener('input', () => {
+             // audioElement.currentTime = playerSeekBar.value; // DESATIVADO
+             playerCurrentTime.textContent = formatTime(playerSeekBar.value);
+        });
+    }
+
+
+    // --- 6. INICIALIZAÇÃO GERAL ---
+
+    function initializeBodyClickListener() { 
+        document.body.addEventListener('click', (e) => { 
+            const artistCard = e.target.closest('.artist-card[data-artist-name]'); 
+            const albumCard = e.target.closest('[data-album-id]'); 
+            
+            // --- ATUALIZADO: Gatilho do Player ---
+            const songCard = e.target.closest('.song-row[data-song-id], .track-row[data-song-id], .chart-item[data-song-id]'); 
+            
+            const artistLink = e.target.closest('.artist-link[data-artist-name]'); 
+            const discogLink = e.target.closest('.see-all-btn[data-type]'); 
+            
+            if (discogLink) { openDiscographyDetail(discogLink.dataset.type); return; } 
+            if (albumCard) { openAlbumDetail(albumCard.dataset.albumId); return; } 
+            if (artistCard) { openArtistDetail(artistCard.dataset.artistName); return; } 
+            if (artistLink) { openArtistDetail(artistLink.dataset.artistName); return; } 
+            
+            // --- ATUALIZADO: Ação do Player ---
+            if (songCard) { 
+                // Verifica se a música está disponível (no caso de pré-lançamentos)
+                if (!songCard.classList.contains('unavailable')) {
+                    console.log("Abrindo player para música ID:", songCard.dataset.songId);
+                    openPlayer(songCard.dataset.songId, songCard);
+                } else {
+                    console.log("Música indisponível.");
+                }
+                return; 
+            }
+        }); 
+        searchInput.addEventListener('input', handleSearch); 
+        searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { handleSearch(); } }); 
+    }
 
     async function main() {
         console.log("Iniciando Aplicação...");
         if (!initializeDOMElements()) return;
 
         document.body.classList.add('loading');
-        const data = await loadAllData();
+        const data = await loadAllData(); 
 
         if (data && data.allArtists) {
             if (!initializeData(data)) return;
@@ -880,6 +1249,8 @@ const renderChart = (type) => {
                 if (confirmTrackTypeBtn) { confirmTrackTypeBtn.addEventListener('click', () => { processSingleSubmission(trackTypeSelect.value); }); }
                 if (cancelTrackTypeBtn) { cancelTrackTypeBtn.addEventListener('click', () => { trackTypeModal.classList.add('hidden'); const btn = document.getElementById('submitNewSingle'); btn.disabled = false; btn.textContent = 'Lançar Single'; }); }
                 
+                initializePlayerListeners(); // <-- ADICIONA OS LISTENERS DO PLAYER
+                
                 renderRPGChart();
                 renderChart('music'); 
                 renderChart('album');
@@ -891,7 +1262,7 @@ const renderChart = (type) => {
                 setupCountdown('musicCountdownTimer', 'music');
                 setupCountdown('albumCountdownTimer', 'album');
 
-                initializeBodyClickListener();
+                initializeBodyClickListener(); // <-- Modificada para incluir o player
                 document.querySelectorAll('.back-btn').forEach(btn => btn.addEventListener('click', handleBack));
                 switchTab(null, 'homeSection');
                 console.log("Aplicação Iniciada.");
