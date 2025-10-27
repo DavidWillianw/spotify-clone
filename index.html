@@ -267,53 +267,72 @@
 
                     
                     <div id="editReleaseSection" class="studio-form-content">
-                        <h3>✏️ Editar Lançamento</h3>
+    <h3>✏️ Editar / Apagar Lançamento</h3>
 
-                        <div id="editReleaseListContainer">
-                            <p class="edit-instructions">Selecione um lançamento abaixo para editar:</p>
-                            <div id="editReleaseList" class="release-edit-list">
-                              
-                                <p class="empty-state-small">Nenhum lançamento encontrado para seus artistas.</p>
-                            </div>
-                        </div>
-
-                     
-                        <form id="editReleaseForm" class="studio-form hidden">
-                             <input type="hidden" id="editReleaseId" />
-                             <input type="hidden" id="editReleaseType" /> 
-                             <input type="hidden" id="editReleaseTableName" /> 
-
-                             <div class="studio-form-group">
-                                 <label>Artista</label>
-                                 <p id="editArtistNameDisplay" class="display-value"></p>
-                             </div>
-                             <div class="studio-form-group">
-                                 <label for="editReleaseTitle">Nome do Lançamento</label>
-                                 <input type="text" id="editReleaseTitle" required />
-                             </div>
-                             <div class="studio-form-group">
-                                 <label for="editReleaseCoverUrl">URL da Capa</label>
-                                 <input type="url" id="editReleaseCoverUrl" required />
-                             </div>
-                             <div class="studio-form-group">
-                                 <label for="editReleaseDate">Data de Lançamento</label>
-                                 <input type="date" id="editReleaseDate" required />
-                             </div>
-
-                             <p class="edit-warning"><i class="fas fa-exclamation-triangle"></i> A edição da tracklist não está disponível no momento.</p>
-
-                             <div class="modal-actions">
-                                 <button type="button" class="cancel-btn" id="cancelEditBtn">Cancelar</button>
-                                 <button type="submit" class="submit-btn" id="saveEditBtn">Salvar Alterações</button>
-                             </div>
-                         </form>
-                    </div>
-
-                </div>
-            </section>
-        </main>
+    <div id="editReleaseListContainer">
+        <p class="edit-instructions">Selecione um lançamento abaixo para editar ou apagar:</p>
+        <div id="editReleaseList" class="release-edit-list">
+            <p class="empty-state-small">Nenhum lançamento encontrado para seus artistas.</p>
+        </div>
     </div>
 
+    <form id="editReleaseForm" class="studio-form hidden">
+        <input type="hidden" id="editReleaseId" />
+        <input type="hidden" id="editReleaseType" />
+        <input type="hidden" id="editReleaseTableName" />
+
+        <div class="studio-form-group">
+            <label>Artista</label>
+            <p id="editArtistNameDisplay" class="display-value"></p>
+        </div>
+        <div class="studio-form-group">
+            <label for="editReleaseTitle">Nome do Lançamento</label>
+            <input type="text" id="editReleaseTitle" required />
+        </div>
+        <div class="studio-form-group">
+            <label for="editReleaseCoverUrl">URL da Capa</label>
+            <input type="url" id="editReleaseCoverUrl" required />
+        </div>
+        <div class="studio-form-group">
+            <label for="editReleaseDate">Data de Lançamento</label>
+            <input type="date" id="editReleaseDate" required />
+        </div>
+
+        <p class="edit-warning"><i class="fas fa-exclamation-triangle"></i> A edição da tracklist não está disponível no momento.</p>
+
+        <div class="modal-actions">
+            <button type="button" class="cancel-btn" id="cancelEditBtn">Cancelar</button>
+            <button type="submit" class="submit-btn" id="saveEditBtn">Salvar Alterações</button>
+        </div>
+    </form>
+</div>
+
+</div>
+</section>
+</main>
+</div>
+
+<div id="deleteConfirmModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h3><i class="fas fa-exclamation-triangle" style="color: var(--trend-down-red);"></i> Confirmar Exclusão</h3>
+        <p class="modal-description">
+            Tem certeza que deseja apagar o lançamento "<strong id="deleteReleaseName">Nome do Lançamento</strong>"?
+        </p>
+        <p class="modal-warning">
+            <strong>Atenção:</strong> Esta ação também apagará todas as músicas associadas a este lançamento no Airtable. Esta ação não pode ser desfeita.
+        </p>
+        <input type="hidden" id="deleteRecordId" />
+        <input type="hidden" id="deleteTableName" />
+        <input type="hidden" id="deleteTrackIds" />
+
+        <div class="modal-actions">
+            <button type="button" class="cancel-btn" id="cancelDeleteBtn">Cancelar</button>
+            <button type="button" class="submit-btn delete-confirm-btn" id="confirmDeleteBtn">
+                <i class="fas fa-trash-alt"></i> Sim, Apagar
+            </button>
+        </div>
+    </div>
+</div>
   
      <div id="featModal" class="modal-overlay hidden">
         <div class="modal-content">
