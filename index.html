@@ -186,13 +186,13 @@
                     <nav class="studio-tabs">
                         <button class="studio-tab-btn active" data-form="single">Lançar Single</button>
                         <button class="studio-tab-btn" data-form="album">Lançar Álbum / EP</button>
-                        <button class="studio-tab-btn" data-form="edit">Editar Lançamento</button> {/* */}
+                        <button class="studio-tab-btn" data-form="edit">Editar Lançamento</button> 
                     </nav>
 
                    
                     <form id="newSingleForm" class="studio-form studio-form-content active">
                         <h3>🚀 Lançar Novo Single</h3>
-                        {/* ... (campos do formulário de novo single) ... */}
+                        
                         <div class="studio-form-group">
                             <label for="singleArtistSelect">Artista Principal</label>
                             <select id="singleArtistSelect" required>
@@ -236,7 +236,6 @@
                     
                     <form id="newAlbumForm" class="studio-form studio-form-content">
                         <h3>📀 Lançar Novo Álbum / EP</h3>
-                        {/* ... (campos do formulário de novo álbum/ep) ... */}
                         <div class="studio-form-group">
                             <label for="albumArtistSelect">Artista Principal</label>
                             <select id="albumArtistSelect" required>
@@ -270,11 +269,10 @@
                     <div id="editReleaseSection" class="studio-form-content">
                         <h3>✏️ Editar Lançamento</h3>
 
-                        {/* Lista de Lançamentos Editáveis */}
                         <div id="editReleaseListContainer">
                             <p class="edit-instructions">Selecione um lançamento abaixo para editar:</p>
                             <div id="editReleaseList" class="release-edit-list">
-                                {/* Lista será populada pelo JS */}
+                              
                                 <p class="empty-state-small">Nenhum lançamento encontrado para seus artistas.</p>
                             </div>
                         </div>
@@ -282,12 +280,12 @@
                      
                         <form id="editReleaseForm" class="studio-form hidden">
                              <input type="hidden" id="editReleaseId" />
-                             <input type="hidden" id="editReleaseType" /> {/* 'album' ou 'single' */}
-                             <input type="hidden" id="editReleaseTableName" /> {/* 'Álbuns' ou 'Singles e EPs' */}
+                             <input type="hidden" id="editReleaseType" /> 
+                             <input type="hidden" id="editReleaseTableName" /> 
 
                              <div class="studio-form-group">
                                  <label>Artista</label>
-                                 <p id="editArtistNameDisplay" class="display-value"></p> {/* Apenas para exibição */}
+                                 <p id="editArtistNameDisplay" class="display-value"></p>
                              </div>
                              <div class="studio-form-group">
                                  <label for="editReleaseTitle">Nome do Lançamento</label>
@@ -404,7 +402,7 @@
                     </div>
                     <div class="inline-feat-actions">
                          <button type="button" class="small-btn cancel-inline-feat-btn" id="cancelInlineFeatBtn">Cancelar</button>
-                         <button type="button" class="small-btn" id="confirmInlineFeatBtn">Adicionar</button>{/* Corrigido o fechamento da tag */}
+                         <button type="button" class="small-btn" id="confirmInlineFeatBtn">Adicionar</button>
                     </div>
                 </div>
             </div>
