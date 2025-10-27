@@ -759,7 +759,66 @@ body.player-open {
     text-overflow: ellipsis;
     color: var(--text-primary);
 }
+/* --- ESTILOS PARA BOTÃO APAGAR E MODAL --- */
+.edit-release-item .action-buttons {
+    display: flex;
+    flex-direction: column; /* Empilha os botões verticalmente em telas menores se necessário */
+    gap: 8px; /* Espaço entre Editar e Apagar */
+    align-items: flex-end; /* Alinha botões à direita */
+    flex-shrink: 0;
+}
 
+.delete-release-btn {
+    background: transparent;
+    border: 1px solid var(--trend-down-red);
+    color: var(--trend-down-red);
+    padding: 8px 10px; /* Ajuste para caber ícone e texto */
+    font-size: 11px; /* Menor para caber melhor */
+}
+
+.delete-release-btn:hover {
+    background: rgba(226, 33, 52, 0.1); /* Vermelho leve no hover */
+}
+
+/* Modal de Confirmação */
+#deleteConfirmModal .modal-content h3 i {
+    margin-right: 8px;
+}
+
+.modal-warning {
+    font-size: 13px;
+    color: #ffcc00; /* Amarelo para aviso */
+    background-color: rgba(255, 204, 0, 0.1);
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 16px;
+    border-left: 3px solid #ffcc00;
+}
+.modal-warning strong {
+    color: #ffd633;
+}
+
+
+.delete-confirm-btn {
+    background-color: var(--trend-down-red);
+    color: var(--text-primary); /* Branco ou preto dependendo do seu tema */
+}
+.delete-confirm-btn:hover:not(:disabled) {
+    background-color: #c81e2f; /* Vermelho mais escuro no hover */
+    transform: scale(1.02);
+}
+.delete-confirm-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--trend-down-red); /* Mantém a cor base mesmo desabilitado */
+}
+
+/* Ajuste para botões lado a lado no desktop */
+@media (min-width: 400px) { /* Ou outro breakpoint se preferir */
+    .edit-release-item .action-buttons {
+        flex-direction: row; /* Botões lado a lado */
+    }
+}
 .edit-release-artist {
     font-size: 12px;
     color: var(--text-secondary);
