@@ -205,7 +205,8 @@ body {
 
 ficou melhor assim
 .track-row:hover { background-color: var(--background-tertiary); }
-.track-row:last-child { border-bottom: none; }
+.track-row:last-child { border-bottom: none;    display: inline-grid
+; }
 
 /* Número da Faixa (item flex) - ESCONDIDO */
 .track-number {
