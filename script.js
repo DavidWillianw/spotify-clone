@@ -811,6 +811,7 @@ const renderChart = (type) => {
             console.error("Initialization failed: Data load error.");
         }
         document.body.classList.remove('loading');
+    }
     main();
 
 }); // Fim DOMContentLoaded
