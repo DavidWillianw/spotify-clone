@@ -53,7 +53,7 @@
 
             <section id="chartsSection" class="content-section">
                 <h2 class="section-title">Charts</h2>
-                
+
                 <div class="chart-header">
                     <h3><i class="fas fa-fire"></i> Top 50 Músicas</h3>
                     <p>Atualiza em: <span id="musicCountdownTimer">--</span></p>
@@ -68,7 +68,7 @@
                 <div id="albumChartsList" class="chart-list">
                     </div>
             </section>
-            
+
             <section id="artistsSection" class="content-section">
                 <h2 class="section-title">Artistas (RPG Chart)</h2>
                 <div id="artistsGrid" class="artists-grid full-page-grid">
@@ -105,7 +105,7 @@
             <h3 class="section-title">Popular</h3>
             <div id="popularSongsList" class="popular-songs-list">
                 </div>
-            
+
             <div class="section-header" style="margin-top: 32px;">
                 <h3 class="section-title">Álbuns</h3>
                 <span class="see-all-btn" data-type="albums">VER TUDO</span>
@@ -186,10 +186,13 @@
                     <nav class="studio-tabs">
                         <button class="studio-tab-btn active" data-form="single">Lançar Single</button>
                         <button class="studio-tab-btn" data-form="album">Lançar Álbum / EP</button>
+                        <button class="studio-tab-btn" data-form="edit">Editar Lançamento</button> {/* */}
                     </nav>
 
+                    {/* --- FORMULÁRIO DE NOVO SINGLE --- */}
                     <form id="newSingleForm" class="studio-form studio-form-content active">
                         <h3>🚀 Lançar Novo Single</h3>
+                        {/* ... (campos do formulário de novo single) ... */}
                         <div class="studio-form-group">
                             <label for="singleArtistSelect">Artista Principal</label>
                             <select id="singleArtistSelect" required>
@@ -230,8 +233,10 @@
                         <button type="submit" class="submit-btn" id="submitNewSingle"> Lançar Single </button>
                     </form>
 
+                    {/* --- FORMULÁRIO DE NOVO ÁLBUM/EP --- */}
                     <form id="newAlbumForm" class="studio-form studio-form-content">
                         <h3>📀 Lançar Novo Álbum / EP</h3>
+                        {/* ... (campos do formulário de novo álbum/ep) ... */}
                         <div class="studio-form-group">
                             <label for="albumArtistSelect">Artista Principal</label>
                             <select id="albumArtistSelect" required>
@@ -250,7 +255,7 @@
                             <label for="albumReleaseDate">Data de Lançamento</label>
                             <input type="date" id="albumReleaseDate" required />
                         </div>
-                        
+
                         <hr class="form-divider" />
                         <h4>Tracklist</h4>
                         <div id="albumTracklistEditor" class="track-list-editor">
@@ -260,14 +265,59 @@
 
                         <button type="submit" class="submit-btn" id="submitNewAlbum"> Lançar Álbum / EP </button>
                     </form>
-                    
+
+                     {/* --- SEÇÃO DE EDIÇÃO --- */}
+                    <div id="editReleaseSection" class="studio-form-content">
+                        <h3>✏️ Editar Lançamento</h3>
+
+                        {/* Lista de Lançamentos Editáveis */}
+                        <div id="editReleaseListContainer">
+                            <p class="edit-instructions">Selecione um lançamento abaixo para editar:</p>
+                            <div id="editReleaseList" class="release-edit-list">
+                                {/* Lista será populada pelo JS */}
+                                <p class="empty-state-small">Nenhum lançamento encontrado para seus artistas.</p>
+                            </div>
+                        </div>
+
+                        {/* Formulário de Edição (inicialmente oculto) */}
+                        <form id="editReleaseForm" class="studio-form hidden">
+                             <input type="hidden" id="editReleaseId" />
+                             <input type="hidden" id="editReleaseType" /> {/* 'album' ou 'single' */}
+                             <input type="hidden" id="editReleaseTableName" /> {/* 'Álbuns' ou 'Singles e EPs' */}
+
+                             <div class="studio-form-group">
+                                 <label>Artista</label>
+                                 <p id="editArtistNameDisplay" class="display-value"></p> {/* Apenas para exibição */}
+                             </div>
+                             <div class="studio-form-group">
+                                 <label for="editReleaseTitle">Nome do Lançamento</label>
+                                 <input type="text" id="editReleaseTitle" required />
+                             </div>
+                             <div class="studio-form-group">
+                                 <label for="editReleaseCoverUrl">URL da Capa</label>
+                                 <input type="url" id="editReleaseCoverUrl" required />
+                             </div>
+                             <div class="studio-form-group">
+                                 <label for="editReleaseDate">Data de Lançamento</label>
+                                 <input type="date" id="editReleaseDate" required />
+                             </div>
+
+                             <p class="edit-warning"><i class="fas fa-exclamation-triangle"></i> A edição da tracklist não está disponível no momento.</p>
+
+                             <div class="modal-actions">
+                                 <button type="button" class="cancel-btn" id="cancelEditBtn">Cancelar</button>
+                                 <button type="submit" class="submit-btn" id="saveEditBtn">Salvar Alterações</button>
+                             </div>
+                         </form>
+                    </div>
+
                 </div>
             </section>
         </main>
     </div>
 
-
-    <div id="featModal" class="modal-overlay hidden">
+    {/* --- (Modais existentes: featModal, trackTypeModal, albumTrackModal) --- */}
+     <div id="featModal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Adicionar Participação (Feat.)</h3>
             <div class="studio-form-group">
@@ -287,7 +337,7 @@
             </div>
         </div>
     </div>
-    
+
     <div id="trackTypeModal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Tipo da Nova Faixa</h3>
@@ -311,7 +361,7 @@
         <div class="modal-content">
             <h3 id="albumTrackModalTitle">Adicionar Faixa</h3>
             <input type="hidden" id="editingTrackItemId" />
-            
+
             <div class="studio-form-group">
                 <label for="albumTrackNameInput">Nome da Faixa</label>
                 <input type="text" id="albumTrackNameInput" placeholder="Ex: Kitsch" required />
@@ -339,7 +389,7 @@
                 <button type="button" class="small-btn add-inline-feat-btn">
                     <i class="fas fa-plus"></i> Adicionar Feat
                 </button>
-                
+
                 <div id="inlineFeatAdder" class="inline-feat-adder hidden">
                     <div class="studio-form-group">
                         <label for="inlineFeatArtistSelect">Artista</label>
@@ -354,7 +404,7 @@
                     </div>
                     <div class="inline-feat-actions">
                          <button type="button" class="small-btn cancel-inline-feat-btn" id="cancelInlineFeatBtn">Cancelar</button>
-                         <button type="button" class="small-btn" id="confirmInlineFeatBtn">Adicionar</Sidelong>
+                         <button type="button" class="small-btn" id="confirmInlineFeatBtn">Adicionar</button>{/* Corrigido o fechamento da tag */}
                     </div>
                 </div>
             </div>
@@ -367,6 +417,7 @@
     </div>
 
 
+    {/* --- PLAYER DE MÚSICA --- */}
     <div id="musicPlayer" class="page-view hidden">
         <div class="player-header">
             <button class="player-close-btn"><i class="fas fa-chevron-down"></i></button>
@@ -376,7 +427,7 @@
 
         <div class="player-body">
             <img id="playerCoverArt" src="https://i.imgur.com/AD3MbBi.png" alt="Capa do Álbum" />
-            
+
             <div class="player-song-info">
                 <h2 id="playerSongTitle">Nome da Música</h2>
                 <p id="playerArtistName">Nome do Artista</p>
@@ -410,7 +461,7 @@
             </div>
         </div>
     </div>
-    
+
     <audio id="audioElement"></audio>
 
     <script src="script.js"></script>
