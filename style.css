@@ -149,7 +149,7 @@ body {
 .popular-songs-list .song-row:hover { background-color: var(--background-tertiary); }
 .song-row-info { display: flex; align-items: center; gap: 16px; min-width: 0; }
 .song-row-cover { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
-.song-row-title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.song-row-title { font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
 .song-streams { color: var(--text-secondary); font-size: 14px; }
 .artist-link { font-weight: 700; cursor: pointer; transition: text-decoration 0.2s; }
 .artist-link:hover { text-decoration: underline; }
@@ -224,7 +224,6 @@ ficou melhor assim
 /* Título */
 .track-title {
   font-weight: 500;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
