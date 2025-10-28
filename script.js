@@ -200,9 +200,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
 
-            const today = new Date().toISOString().split('T')[0];
-            if(singleReleaseDateInput) singleReleaseDateInput.value = today;
-            if(albumReleaseDateInput) albumReleaseDateInput.value = today;
+           // *** MODIFICADO PARA DATETIME-LOCAL ***
+            // Formata para datetime-local (YYYY-MM-DDTHH:MM)
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); // Ajusta para o fuso horário local
+            now.setSeconds(0); // Zera segundos
+            now.setMilliseconds(0); // Zera milissegundos
+            const localISOTime = now.toISOString().slice(0, 16); // Pega "YYYY-MM-DDTHH:MM"
+
+            if(singleReleaseDateInput) singleReleaseDateInput.value = localISOTime;
+            if(albumReleaseDateInput) albumReleaseDateInput.value = localISOTime;
 
             console.log("DOM elements initialized.");
             return true;
@@ -707,11 +714,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         // ... (resto da função openArtistDetail sem alterações) ...
         const albumsContainer = document.getElementById('albumsList');
-        const sortedAlbums = (artist.albums || []).sort( (a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
-        albumsContainer.innerHTML = sortedAlbums.map(album => `<div class="scroll-item" data-album-id="${album.id}"><img src="${album.imageUrl}" alt="${album.title}"><p>${album.title}</p><span>${new Date(album.releaseDate).getFullYear()}</span></div>`).join('') || '<p class="empty-state-small">Nenhum álbum.</p>';
+// *** INÍCIO DA CORREÇÃO DE ORDENAÇÃO ***
+      const nowSort = new Date();
+      const customSort = (a, b) => {
+          const dateA = new Date(a.releaseDate);
+          const dateB = new Date(b.releaseDate);
+          const isAFuture = dateA > nowSort;
+          const isBFuture = dateB > nowSort;
+
+          if (isAFuture && isBFuture) {
+              return dateA - dateB; // Future dates ascending (closest first)
+          } else if (isAFuture) {
+              return -1; // Future always comes before past
+          } else if (isBFuture) {
+              return 1; // Past always comes after future
+          } else {
+              return dateB - dateA; // Past dates descending (most recent first)
+          }
+      };
+
+      const sortedAlbums = (artist.albums || []).sort(customSort);        albumsContainer.innerHTML = sortedAlbums.map(album => `<div class="scroll-item" data-album-id="${album.id}"><img src="${album.imageUrl}" alt="${album.title}"><p>${album.title}</p><span>${new Date(album.releaseDate).getFullYear()}</span></div>`).join('') || '<p class="empty-state-small">Nenhum álbum.</p>';
 
         const singlesContainer = document.getElementById('singlesList');
-        const sortedSingles = (artist.singles || []).sort( (a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+const sortedSingles = (artist.singles || []).sort(customSort);
         singlesContainer.innerHTML = sortedSingles.map(single => `<div class="scroll-item" data-album-id="${single.id}"><img src="${single.imageUrl}" alt="${single.title}"><p>${single.title}</p><span>${new Date(single.releaseDate).getFullYear()}</span></div>`).join('') || '<p class="empty-state-small">Nenhum single.</p>';
 
         const recommended = [...db.artists].filter(a => a.id !== artist.id).sort( () => 0.5 - Math.random()).slice(0, 5);
@@ -796,7 +821,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // openDiscographyDetail, handleSearch, setupCountdown, startAlbumCountdown (sem alterações)
-    const openDiscographyDetail = (type) => { if (!activeArtist) { console.error("Nenhum artista ativo."); handleBack(); return; } const data = (type==='albums')?(activeArtist.albums || []).sort((a,b)=>new Date(b.releaseDate)-new Date(a.releaseDate)):(activeArtist.singles||[]).sort((a,b)=>new Date(b.releaseDate)-new Date(a.releaseDate)); const title = (type==='albums')?`Álbuns de ${activeArtist.name}`:`Singles & EPs de ${activeArtist.name}`; document.getElementById('discographyTypeTitle').textContent = title; const grid = document.getElementById('discographyGrid'); grid.innerHTML = data.map(item => `<div class="scroll-item" data-album-id="${item.id}"><img src="${item.imageUrl}" alt="${item.title}"><p>${item.title}</p><span>${new Date(item.releaseDate).getFullYear()}</span></div>`).join('') || '<p class="empty-state">Nenhum lançamento.</p>'; switchView('discographyDetail'); };
+    const openDiscographyDetail = (type) => { if (!activeArtist) { console.error("Nenhum artista ativo."); handleBack(); return; } // *** INÍCIO DA CORREÇÃO DE ORDENAÇÃO ***
+      const nowSort = new Date();
+      const customSort = (a, b) => {
+          const dateA = new Date(a.releaseDate);
+          const dateB = new Date(b.releaseDate);
+          const isAFuture = dateA > nowSort;
+          const isBFuture = dateB > nowSort;
+
+          if (isAFuture && isBFuture) {
+              return dateA - dateB; // Future dates ascending
+          } else if (isAFuture) {
+              return -1; // Future before past
+          } else if (isBFuture) {
+              return 1; // Past after future
+          } else {
+              return dateB - dateA; // Past dates descending
+          }
+      };
+
+      const data = (type==='albums')
+          ? (activeArtist.albums || []).sort(customSort)
+          : (activeArtist.singles||[]).sort(customSort);
+      // *** FIM DA CORREÇÃO DE ORDENAÇÃO *** const title = (type==='albums')?`Álbuns de ${activeArtist.name}`:`Singles & EPs de ${activeArtist.name}`; document.getElementById('discographyTypeTitle').textContent = title; const grid = document.getElementById('discographyGrid'); grid.innerHTML = data.map(item => `<div class="scroll-item" data-album-id="${item.id}"><img src="${item.imageUrl}" alt="${item.title}"><p>${item.title}</p><span>${new Date(item.releaseDate).getFullYear()}</span></div>`).join('') || '<p class="empty-state">Nenhum lançamento.</p>'; switchView('discographyDetail'); };
     const handleSearch = () => { const query = searchInput.value.toLowerCase().trim(); if (!query) { switchTab(null, 'homeSection'); return; } const resultsContainer = document.getElementById('searchResults'); const noResultsEl = document.getElementById('noResults'); const filteredArtists = db.artists.filter(a => a.name.toLowerCase().includes(query)); const filteredAlbums = [...db.albums, ...db.singles].filter(a => a.title.toLowerCase().includes(query)); let html = ''; let count = 0; if (filteredArtists.length > 0) { html += '<h3 class="section-title">Artistas</h3>'; html += filteredArtists.map(a => { count++; return `<div class="artist-card" data-artist-name="${a.name}"><img src="${a.img}" alt="${a.name}" class="artist-card-img"><p class="artist-card-name">${a.name}</p><span class="artist-card-type">Artista</span></div>`; }).join(''); } if (filteredAlbums.length > 0) { html += '<h3 class="section-title">Álbuns & Singles</h3>'; html += filteredAlbums.map(al => { count++; return `<div class="artist-card" data-album-id="${al.id}"><img src="${al.imageUrl}" alt="${al.title}" class="artist-card-img"><p class="artist-card-name">${al.title}</p><span class="artist-card-type">${al.artist}</span></div>`; }).join(''); } resultsContainer.innerHTML = html; if (count > 0) { noResultsEl.classList.add('hidden'); resultsContainer.classList.remove('hidden'); } else { noResultsEl.classList.remove('hidden'); resultsContainer.classList.add('hidden'); } switchTab(null, 'searchSection'); };
     const setupCountdown = (timerId, chartType) => { const timerElement = document.getElementById(timerId); if (!timerElement) return; const calculateTargetDate = () => { const now = new Date(); const target = new Date(now); let daysToMonday = (1 + 7 - now.getDay()) % 7; if (daysToMonday === 0 && now.getHours() >= 0) { daysToMonday = 7; } target.setDate(now.getDate() + daysToMonday); target.setHours(0, 0, 0, 0); return target; }; let targetDate = calculateTargetDate(); const updateTimerDisplay = (distance) => { const days = Math.floor(distance / 864e5); const hours = Math.floor((distance % 864e5) / 36e5); const minutes = Math.floor((distance % 36e5) / 6e4); const seconds = Math.floor((distance % 6e4) / 1e3); const f = (n) => (n < 10 ? '0' + n : n); timerElement.textContent = distance < 0 ? `00d 00h 00m 00s` : `${f(days)}d ${f(hours)}h ${f(minutes)}m ${f(seconds)}s`; }; const intervalId = setInterval(() => {
         const now = new Date().getTime();
@@ -890,7 +937,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
         });
+// --- INÍCIO DA CORREÇÃO PARA BUG de SUBMIT (CORREÇÃO ANTERIOR) ---
+        // 1. Listener para o SUBMIT do formulário de Single
+        newSingleForm?.addEventListener('submit', handleSingleSubmit); // <-- ESSENCIAL
 
+        // 2. Listeners para o Modal de Tipo de Faixa
+        confirmTrackTypeBtn?.addEventListener('click', () => {
+            const selectedType = trackTypeSelect.value;
+            if (selectedType) {
+                processSingleSubmission(selectedType); // <-- Chama o envio
+            } else {
+                alert("Por favor, selecione um tipo de faixa.");
+            }
+        });
+        cancelTrackTypeBtn?.addEventListener('click', () => {
+            trackTypeModal?.classList.add('hidden');
+            const btn = document.getElementById('submitNewSingle');
+            if(btn) {
+                btn.disabled = false;
+                btn.textContent = 'Lançar Single';
+            }
+        });
+        // --- FIM DA CORREÇÃO PARA BUG de SUBMIT ---
         // --- Listeners de Feat (sem alteração) ---
         confirmFeatBtn?.addEventListener('click', confirmFeat);
         cancelFeatBtn?.addEventListener('click', closeFeatModal);
@@ -1588,8 +1656,12 @@ editArtistFilterSelect?.addEventListener('change', populateEditableReleases);
         const artistId = singleArtistSelect.value;
         const title = document.getElementById('singleTitle').value;
         const cover = document.getElementById('singleCoverUrl').value;
-        const date = singleReleaseDateInput.value;
+const dateLocal = singleReleaseDateInput.value; // Pega 'YYYY-MM-DDTHH:MM'
+            const existingSongId = existingSingleTrackId.value; // Pega o ID salvo
 
+          // NOVO: Converte datetime-local para ISO string (UTC) para enviar ao Airtable
+          if (!dateLocal) throw new Error("Data de lançamento inválida."); // Add check
+          const dateISO = new Date(dateLocal).toISOString();
         if (!artistId || !title || !cover || !date) {
             alert("Preencha todos os campos do single (Artista, Nome, Capa, Data).");
             return;
@@ -1638,8 +1710,7 @@ editArtistFilterSelect?.addEventListener('change', populateEditableReleases);
                 "Nome do Single/EP": title,
                 "Artista": [artistId],
                 "Capa": [{"url": cover}],
-                "Data de Lançamento": date
-            });
+"Data de Lançamento": dateISO // Envia a data completa            });
 
             if (!singleRes || !singleRes.id) {
                 throw new Error("Falha ao criar o registro do Single/EP.");
@@ -1708,8 +1779,13 @@ editArtistFilterSelect?.addEventListener('change', populateEditableReleases);
             // 3. Sucesso e Limpeza
             alert("Single lançado com sucesso!");
             newSingleForm?.reset();
-            if(singleReleaseDateInput) singleReleaseDateInput.value = new Date().toISOString().split('T')[0];
-            const singleFeatListEl = document.getElementById('singleFeatList');
+if(singleReleaseDateInput) {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            now.setSeconds(0);
+            now.setMilliseconds(0);
+            singleReleaseDateInput.value = now.toISOString().slice(0, 16);
+        }            const singleFeatListEl = document.getElementById('singleFeatList');
             if(singleFeatListEl) singleFeatListEl.innerHTML = '';
 
             // Reseta o formulário de single para o modo "Nova Faixa"
@@ -1744,9 +1820,12 @@ editArtistFilterSelect?.addEventListener('change', populateEditableReleases);
             const artistId=albumArtistSelect.value;
             const title=document.getElementById('albumTitle').value;
             const cover=document.getElementById('albumCoverUrl').value;
-            const date=albumReleaseDateInput.value;
+            const dateLocal=albumReleaseDateInput.value; // Pega 'YYYY-MM-DDTHH:MM'
 
-            if(!artistId||!title||!cover||!date){alert("Preencha todos os campos do Álbum/EP."); throw new Error("Campos Álbum faltando.");}
+            if(!artistId||!title||!cover||!dateLocal){alert("Preencha todos os campos do Álbum / EP (Artista, Nome, Capa, Data/Hora)."); throw new Error("Campos Álbum faltando.");}
+
+          // NOVO: Converte datetime-local para ISO string (UTC) para enviar ao Airtable
+          const dateISO = new Date(dateLocal).toISOString();
 
             const items=albumTracklistEditor?.querySelectorAll('.track-list-item-display');
             if(!items || items.length===0){alert("Adicione pelo menos uma faixa ao Álbum/EP."); throw new Error("Nenhuma faixa.");}
@@ -1815,7 +1894,7 @@ editArtistFilterSelect?.addEventListener('change', populateEditableReleases);
                 [nFld]:title,
                 "Artista":[artistId],
                 [cFld]:[{"url":cover}],
-                "Data de Lançamento":date
+                "Data de Lançamento":dateISO // Usa a data ISO completa
             });
 
             if(!relRes||!relRes.id){throw new Error("Falha ao criar o registro do Álbum/EP.");}
@@ -1872,8 +1951,14 @@ editArtistFilterSelect?.addEventListener('change', populateEditableReleases);
             }
 
             newAlbumForm?.reset();
-            if(albumReleaseDateInput) albumReleaseDateInput.value=new Date().toISOString().split('T')[0];
-            initAlbumForm(); // Limpa a tracklist do editor
+// MODIFICADO: Reseta para o datetime-local atual
+         if(albumReleaseDateInput) {
+             const now = new Date();
+             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+             now.setSeconds(0);
+             now.setMilliseconds(0);
+             albumReleaseDateInput.value = now.toISOString().slice(0, 16);
+         }            initAlbumForm(); // Limpa a tracklist do editor
             await refreshAllData();
 
         } catch(e){
