@@ -1190,12 +1190,83 @@ document.addEventListener('DOMContentLoaded', async () => {
         switchTab(null, 'searchSection');
     };
 
-    const setupCountdown = (timerId, chartType) => {
+const setupCountdown = (timerId, chartType) => {
         const timerElement = document.getElementById(timerId);
         if (!timerElement) {
              console.warn(`Elemento de timer com ID "${timerId}" não encontrado.`);
              return;
         }
+
+        const calculateTargetDate = () => {
+            const now = new Date();
+            const target = new Date(now);
+
+            // Verificamos o tipo de chart para aplicar a lógica correta
+            if (chartType === 'rpg') {
+                // --- NOVA LÓGICA (DIÁRIA) PARA O RPG ---
+                // A "semana" do RPG reseta todo dia à meia-noite (UTC)
+                target.setUTCDate(now.getUTCDate() + 1);
+                target.setUTCHours(0, 0, 0, 0);
+
+            } else {
+                // --- LÓGICA ANTIGA (SEMANAL) PARA MÚSICA/ÁLBUM ---
+                let daysUntilMonday = (1 - now.getDay() + 7) % 7;
+                if (daysUntilMonday === 0 && (now.getUTCHours() > 0 || now.getUTCMinutes() > 0 || now.getUTCSeconds() > 0)) {
+                     daysUntilMonday = 7;
+                } else if (daysUntilMonday === 0 && now.getUTCHours() === 0 && now.getUTCMinutes() === 0 && now.getUTCSeconds() === 0) {
+                     // daysUntilMonday = 7; // Mantenha comentado ou remova
+                }
+                target.setUTCDate(now.getUTCDate() + daysUntilMonday);
+                target.setUTCHours(0, 0, 0, 0);
+            }
+            
+            return target;
+        };
+
+        let targetDate = calculateTargetDate();
+
+        const updateTimerDisplay = (distance) => {
+            if (distance < 0) {
+                timerElement.textContent = `Atualizando...`;
+                return;
+            }
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            const format = (num) => (num < 10 ? '0' + num : num);
+
+            // A lógica de exibição muda se for o timer diário
+            if (chartType === 'rpg') {
+                // Não mostra "dias" se a contagem for sempre diária
+                timerElement.textContent = `${format(hours)}h ${format(minutes)}m ${format(seconds)}s`;
+            } else {
+                timerElement.textContent = `${format(days)}d ${format(hours)}h ${format(minutes)}m ${format(seconds)}s`;
+            }
+        };
+
+        const intervalId = setInterval(() => {
+            const now = new Date().getTime();
+            const distance = targetDate.getTime() - now;
+
+            if (distance < 0) {
+                console.log(`Timer ${timerId} (Chart: ${chartType}) atingiu zero. Salvando dados anteriores e recalculando.`);
+                saveChartDataToLocalStorage(chartType);
+                targetDate = calculateTargetDate();
+
+                if (chartType === 'music') renderChart('music');
+                else if (chartType === 'album') renderChart('album');
+                else if (chartType === 'rpg') renderRPGChart();
+
+                 updateTimerDisplay(targetDate.getTime() - new Date().getTime());
+                return;
+            }
+
+            updateTimerDisplay(distance);
+        }, 1000);
+
+        updateTimerDisplay(targetDate.getTime() - new Date().getTime());
+    };
 
         const calculateTargetDate = () => {
             const now = new Date();
@@ -1905,12 +1976,87 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(inlineFeatTypeSelect) inlineFeatTypeSelect.value = 'Feat.';
     }
 
-    // Modal Adicionar/Editar Faixa
+   // Modal Adicionar/Editar Faixa
     function openAlbumTrackModal(itemToEdit = null) {
         if (!albumTrackModal || !albumTrackNameInput || !albumTrackDurationInput || !albumTrackTypeSelect || !albumTrackFeatList || !editingTrackItemId || !editingTrackExistingId) {
              console.error("Elementos do modal de faixa do álbum não encontrados.");
              return;
         }
+
+        // Resetar campos comuns
+        albumTrackNameInput.value = '';
+        albumTrackDurationInput.value = '';
+        albumTrackTypeSelect.value = 'B-side';
+        albumTrackFeatList.innerHTML = '';
+        editingTrackItemId.value = '';
+        editingTrackExistingId.value = '';
+        editingTrackItem = null;
+
+        // Resetar inline feat adder
+        inlineFeatAdder?.classList.add('hidden');
+        if (addInlineFeatBtn) addInlineFeatBtn.innerHTML = '<i class="fas fa-plus"></i> Adicionar Feat';
+
+        // Habilitar campos por padrão (serão desabilitados seletivamente)
+        albumTrackNameInput.disabled = false;
+        albumTrackDurationInput.disabled = false;
+        const featSectionElement = albumTrackFeatList.closest('.feat-section');
+        if (featSectionElement) featSectionElement.classList.remove('hidden');
+
+
+        if (itemToEdit) {
+            // --- Editando Item Existente ---
+            editingTrackItem = itemToEdit;
+            editingTrackItemId.value = itemToEdit.dataset.itemId || `temp_edit_${Date.now()}`;
+
+            albumTrackNameInput.value = itemToEdit.dataset.trackName || '';
+            albumTrackDurationInput.value = itemToEdit.dataset.durationStr || '';
+            albumTrackTypeSelect.value = itemToEdit.dataset.trackType || 'B-side';
+
+            const existingSongId = itemToEdit.dataset.existingSongId;
+            const featsToPopulate = JSON.parse(itemToEdit.dataset.feats || '[]');
+
+            if (!existingSongId) {
+                 // É uma faixa NOVA sendo editada (ainda não salva no Airtable)
+                 albumTrackModalTitle.textContent = 'Editar Faixa (Nova)';
+                 albumTrackNameInput.disabled = false; // Pode editar nome
+                 albumTrackDurationInput.disabled = false; // Pode editar duração
+                 if (featSectionElement) featSectionElement.classList.remove('hidden'); // Garante visibilidade
+            } else {
+                 // É uma faixa EXISTENTE (linkada) sendo editada
+                 albumTrackModalTitle.textContent = 'Editar Faixa (Existente)';
+                 editingTrackExistingId.value = existingSongId;
+                 
+                 // *** MUDANÇA: HABILITA A EDIÇÃO ***
+                 albumTrackNameInput.disabled = false;
+                 albumTrackDurationInput.disabled = false;
+                 if (featSectionElement) featSectionElement.classList.remove('hidden'); // Mostra feats
+            }
+            
+            // Popula os feats (para ambos, novos ou existentes)
+             try {
+                 featsToPopulate.forEach(f => {
+                     const tag = document.createElement('span');
+                     tag.className = 'feat-tag';
+                     tag.textContent = `${f.type} ${f.name}`;
+                     tag.dataset.artistId = f.id;
+                     tag.dataset.featType = f.type;
+                     tag.dataset.artistName = f.name;
+                     tag.addEventListener('click', () => tag.remove());
+                     albumTrackFeatList.appendChild(tag);
+                 });
+             } catch (e) {
+                 console.error("Erro ao parsear feats do dataset:", e);
+             }
+
+        } else {
+            // --- Adicionando Novo Item ---
+            albumTrackModalTitle.textContent = 'Adicionar Faixa (Nova)';
+            editingTrackItemId.value = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+             if (featSectionElement) featSectionElement.classList.remove('hidden'); // Garante visibilidade
+        }
+
+        albumTrackModal.classList.remove('hidden');
+    }
 
         // Resetar campos comuns
         albumTrackNameInput.value = '';
@@ -1991,6 +2137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Salva a faixa do modal para a lista (usa activeTracklistEditor)
+   // Salva a faixa do modal para a lista (usa activeTracklistEditor)
     function saveAlbumTrack() {
         if (!activeTracklistEditor) {
             console.error("Nenhum editor de tracklist ativo!");
@@ -2002,62 +2149,78 @@ document.addEventListener('DOMContentLoaded', async () => {
              return;
         }
 
-        const existingSongId = editingTrackExistingId.value;
+        let existingSongId = editingTrackExistingId.value; // Get ID from modal
         const name = albumTrackNameInput.value.trim();
         const durationStr = albumTrackDurationInput.value.trim();
         const type = albumTrackTypeSelect.value;
         const durationSec = parseDurationToSeconds(durationStr);
         const itemId = editingTrackItemId.value;
+        
+        const featTags = albumTrackFeatList.querySelectorAll('.feat-tag');
+        const featsData = Array.from(featTags).map(tag => ({
+            id: tag.dataset.artistId,
+            type: tag.dataset.featType,
+            name: tag.dataset.artistName
+        }));
+        const featsJSON = JSON.stringify(featsData);
 
-        // Validação mais específica
-        if (!existingSongId && (!name || !durationStr || durationSec === 0)) {
-            alert("Nome da faixa e duração (formato MM:SS) são obrigatórios para novas faixas.");
+        // Validação
+        if (!name || !durationStr || durationSec === 0) {
+            alert("Nome da faixa e duração (formato MM:SS) são obrigatórios.");
             return;
         }
-        if (existingSongId && !type) { // Para faixas existentes, apenas o tipo é obrigatório no modal
+        if (!type) {
              alert("Tipo de faixa é obrigatório.");
              return;
         }
 
-        let featsData = [];
-        if (!existingSongId) {
-            const featTags = albumTrackFeatList.querySelectorAll('.feat-tag');
-            featsData = Array.from(featTags).map(tag => ({
-                id: tag.dataset.artistId,
-                type: tag.dataset.featType,
-                name: tag.dataset.artistName
-            }));
-        }
-
         let targetElement = editingTrackItem || activeTracklistEditor.querySelector(`[data-item-id="${itemId}"]`);
 
-        if (targetElement) {
-            // --- Editando Item Existente ---
-            console.log(`Editando item ${itemId}. É existente? ${!!existingSongId}`);
+        // --- LÓGICA DE QUEBRA DE VÍNCULO (Se editou faixa existente) ---
+        let linkBroken = false;
+        if (existingSongId && editingTrackItem) { // editingTrackItem é o item da lista original
+            const originalName = editingTrackItem.dataset.trackName;
+            const originalDuration = editingTrackItem.dataset.durationStr;
+            const originalFeats = editingTrackItem.dataset.feats || '[]';
 
-            // Apenas atualiza nome/duração/feats no dataset se NÃO for existente
-            if (!existingSongId) {
-                targetElement.dataset.trackName = name;
-                targetElement.dataset.durationStr = durationStr;
-                targetElement.dataset.feats = JSON.stringify(featsData);
+            if (name !== originalName || durationStr !== originalDuration || featsJSON !== originalFeats) {
+                console.warn(`Modificação detectada em faixa existente (${existingSongId}). Quebrando vínculo.`);
+                alert(`Atenção: Você modificou uma faixa existente. Ela será salva como uma NOVA faixa neste álbum e o vínculo com a original será quebrado.`);
+                existingSongId = null; // Quebra o vínculo
+                linkBroken = true;
             }
-            // Tipo PODE ser atualizado
-            targetElement.dataset.trackType = type;
+        }
+        
+        // --- Atualiza ou Cria o Item na Lista ---
+        if (targetElement) {
+            // --- Editando Item Existente na Lista ---
+            console.log(`Editando item ${itemId}. Era existente? ${existingSongId ? 'Sim' : 'Não'}. Vínculo quebrado? ${linkBroken}`);
 
+            // SEMPRE atualiza nome, duração e feats no dataset
+            targetElement.dataset.trackName = name;
+            targetElement.dataset.durationStr = durationStr;
+            targetElement.dataset.feats = featsJSON;
+            targetElement.dataset.trackType = type;
+            
+            // Atualiza ou remove o existingSongId
+            if (linkBroken) {
+                delete targetElement.dataset.existingSongId; // Remove o atributo
+            }
+            
             // Atualiza exibição
             const titleSpan = targetElement.querySelector('.track-title-display');
             if(titleSpan) {
-                 if (!existingSongId) {
-                     titleSpan.textContent = name; // Atualiza nome
-                     titleSpan.style.color = ''; // Garante cor padrão
-                     const icon = titleSpan.querySelector('i.fa-link');
-                     if(icon) icon.remove(); // Remove ícone se era existente antes
-                 } else {
-                     // Nome não muda, mas garante ícone e cor
+                 titleSpan.textContent = name; // Sempre atualiza nome
+                 if (existingSongId && !linkBroken) {
+                     // Mantém ícone e cor
                      if (!titleSpan.querySelector('i.fa-link')) {
-                         titleSpan.innerHTML = `<i class="fas fa-link" style="font-size: 10px; margin-right: 5px;" title="Faixa Existente"></i>${albumTrackNameInput.value}`;
+                         titleSpan.innerHTML = `<i class="fas fa-link" style="font-size: 10px; margin-right: 5px;" title="Faixa Existente"></i>${name}`;
                      }
                      titleSpan.style.color = 'var(--spotify-green)';
+                 } else {
+                     // Remove ícone e cor
+                     titleSpan.innerHTML = name; // Garante que o ícone se foi
+                     titleSpan.style.color = ''; // Cor padrão
                  }
             }
 
@@ -2065,17 +2228,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (detailsDiv) {
                  const durationSpan = detailsDiv.querySelector('.duration');
                  const typeSpan = detailsDiv.querySelector('.type');
-                 if(durationSpan && !existingSongId) durationSpan.textContent = `Duração: ${durationStr}`;
-                 if(typeSpan) typeSpan.textContent = `Tipo: ${type}`; // Tipo sempre atualiza
+                 if(durationSpan) durationSpan.textContent = `Duração: ${durationStr}`; // Sempre atualiza
+                 if(typeSpan) typeSpan.textContent = `Tipo: ${type}`; // Sempre atualiza
             }
 
             const featDisplay = targetElement.querySelector('.feat-list-display');
-            if (featDisplay && !existingSongId) {
-                 featDisplay.innerHTML = featsData.map(f => `<span class="feat-tag-display">${f.type} ${f.name}</span>`).join('');
+            if (featDisplay) {
+                 featDisplay.innerHTML = featsData.map(f => `<span class="feat-tag-display">${f.type} ${f.name}</span>`).join(''); // Sempre atualiza
             }
 
         } else {
-            // --- Adicionando Novo Item ---
+            // --- Adicionando Novo Item na Lista ---
             console.log(`Adicionando novo item ${itemId}`);
             const newItem = document.createElement('div');
             newItem.className = 'track-list-item-display';
@@ -2083,7 +2246,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             newItem.dataset.trackName = name;
             newItem.dataset.durationStr = durationStr;
             newItem.dataset.trackType = type;
-            newItem.dataset.feats = JSON.stringify(featsData);
+            newItem.dataset.feats = featsJSON;
             // Sem existingSongId para novos
 
             newItem.innerHTML = `
@@ -2113,7 +2276,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateTrackNumbers(activeTracklistEditor);
         closeAlbumTrackModal();
     }
-
     // Renumera faixas no editor especificado
     function updateTrackNumbers(editorElement) {
         if (!editorElement) {
