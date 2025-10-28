@@ -212,6 +212,12 @@
                             <input type="date" id="singleReleaseDate" required />
                         </div>
 
+                        <div class="toggle-existing">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="toggleExistingSingle"> Usar faixa existente (promover B-side/Single)
+                            </label>
+                        </div>
+
                         <div id="newTrackInfoGroup">
                             <hr class="form-divider" />
                             <h4>Informações da Nova Faixa</h4>
@@ -225,11 +231,25 @@
                             </div>
                         </div>
 
-                        <div class="feat-section">
-                            <label>Participações (Feat.)</label>
+                        <div id="existingTrackGroup" class="hidden">
+                            <hr class="form-divider" />
+                            <h4>Selecionar Faixa Existente</h4>
+                            <div class="studio-form-group">
+                                <label for="existingTrackSelect">Buscar e Selecionar Faixa</label>
+                                <select id="existingTrackSelect" required>
+                                    <option value="">Carregando faixas...</option>
+                                </select>
+                                <small>Mostrando faixas de seus artistas.</small>
+                            </div>
+                            <input type="hidden" id="existingSingleTrackId">
+                        </div>
+
+                        <div class="feat-section" id="singleFeatSection">
+                            <label>Participações (Feat.) <small>(Apenas para faixas novas)</small></label>
                             <div class="feat-list" id="singleFeatList"></div>
                             <button type="button" class="small-btn add-feat-btn" data-target="singleFeatList"><i class="fas fa-plus"></i> Adicionar Feat</button>
                         </div>
+
                         <button type="submit" class="submit-btn" id="submitNewSingle"> Lançar Single </button>
                     </form>
 
@@ -260,81 +280,85 @@
                         <div id="albumTracklistEditor" class="track-list-editor">
                             <p class="empty-state-small">Nenhuma faixa.</p>
                         </div>
-                        <button type="button" class="submit-btn add-track-modal-btn" id="openAddTrackModalBtn"><i class="fas fa-plus"></i> Adicionar Faixa</button>
+                        
+                        <div class="tracklist-actions">
+                            <button type="button" class="submit-btn add-track-modal-btn" id="openAddTrackModalBtn"><i class="fas fa-plus"></i> Adicionar Nova Faixa</button>
+                            <button type="button" class="small-btn" id="openExistingTrackModalBtn"><i class="fas fa-link"></i> Usar Faixa Existente</button>
+                        </div>
 
                         <button type="submit" class="submit-btn" id="submitNewAlbum"> Lançar Álbum / EP </button>
                     </form>
 
                     
                     <div id="editReleaseSection" class="studio-form-content">
-    <h3>✏️ Editar / Apagar Lançamento</h3>
+                        <h3>✏️ Editar / Apagar Lançamento</h3>
 
-    <div id="editReleaseListContainer">
-        <p class="edit-instructions">Selecione um lançamento abaixo para editar ou apagar:</p>
-        <div id="editReleaseList" class="release-edit-list">
-            <p class="empty-state-small">Nenhum lançamento encontrado para seus artistas.</p>
-        </div>
+                        <div id="editReleaseListContainer">
+                            <p class="edit-instructions">Selecione um lançamento abaixo para editar ou apagar:</p>
+                            <div id="editReleaseList" class="release-edit-list">
+                                <p class="empty-state-small">Nenhum lançamento encontrado para seus artistas.</p>
+                            </div>
+                        </div>
+
+                        <form id="editReleaseForm" class="studio-form hidden">
+                            <input type="hidden" id="editReleaseId" />
+                            <input type="hidden" id="editReleaseType" />
+                            <input type="hidden" id="editReleaseTableName" />
+
+                            <div class="studio-form-group">
+                                <label>Artista</label>
+                                <p id="editArtistNameDisplay" class="display-value"></p>
+                            </div>
+                            <div class="studio-form-group">
+                                <label for="editReleaseTitle">Nome do Lançamento</label>
+                                <input type="text" id="editReleaseTitle" required />
+                            </div>
+                            <div class="studio-form-group">
+                                <label for="editReleaseCoverUrl">URL da Capa</label>
+                                <input type="url" id="editReleaseCoverUrl" required />
+                            </div>
+                            <div class="studio-form-group">
+                                <label for="editReleaseDate">Data de Lançamento</label>
+                                <input type="date" id="editReleaseDate" required />
+                            </div>
+
+                            <p class="edit-warning"><i class="fas fa-exclamation-triangle"></i> A edição da tracklist não está disponível no momento.</p>
+
+                            <div class="modal-actions">
+                                <button type="button" class="cancel-btn" id="cancelEditBtn">Cancelar</button>
+                                <button type="submit" class="submit-btn" id="saveEditBtn">Salvar Alterações</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </section>
+        </main>
     </div>
 
-    <form id="editReleaseForm" class="studio-form hidden">
-        <input type="hidden" id="editReleaseId" />
-        <input type="hidden" id="editReleaseType" />
-        <input type="hidden" id="editReleaseTableName" />
+    <div id="deleteConfirmModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3><i class="fas fa-exclamation-triangle" style="color: var(--trend-down-red);"></i> Confirmar Exclusão</h3>
+            <p class="modal-description">
+                Tem certeza que deseja apagar o lançamento "<strong id="deleteReleaseName">Nome do Lançamento</strong>"?
+            </p>
+            <p class="modal-warning">
+                <strong>Atenção:</strong> Esta ação também apagará todas as músicas associadas a este lançamento no Airtable. Esta ação não pode ser desfeita.
+            </p>
+            <input type="hidden" id="deleteRecordId" />
+            <input type="hidden" id="deleteTableName" />
+            <input type="hidden" id="deleteTrackIds" />
 
-        <div class="studio-form-group">
-            <label>Artista</label>
-            <p id="editArtistNameDisplay" class="display-value"></p>
-        </div>
-        <div class="studio-form-group">
-            <label for="editReleaseTitle">Nome do Lançamento</label>
-            <input type="text" id="editReleaseTitle" required />
-        </div>
-        <div class="studio-form-group">
-            <label for="editReleaseCoverUrl">URL da Capa</label>
-            <input type="url" id="editReleaseCoverUrl" required />
-        </div>
-        <div class="studio-form-group">
-            <label for="editReleaseDate">Data de Lançamento</label>
-            <input type="date" id="editReleaseDate" required />
-        </div>
-
-        <p class="edit-warning"><i class="fas fa-exclamation-triangle"></i> A edição da tracklist não está disponível no momento.</p>
-
-        <div class="modal-actions">
-            <button type="button" class="cancel-btn" id="cancelEditBtn">Cancelar</button>
-            <button type="submit" class="submit-btn" id="saveEditBtn">Salvar Alterações</button>
-        </div>
-    </form>
-</div>
-
-</div>
-</section>
-</main>
-</div>
-
-<div id="deleteConfirmModal" class="modal-overlay hidden">
-    <div class="modal-content">
-        <h3><i class="fas fa-exclamation-triangle" style="color: var(--trend-down-red);"></i> Confirmar Exclusão</h3>
-        <p class="modal-description">
-            Tem certeza que deseja apagar o lançamento "<strong id="deleteReleaseName">Nome do Lançamento</strong>"?
-        </p>
-        <p class="modal-warning">
-            <strong>Atenção:</strong> Esta ação também apagará todas as músicas associadas a este lançamento no Airtable. Esta ação não pode ser desfeita.
-        </p>
-        <input type="hidden" id="deleteRecordId" />
-        <input type="hidden" id="deleteTableName" />
-        <input type="hidden" id="deleteTrackIds" />
-
-        <div class="modal-actions">
-            <button type="button" class="cancel-btn" id="cancelDeleteBtn">Cancelar</button>
-            <button type="button" class="submit-btn delete-confirm-btn" id="confirmDeleteBtn">
-                <i class="fas fa-trash-alt"></i> Sim, Apagar
-            </button>
+            <div class="modal-actions">
+                <button type="button" class="cancel-btn" id="cancelDeleteBtn">Cancelar</button>
+                <button type="button" class="submit-btn delete-confirm-btn" id="confirmDeleteBtn">
+                    <i class="fas fa-trash-alt"></i> Sim, Apagar
+                </button>
+            </div>
         </div>
     </div>
-</div>
   
-     <div id="featModal" class="modal-overlay hidden">
+    <div id="featModal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Adicionar Participação (Feat.)</h3>
             <div class="studio-form-group">
@@ -378,6 +402,7 @@
         <div class="modal-content">
             <h3 id="albumTrackModalTitle">Adicionar Faixa</h3>
             <input type="hidden" id="editingTrackItemId" />
+            <input type="hidden" id="editingTrackExistingId" /> 
 
             <div class="studio-form-group">
                 <label for="albumTrackNameInput">Nome da Faixa</label>
@@ -433,8 +458,24 @@
         </div>
     </div>
 
+    <div id="existingTrackModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Adicionar Faixa Existente</h3>
+            <p class="modal-description">Busque por uma música já lançada por seus artistas para adicioná-la a este álbum/EP.</p>
+            <div class="studio-form-group">
+                <label for="existingTrackSearch">Buscar por nome da faixa</label>
+                <input type="text" id="existingTrackSearch" placeholder="Buscar..." />
+            </div>
+            <div id="existingTrackResults" class="release-edit-list" style="max-height: 300px; overflow-y: auto;">
+                <p class="empty-state-small">Nenhuma faixa encontrada.</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="cancel-btn" id="cancelExistingTrackBtn">Cancelar</button>
+            </div>
+        </div>
+    </div>
 
- 
+
     <div id="musicPlayer" class="page-view hidden">
         <div class="player-header">
             <button class="player-close-btn"><i class="fas fa-chevron-down"></i></button>
