@@ -1268,57 +1268,7 @@ const setupCountdown = (timerId, chartType) => {
         updateTimerDisplay(targetDate.getTime() - new Date().getTime());
     };
 
-        const calculateTargetDate = () => {
-            const now = new Date();
-            const target = new Date(now);
-            let daysUntilMonday = (1 - now.getDay() + 7) % 7;
-            if (daysUntilMonday === 0 && (now.getUTCHours() > 0 || now.getUTCMinutes() > 0 || now.getUTCSeconds() > 0)) {
-                 daysUntilMonday = 7;
-            } else if (daysUntilMonday === 0 && now.getUTCHours() === 0 && now.getUTCMinutes() === 0 && now.getUTCSeconds() === 0) {
-                 // daysUntilMonday = 7; // Uncomment if countdown should always show time until *next* week
-            }
-            target.setUTCDate(now.getUTCDate() + daysUntilMonday);
-            target.setUTCHours(0, 0, 0, 0);
-            return target;
-        };
 
-        let targetDate = calculateTargetDate();
-
-        const updateTimerDisplay = (distance) => {
-            if (distance < 0) {
-                timerElement.textContent = `Atualizando...`;
-                return;
-            }
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-            const format = (num) => (num < 10 ? '0' + num : num);
-            timerElement.textContent = `${format(days)}d ${format(hours)}h ${format(minutes)}m ${format(seconds)}s`;
-        };
-
-        const intervalId = setInterval(() => {
-            const now = new Date().getTime();
-            const distance = targetDate.getTime() - now;
-
-            if (distance < 0) {
-                console.log(`Timer ${timerId} (Chart: ${chartType}) atingiu zero. Salvando dados anteriores e recalculando.`);
-                saveChartDataToLocalStorage(chartType);
-                targetDate = calculateTargetDate();
-
-                if (chartType === 'music') renderChart('music');
-                else if (chartType === 'album') renderChart('album');
-                else if (chartType === 'rpg') renderRPGChart();
-
-                 updateTimerDisplay(targetDate.getTime() - new Date().getTime());
-                return;
-            }
-
-            updateTimerDisplay(distance);
-        }, 1000);
-
-        updateTimerDisplay(targetDate.getTime() - new Date().getTime());
-    };
 
     function startAlbumCountdown(targetDateISO, containerId) {
         if (albumCountdownInterval) {
