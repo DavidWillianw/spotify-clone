@@ -56,21 +56,23 @@
 
                 <div class="chart-header">
                     <h3><i class="fas fa-fire"></i> Top 50 Músicas</h3>
-                    <p>Atualiza em: <span id="musicCountdownTimer">--</span></p>
+                    <p>Atualiza em: <span id="musicChartTimer">--</span></p>
                 </div>
                 <div id="musicChartsList" class="chart-list">
                     </div>
 
                 <div class="chart-header" style="margin-top: 32px;">
                     <h3><i class="fas fa-compact-disc"></i> Top 50 Álbuns</h3>
-
-                                    </div>
+                    </div>
                 <div id="albumChartsList" class="chart-list">
                     </div>
             </section>
 
             <section id="artistsSection" class="content-section">
-                <h2 class="section-title">Artistas (RPG Chart)</h2>
+                 <div class="chart-header">
+                    <h2 class="section-title">Artistas (RPG Chart)</h2>
+                     <p>Atualiza em: <span id="rpgChartTimer">--</span></p>
+                 </div>
                 <div id="artistsGrid" class="artists-grid full-page-grid">
                     </div>
             </section>
@@ -189,7 +191,7 @@
                         <button class="studio-tab-btn" data-form="edit">Editar Lançamento</button> 
                     </nav>
 
-                   
+                    
                     <form id="newSingleForm" class="studio-form studio-form-content active">
                         <h3>🚀 Lançar Novo Single</h3>
                         
@@ -208,8 +210,8 @@
                             <input type="url" id="singleCoverUrl" placeholder="https://i.imgur.com/..." required />
                         </div>
                         <div class="studio-form-group">
-                            <label for="singleReleaseDate">Data de Lançamento</label>
-                            <input type="date" id="singleReleaseDate" required />
+                            <label for="singleReleaseDate">Data e Hora de Lançamento</label>
+                            <input type="datetime-local" id="singleReleaseDate" required />
                         </div>
 
                         <div class="toggle-existing">
@@ -271,8 +273,8 @@
                             <input type="url" id="albumCoverUrl" placeholder="https://i.imgur.com/..." required />
                         </div>
                         <div class="studio-form-group">
-                            <label for="albumReleaseDate">Data de Lançamento</label>
-                            <input type="date" id="albumReleaseDate" required />
+                            <label for="albumReleaseDate">Data e Hora de Lançamento</label>
+                             <input type="datetime-local" id="albumReleaseDate" required />
                         </div>
 
                         <hr class="form-divider" />
@@ -292,11 +294,11 @@
                     
                     <div id="editReleaseSection" class="studio-form-content">
                         <h3>✏️ Editar / Apagar Lançamento</h3>
-<div class="form-group" style="margin-bottom: 20px;">
-    <label for="editArtistFilterSelect">Filtrar por Artista:</label>
-    <select id="editArtistFilterSelect" class="styled-select">
-        </select>
-</div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="editArtistFilterSelect">Filtrar por Artista:</label>
+                            <select id="editArtistFilterSelect" class="styled-select">
+                                </select>
+                        </div>
                         <div id="editReleaseListContainer">
                             <p class="edit-instructions">Selecione um lançamento abaixo para editar ou apagar:</p>
                             <div id="editReleaseList" class="release-edit-list">
@@ -322,8 +324,8 @@
                                 <input type="url" id="editReleaseCoverUrl" required />
                             </div>
                             <div class="studio-form-group">
-                                <label for="editReleaseDate">Data de Lançamento</label>
-                                <input type="date" id="editReleaseDate" required />
+                                <label for="editReleaseDate">Data e Hora de Lançamento</label>
+                                 <input type="datetime-local" id="editReleaseDate" required />
                             </div>
 
                             <p class="edit-warning"><i class="fas fa-exclamation-triangle"></i> A edição da tracklist não está disponível no momento.</p>
@@ -361,7 +363,7 @@
             </div>
         </div>
     </div>
-  
+ 
      <div id="featModal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Adicionar Participação (Feat.)</h3>
@@ -391,7 +393,7 @@
                 <label for="trackTypeSelect">Tipo de Faixa</label>
                 <select id="trackTypeSelect">
                     <option value="Title Track">Title Track (Faixa Título)</option>
-                    <option value="Pre-release">Pre-release (Pré-lançamento)</option>
+                    <option value="Pre-release Single">Pre-release Single (Pré-lançamento)</option>
                     <option value="B-side">B-side</option>
                 </select>
             </div>
@@ -420,7 +422,7 @@
                 <label for="albumTrackTypeSelect">Tipo de Faixa</label>
                 <select id="albumTrackTypeSelect">
                     <option value="Title Track">Title Track (Faixa Título)</option>
-                    <option value="Pre-release">Pre-release (Pré-lançamento)</option>
+                    <option value="Pre-release Single">Pre-release Single (Pré-lançamento)</option>
                     <option value="B-side">B-side</option>
                     <option value="Intro">Intro</option>
                     <option value="Outro">Outro</option>
