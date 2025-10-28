@@ -188,13 +188,11 @@
                     <nav class="studio-tabs">
                         <button class="studio-tab-btn active" data-form="single">Lançar Single</button>
                         <button class="studio-tab-btn" data-form="album">Lançar Álbum / EP</button>
-                        <button class="studio-tab-btn" data-form="edit">Editar Lançamento</button> 
+                        <button class="studio-tab-btn" data-form="edit">Editar Lançamento</button>
                     </nav>
 
-                    
                     <form id="newSingleForm" class="studio-form studio-form-content active">
                         <h3>🚀 Lançar Novo Single</h3>
-                        
                         <div class="studio-form-group">
                             <label for="singleArtistSelect">Artista Principal</label>
                             <select id="singleArtistSelect" required>
@@ -251,11 +249,10 @@
                             <div class="feat-list" id="singleFeatList"></div>
                             <button type="button" class="small-btn add-feat-btn" data-target="singleFeatList"><i class="fas fa-plus"></i> Adicionar Feat</button>
                         </div>
-                        
+
                         <button type="submit" class="submit-btn" id="submitNewSingle"> Lançar Single </button>
                     </form>
 
-                    
                     <form id="newAlbumForm" class="studio-form studio-form-content">
                         <h3>📀 Lançar Novo Álbum / EP</h3>
                         <div class="studio-form-group">
@@ -282,7 +279,7 @@
                         <div id="albumTracklistEditor" class="track-list-editor">
                             <p class="empty-state-small">Nenhuma faixa.</p>
                         </div>
-                        
+
                         <div class="tracklist-actions">
                             <button type="button" class="submit-btn add-track-modal-btn" id="openAddTrackModalBtn"><i class="fas fa-plus"></i> Adicionar Nova Faixa</button>
                             <button type="button" class="small-btn" id="openExistingTrackModalBtn"><i class="fas fa-link"></i> Usar Faixa Existente</button>
@@ -291,7 +288,6 @@
                         <button type="submit" class="submit-btn" id="submitNewAlbum"> Lançar Álbum / EP </button>
                     </form>
 
-                    
                     <div id="editReleaseSection" class="studio-form-content">
                         <h3>✏️ Editar / Apagar Lançamento</h3>
                         <div class="form-group" style="margin-bottom: 20px;">
@@ -328,8 +324,16 @@
                                  <input type="datetime-local" id="editReleaseDate" required />
                             </div>
 
-                            <p class="edit-warning"><i class="fas fa-exclamation-triangle"></i> A edição da tracklist não está disponível no momento.</p>
-
+                            <hr class="form-divider" />
+                            <h4>Tracklist</h4>
+                            <div id="editAlbumTracklistEditor" class="track-list-editor">
+                                <p class="empty-state-small">Carregando faixas...</p>
+                            </div>
+                            
+                            <div class="tracklist-actions" id="editTracklistActions">
+                                <button type="button" class="submit-btn add-track-modal-btn" id="openEditAddTrackModalBtn"><i class="fas fa-plus"></i> Adicionar Nova Faixa</button>
+                                <button type="button" class="small-btn" id="openEditExistingTrackModalBtn"><i class="fas fa-link"></i> Usar Faixa Existente</button>
+                            </div>
                             <div class="modal-actions">
                                 <button type="button" class="cancel-btn" id="cancelEditBtn">Cancelar</button>
                                 <button type="submit" class="submit-btn" id="saveEditBtn">Salvar Alterações</button>
@@ -349,13 +353,11 @@
                 Tem certeza que deseja apagar o lançamento "<strong id="deleteReleaseName">Nome do Lançamento</strong>"?
             </p>
             <p class="modal-warning">
-                <strong>Atenção:</strong> Esta ação também apagará todas as músicas associadas a este lançamento no Airtable. Esta ação não pode ser desfeita.
+                <strong>Atenção:</strong> Esta ação também apagará (ou desvinculará) todas as músicas associadas *apenas* a este lançamento no Airtable. Esta ação não pode ser desfeita.
             </p>
             <input type="hidden" id="deleteRecordId" />
             <input type="hidden" id="deleteTableName" />
-            <input type="hidden" id="deleteTrackIds" />
-
-            <div class="modal-actions">
+            <input type="hidden" id="deleteTrackIds" /> <div class="modal-actions">
                 <button type="button" class="cancel-btn" id="cancelDeleteBtn">Cancelar</button>
                 <button type="button" class="submit-btn delete-confirm-btn" id="confirmDeleteBtn">
                     <i class="fas fa-trash-alt"></i> Sim, Apagar
@@ -363,7 +365,7 @@
             </div>
         </div>
     </div>
- 
+
      <div id="featModal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Adicionar Participação (Feat.)</h3>
@@ -407,10 +409,7 @@
     <div id="albumTrackModal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3 id="albumTrackModalTitle">Adicionar Faixa</h3>
-            <input type="hidden" id="editingTrackItemId" />
-            <input type="hidden" id="editingTrackExistingId" /> 
-
-            <div class="studio-form-group">
+            <input type="hidden" id="editingTrackItemId" /> <input type="hidden" id="editingTrackExistingId" /> <div class="studio-form-group">
                 <label for="albumTrackNameInput">Nome da Faixa</label>
                 <input type="text" id="albumTrackNameInput" placeholder="Ex: Kitsch" required />
             </div>
@@ -482,7 +481,6 @@
     </div>
 
 
- 
     <div id="musicPlayer" class="page-view hidden">
         <div class="player-header">
             <button class="player-close-btn"><i class="fas fa-chevron-down"></i></button>
