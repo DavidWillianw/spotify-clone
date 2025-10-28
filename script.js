@@ -3107,29 +3107,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             editReleaseDate.value = '';
         }
 
-        // --- LÓGICA DA TRACKLIST ---
-        if (releaseType === 'single' || !editAlbumTracklistEditor || !editTracklistActions) {
-            // Esconde tracklist para singles
-            if(editAlbumTracklistEditor) editAlbumTracklistEditor.classList.add('hidden');
-            if(editTracklistActions) editTracklistActions.classList.add('hidden');
-            if(editAlbumTracklistEditor) editAlbumTracklistEditor.innerHTML = '';
-        } else {
-            // Mostra e popula para álbuns/EPs
-            if(editAlbumTracklistEditor) editAlbumTracklistEditor.classList.remove('hidden');
-            if(editTracklistActions) editTracklistActions.classList.remove('hidden');
-            populateTracklistEditor(editAlbumTracklistEditor, release.tracks);
-             // Reinicia SortableJS para o editor de edição
-             if (editAlbumTracklistEditor && typeof Sortable !== 'undefined') {
-                 if (editAlbumTracklistSortable) {
-                     editAlbumTracklistSortable.destroy();
-                 }
-                 editAlbumTracklistSortable = Sortable.create(editAlbumTracklistEditor, {
-                     animation: 150,
-                     handle: '.drag-handle',
-                     onEnd: () => updateTrackNumbers(editAlbumTracklistEditor)
-                 });
-             }
-        }
+// --- LÓGICA DA TRACKLIST ---
+// Verifica apenas se os elementos do editor existem
+if (!editAlbumTracklistEditor || !editTracklistActions) {
+    console.warn("Elementos do editor de tracklist não encontrados.");
+    // (Opcional) Você pode esconder se eles não existirem
+    if(editAlbumTracklistEditor) editAlbumTracklistEditor.classList.add('hidden');
+    if(editTracklistActions) editTracklistActions.classList.add('hidden');
+} else {
+    // Mostra e popula para TODOS os tipos (Álbuns e Singles/EPs)
+    if(editAlbumTracklistEditor) editAlbumTracklistEditor.classList.remove('hidden');
+    if(editTracklistActions) editTracklistActions.classList.remove('hidden');
+    
+    // Popula o editor com as faixas do lançamento (seja álbum ou EP)
+    populateTracklistEditor(editAlbumTracklistEditor, release.tracks);
+     
+     // Reinicia SortableJS para o editor de edição
+     if (editAlbumTracklistEditor && typeof Sortable !== 'undefined') {
+         if (editAlbumTracklistSortable) {
+             editAlbumTracklistSortable.destroy();
+         }
+         editAlbumTracklistSortable = Sortable.create(editAlbumTracklistEditor, {
+             animation: 150,
+             handle: '.drag-handle',
+             onEnd: () => updateTrackNumbers(editAlbumTracklistEditor)
+         });
+     }
+}
 
         // Troca visibilidade
         editReleaseListContainer?.classList.add('hidden');
