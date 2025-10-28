@@ -1888,27 +1888,23 @@ editArtistFilterSelect?.addEventListener('change', populateEditableReleases);
 
     // --- FUNÇÕES DE EDIÇÃO/EXCLUSÃO (sem alterações) ---
 
-  // populateEditableReleases (MODIFICADO para usar o filtro de artista)
+ // populateEditableReleases (MODIFICADO - Filtro + HTML LIMPO)
     function populateEditableReleases() {
         if (!currentPlayer || !editReleaseList) {
             if (editReleaseList) editReleaseList.innerHTML = '<p class="empty-state-small">Faça login para ver seus lançamentos.</p>';
             return;
         }
 
-        // NOVO: Pega o ID do artista selecionado no filtro
-        const selectedArtistId = editArtistFilterSelect.value;
+        const selectedArtistId = editArtistFilterSelect.value;
         const playerArtistIds = currentPlayer.artists || [];
 
-        let releasesToFilter = [...db.albums, ...db.singles];
+        let releasesToFilter = [...db.albums, ...db.singles];
 
-        // NOVO: Aplica o filtro
-        if (selectedArtistId && selectedArtistId !== 'all') {
-            // Filtra por um artista específico
-            releasesToFilter = releasesToFilter.filter(release => release.artistId === selectedArtistId);
-        } else {
-            // Filtro "Todos": Filtra por todos os artistas do jogador
-            releasesToFilter = releasesToFilter.filter(release => playerArtistIds.includes(release.artistId));
-        }
+        if (selectedArtistId && selectedArtistId !== 'all') {
+            releasesToFilter = releasesToFilter.filter(release => release.artistId === selectedArtistId);
+        } else {
+            releasesToFilter = releasesToFilter.filter(release => playerArtistIds.includes(release.artistId));
+        }
 
         const editableReleases = releasesToFilter.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
 
@@ -1917,30 +1913,32 @@ editArtistFilterSelect?.addEventListener('change', populateEditableReleases);
             return;
         }
 
+        // *** INÍCIO DA CORREÇÃO DO HTML GERADO ***
         editReleaseList.innerHTML = editableReleases.map(release => `
-            <div class="edit-release-item">
-                <img src="${release.imageUrl}" alt="${release.title}" class="edit-release-cover">
-                <div class="edit-release-info">
-                    <span class="edit-release-title">${release.title}</span>
-                    <span class="edit-release-artist">${release.artist} - ${new Date(release.releaseDate).getFullYear()}</span>
-                </div>
-                <div class="action-buttons">
-                    <button type="button" class="small-btn edit-release-btn"
-                            data-release-id="${release.id}"
-                            data-release-type="${release.type}"
-                            data-release-table="${release.tableName}">
-                        <i class="fas fa-pencil-alt"></i> Editar
-                    </button>
-                    <button type="button" class="small-btn delete-release-btn"
-                            data-release-id="${release.id}"
-                            data-release-type="${release.type}"
-                            data-release-table="${release.tableName}"
-                            data-release-title="${release.title}">
-                        <i class="fas fa-trash-alt"></i> Apagar
-                    </button>
-                </div>
-            </div>
+<div class="edit-release-item">
+<img src="${release.imageUrl}" alt="${release.title}" class="edit-release-cover">
+<div class="edit-release-info">
+<span class="edit-release-title">${release.title}</span>
+<span class="edit-release-artist">${release.artist} - ${new Date(release.releaseDate).getFullYear()}</span>
+</div>
+<div class="action-buttons">
+<button type="button" class="small-btn edit-release-btn"
+data-release-id="${release.id}"
+data-release-type="${release.type}"
+data-release-table="${release.tableName}">
+<i class="fas fa-pencil-alt"></i> Editar
+</button>
+<button type="button" class="small-btn delete-release-btn"
+data-release-id="${release.id}"
+data-release-type="${release.type}"
+data-release-table="${release.tableName}"
+data-release-title="${release.title}">
+<i class="fas fa-trash-alt"></i> Apagar
+</button>
+</div>
+</div>
         `).join('');
+        // *** FIM DA CORREÇÃO DO HTML GERADO ***
     }
     // openEditForm
     function openEditForm(releaseId, releaseType) {
