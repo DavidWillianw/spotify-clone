@@ -188,99 +188,126 @@ body {
 .scroll-item span { font-size: 12px; color: var(--text-secondary); }
 
 /* --- TRACKLIST (Detalhe Álbum) - FLEXBOX SEM NÚMERO VISÍVEL --- */
-.tracklist-container { margin-top: 24px; }
+/* --- TRACKLIST (Detalhe Álbum) - CORRIGIDO --- */
+.tracklist-container {
+    margin-top: 24px;
+}
 
 .track-row {
-    display: flex;
-    align-items: start;
-    gap: 10px;
-    /* padding: 12px 8px; */
+    display: flex;             /* Use flexbox for horizontal layout */
+    flex-direction: row;       /* Arrange items in a row */
+    align-items: center;      /* Vertically align items in the middle */
+    gap: 16px;                 /* Space between info block and duration */
+    padding: 10px 8px;         /* Add some vertical and horizontal padding */
     border-bottom: 1px solid var(--background-tertiary);
     min-height: 50px;
     cursor: pointer;
-    justify-content: center;
-    align-content: center;
-    flex-wrap: nowrap;
-    flex-direction: column;
+    transition: background-color 0.2s ease; /* Keep hover effect */
 }
 
-/* ficou melhor assim */
-.track-row:hover { background-color: var(--background-tertiary); }
-.track-row:last-child { border-bottom: none;    display: inline-grid
-; }
+.track-row:hover {
+    background-color: var(--background-tertiary);
+}
 
-/* Número da Faixa (item flex) - ESCONDIDO */
+.track-row:last-child {
+    border-bottom: none;
+}
+
+/* Número da Faixa - Mantém escondido */
 .track-number {
-  display: none; /* <<< ESCONDE O NÚMERO VISUALMENTE */
+    display: none;
 }
 
-/* Container Info (item flex) */
+/* Container Info (Título e Artista) */
 .track-info {
-  flex-grow: 1; /* Ocupa o espaço restante */
-  min-width: 0; /* Essencial para ellipsis funcionar */
-  padding: 0;
-  margin: 0;
-  /* Não precisa ser flex container aqui */
+    flex-grow: 1;             /* Takes up available space */
+    min-width: 0;             /* Important for text overflow */
+    /* No padding/margin needed here now */
 }
 
 /* Título */
 .track-title {
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
-  line-height: 1.4; /* Ajuste conforme necessário */
+    font-weight: 500;         /* Make it slightly bolder if desired */
+    color: var(--text-primary); /* Ensure primary text color */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;      /* Prevent title wrapping */
+    display: block;
+    line-height: 1.4;
 }
 
 /* Artista(s) */
 .track-artist-feat {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
-  line-height: 1.2; /* Ajuste conforme necessário */
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    line-height: 1.2;
 }
 
-/* Streams / Duração (item flex) */
+/* Streams / Duração */
 .track-duration {
-  color: var(--text-secondary);
-  font-size: 14px;
-  text-align: right;
-  white-space: nowrap;
-  flex-shrink: 0; /* Impede que encolha */
-  padding-left: 193px; /* Espaço antes dos streams */
-  line-height: 1.4; /* Tenta alinhar verticalmente com a primeira linha do título */
-     margin-left: 71px; /* Empurra para a direita */
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-align: right;        /* Align text to the right */
+    white-space: nowrap;
+    flex-shrink: 0;           /* Prevent shrinking */
+    margin-left: auto;        /* Pushes this element to the far right */
+    /* Remove fixed padding/margin from previous attempt */
+    /* padding-left: 193px; */
+    /* margin-left: 71px; */
 }
 
-/* --- ESTILOS PRÉ-LANÇAMENTO (AJUSTADOS SEM NÚMERO) --- */
-.track-row.unavailable { opacity: 0.5; color: var(--text-secondary); cursor: not-allowed; }
-.track-row.unavailable .track-title { color: var(--text-secondary); }
-.track-row.unavailable .track-duration { font-size: 1rem; color: var(--text-secondary); margin-left: auto; } /* Ícone cadeado */
-
-.track-row.available { cursor: pointer; }
-/* .track-row.available .track-number NÃO é mais necessário para cor, pois está escondido */
-.track-row.available .track-info { /* Pode destacar a info se quiser */
-  /* Ex: padding-left: 25px; Adiciona espaço onde o ícone estaria */
+/* --- ESTILOS PRÉ-LANÇAMENTO (Ajustados para novo layout) --- */
+.track-row.unavailable {
+    opacity: 0.5;
+    color: var(--text-secondary);
+    cursor: not-allowed;
 }
-.track-row.available .track-title { color: var(--spotify-green); }
-/* Ícone Play? Se você quiser o ícone play ANTES do título para faixas disponíveis: */
+.track-row.unavailable .track-title { /* Title color remains secondary */
+    color: var(--text-secondary);
+}
+.track-row.unavailable .track-duration { /* Stream count replaced by lock icon */
+    font-size: 1rem; /* Adjust icon size if needed */
+    color: var(--text-secondary);
+    margin-left: auto; /* Ensure it stays right */
+}
+/* Ensure the lock icon itself is added via JS if needed, or if it's static HTML change here */
+/* Example if the lock icon is directly in the span: */
+.track-row.unavailable .track-duration i.fa-lock {
+     /* Add specific styles for the icon if needed */
+}
+
+
+.track-row.available {
+    cursor: pointer;
+}
+.track-row.available .track-title { /* Highlight available titles */
+    color: var(--spotify-green);
+}
+
+/* REMOVE O ÍCONE DE PLAY AUTOMÁTICO ANTES DO TÍTULO */
+/* Comente ou remova esta regra */
+/*
 .track-row.available .track-info::before {
-    content: "\f04b"; /* Código FontAwesome para play */
+    content: "\f04b";
     font-family: "Font Awesome 6 Free";
     font-weight: 900;
     color: var(--spotify-green);
-    margin-right: 10px; /* Espaço entre ícone e texto */
-    font-size: 14px; /* Tamanho do ícone */
-    display: inline-block; /* Permite margem */
-    vertical-align: baseline; /* Tenta alinhar com a linha de base do texto */
+    margin-right: 10px;
+    font-size: 14px;
+    display: inline-block;
+    vertical-align: baseline;
 }
+*/
 
-.track-row.available:hover { background-color: var(--background-tertiary); }
-/* --- FIM TRACKLIST --- */
+.track-row.available:hover {
+    background-color: var(--background-tertiary);
+}
+/* --- FIM TRACKLIST CORRIGIDO --- */
 
 .full-page-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
 
