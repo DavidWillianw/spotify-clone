@@ -351,6 +351,14 @@ body {
   color: var(--text-primary); padding: 14px; border-radius: 6px; font-size: 14px;
   font-family: "Montserrat", sans-serif; appearance: none;
 }
+/* Correção para Selects aparecerem */
+.studio-form-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23b3b3b3' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px 16px;
+    padding-right: 40px; /* Espaço para a seta */
+}
 .studio-form-group input[type="date"] { color-scheme: dark; }
 .studio-form-group input::placeholder { color: #757575; }
 
@@ -427,6 +435,16 @@ body {
   background: var(--background-secondary); padding: 24px; border-radius: 12px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5); max-width: 400px; width: 100%;
   max-height: 90vh; overflow-y: auto;
+}
+/* Correção para Selects em Modais */
+.modal-content .studio-form-group select {
+    background-color: var(--background-tertiary);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23b3b3b3' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px 16px;
+    padding-right: 40px;
+    appearance: none;
 }
 .modal-content h3 { color: var(--spotify-green); margin-bottom: 20px; }
 .modal-content p.modal-description { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5; }
@@ -866,6 +884,7 @@ body.player-open {
 @media (min-width: 1200px) {
   /* ... (seus estilos de desktop existentes) ... */
 }
+
 
 /* ========================================================== */
 /* ============= NOVOS ESTILOS (REAPROVEITAMENTO) ============= */
