@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         toggleExistingSingle, newTrackInfoGroup, existingTrackGroup,
         existingTrackSelect, existingSingleTrackId, singleFeatSection,
         openExistingTrackModalBtn, existingTrackModal, existingTrackSearch,
-        existingTrackResults, cancelExistingTrackBtn;
+        existingTrackResults, cancelExistingTrackBtn, editArtistFilterSelect;
 
 
     const AIRTABLE_BASE_ID = 'appG5NOoblUmtSMVI';
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             existingTrackSearch = document.getElementById('existingTrackSearch');
             existingTrackResults = document.getElementById('existingTrackResults');
             cancelExistingTrackBtn = document.getElementById('cancelExistingTrackBtn');
-
+            editArtistFilterSelect = document.getElementById('editArtistFilterSelect');
 
             const playerElements = [audioElement, musicPlayerView, playerCloseBtn, playerPlayPauseBtn, playerSeekBar, playerNextBtn, playerPrevBtn];
             if (playerElements.some(el => !el)) {
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 deleteConfirmModal, cancelDeleteBtn, confirmDeleteBtn,
                 // Novos essenciais
                 toggleExistingSingle, newTrackInfoGroup, existingTrackGroup, existingTrackSelect,
-                openExistingTrackModalBtn, existingTrackModal, existingTrackSearch, existingTrackResults, cancelExistingTrackBtn
+                openExistingTrackModalBtn, existingTrackModal, existingTrackSearch, existingTrackResults, cancelExistingTrackBtn,editArtistFilterSelect
             ];
             if (!allViews || allViews.length === 0 || essentialElements.some(el => !el)) {
                 // Adiciona IDs aos logs para facilitar a depuração
@@ -942,7 +942,7 @@ document.addEventListener('DOMContentLoaded', async () => {
        // ... (código existente dos listeners de edição) ...
          confirmDeleteBtn?.addEventListener('click', handleDeleteRelease);
 
-
+editArtistFilterSelect?.addEventListener('change', populateEditableReleases);
         // --- INÍCIO DA CORREÇÃO PARA BUG 2 ---
 
         // 1. Listener para o SUBMIT do formulário de Single
@@ -970,7 +970,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 btn.textContent = 'Lançar Single';
             }
         });
-
+// --- INÍCIO DA CORREÇÃO "FILTRAR POR ARTISTA" ---
+         singleArtistSelect?.addEventListener('change', () => {
+             // Se o modo "Usar Faixa Existente" estiver ativo,
+             // atualiza a lista de faixas para o novo artista selecionado.
+             if (toggleExistingSingle?.checked) {
+                 populatePlayerTracks('existingTrackSelect');
+             }
+         });
+         // --- FIM DA CORREÇÃO "FILTRAR POR ARTISTA" ---
         // --- NOVOS LISTENERS ---
         toggleExistingSingle?.addEventListener('change', () => toggleSingleFormMode(false));
 
@@ -1028,6 +1036,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(usernameInput) usernameInput.value = '';
         if(passwordInput) passwordInput.value = '';
         if(editReleaseList) editReleaseList.innerHTML = '<p class="empty-state-small">Faça login para ver seus lançamentos.</p>';
+        if (editArtistFilterSelect) editArtistFilterSelect.innerHTML = '';
+         editReleaseForm?.classList.add('hidden');
          editReleaseForm?.classList.add('hidden');
          editReleaseListContainer?.classList.remove('hidden');
          // NOVO: Reseta o form de single
@@ -1035,16 +1045,22 @@ document.addEventListener('DOMContentLoaded', async () => {
          toggleSingleFormMode(true); // Chama a função para resetar a UI do form de single
     }
 
-    // populateArtistSelector (sem alterações)
-    function populateArtistSelector(playerId) {
-        const p=db.players.find(pl=>pl.id===playerId);
-        if(!p)return;
-        const ids=p.artists||[];
-        const opts=ids.map(id=>{const a=db.artists.find(ar=>ar.id===id); return a?`<option value="${a.id}">${a.name}</option>`:'';}).join('');
+  // populateArtistSelector (MODIFICADO para incluir filtro de edição)
+    function populateArtistSelector(playerId) {
+        const p=db.players.find(pl=>pl.id===playerId);
+        if(!p)return;
+        const ids=p.artists||[];
+        const opts=ids.map(id=>{const a=db.artists.find(ar=>ar.id===id); return a?`<option value="${a.id}">${a.name}</option>`:'';}).join('');
+       
+        // Popula os formulários de Single e Álbum (sem "Todos")
         if(singleArtistSelect) singleArtistSelect.innerHTML=`<option value="">Selecione...</option>${opts}`;
-        if(albumArtistSelect) albumArtistSelect.innerHTML=`<option value="">Selecione...</option>${opts}`;
-    }
+        if(albumArtistSelect) albumArtistSelect.innerHTML=`<option value="">Selecione...</option>${opts}`;
 
+        // NOVO: Popula o filtro da aba de Edição (com "Todos")
+        if(editArtistFilterSelect) {
+            editArtistFilterSelect.innerHTML=`<option value="all">Todos os Artistas</option>${opts}`;
+        }
+    }
     // Funções de Feat (sem alterações)
     function populateArtistSelectForFeat(targetSelectElement) { let currentMainId=null; let selectEl=targetSelectElement; if(document.getElementById('newSingleForm')?.classList.contains('active')){currentMainId=singleArtistSelect?.value; selectEl=featArtistSelect;} else if(document.getElementById('newAlbumForm')?.classList.contains('active')){currentMainId=albumArtistSelect?.value; selectEl=inlineFeatArtistSelect;} else {selectEl=featArtistSelect;} if(!selectEl){console.error("Select feats não encontrado!"); return;} selectEl.innerHTML = db.artists.filter(a=>a.id!==currentMainId).sort((a,b)=>a.name.localeCompare(b.name)).map(a=>`<option value="${a.id}">${a.name}</option>`).join(''); if(selectEl.innerHTML===''){selectEl.innerHTML='<option value="">Nenhum outro</option>';} }
     function openFeatModal(buttonElement) { const targetId=buttonElement.dataset.target; currentFeatTarget=document.getElementById(targetId); if(!currentFeatTarget){console.error("Alvo feat não encontrado:", targetId); return;} populateArtistSelectForFeat(featArtistSelect); featModal?.classList.remove('hidden'); }
@@ -1321,43 +1337,54 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- NOVAS FUNÇÕES DE UI (Estúdio) ---
 
-    // NOVO: Popula o select de faixas existentes no form de Single
-    function populatePlayerTracks(selectElementId) {
-        const selectEl = document.getElementById(selectElementId);
-        if (!selectEl) return;
-        if (!currentPlayer) {
-            selectEl.innerHTML = '<option value="">Faça login primeiro</option>';
-            return;
-        }
+ // NOVO: Popula o select de faixas existentes no form de Single (MODIFICADO)
+    function populatePlayerTracks(selectElementId) {
+        const selectEl = document.getElementById(selectElementId);
+        if (!selectEl) return;
 
-        const playerArtistIds = currentPlayer.artists || [];
-        const playerSongs = db.songs
-            .filter(s => s.artistIds.some(artistId => playerArtistIds.includes(artistId)))
-            .sort((a, b) => (b.totalStreams || 0) - (a.totalStreams || 0)); // Ordena por popularidade
+        // NOVO: Pega o artista selecionado no formulário principal de Single
+        const selectedArtistId = singleArtistSelect.value;
 
-        if (playerSongs.length === 0) {
-            selectEl.innerHTML = '<option value="">Nenhuma faixa encontrada</option>';
-            return;
-        }
+        if (!currentPlayer) {
+            selectEl.innerHTML = '<option value="">Faça login primeiro</option>';
+            return;
+        }
 
-        selectEl.innerHTML = '<option value="">Selecione uma faixa...</option>';
-        selectEl.innerHTML += playerSongs.map(song => {
-            // Tenta encontrar o nome do primeiro lançamento associado para contexto
-            const firstAlbumId = song.albumIds?.[0];
-            const firstSingleId = song.singleIds?.[0];
-            let releaseName = '(Avulsa)'; // Default
-            if (firstAlbumId) {
-                const release = db.albums.find(r => r.id === firstAlbumId);
-                if (release) releaseName = `(${release.title})`;
-            } else if (firstSingleId) {
-                const release = db.singles.find(r => r.id === firstSingleId);
-                 if (release) releaseName = `(${release.title})`;
-            }
+        // NOVO: Verifica se um artista foi selecionado
+        if (!selectedArtistId) {
+            selectEl.innerHTML = '<option value="">Selecione um Artista primeiro</option>';
+            return;
+        }
 
-            return `<option value="${song.id}">${song.title} ${releaseName}</option>`;
-        }).join('');
-    }
+        // const playerArtistIds = currentPlayer.artists || []; // Não é mais usado para o filtro principal
 
+        // MODIFICADO: Filtra pelas músicas que *incluem* o artista selecionado
+        const artistSongs = db.songs
+            .filter(s => s.artistIds.includes(selectedArtistId)) // <-- MUDANÇA PRINCIPAL AQUI
+            .sort((a, b) => (b.totalStreams || 0) - (a.totalStreams || 0)); // Ordena por popularidade
+
+        if (artistSongs.length === 0) {
+            selectEl.innerHTML = '<option value="">Nenhuma faixa encontrada para este artista</option>';
+            return;
+        }
+
+        selectEl.innerHTML = '<option value="">Selecione uma faixa...</option>';
+        selectEl.innerHTML += artistSongs.map(song => {
+            // Tenta encontrar o nome do primeiro lançamento associado para contexto
+            const firstAlbumId = song.albumIds?.[0];
+            const firstSingleId = song.singleIds?.[0];
+            let releaseName = '(Avulsa)'; // Default
+            if (firstAlbumId) {
+                const release = db.albums.find(r => r.id === firstAlbumId);
+                if (release) releaseName = `(${release.title})`;
+            } else if (firstSingleId) {
+                const release = db.singles.find(r => r.id === firstSingleId);
+                 if (release) releaseName = `(${release.title})`;
+            }
+
+            return `<option value="${song.id}">${song.title} ${releaseName}</option>`;
+        }).join('');
+    }
 
     // NOVO: Controla o formulário de Single
     function toggleSingleFormMode(isResetting = false) {
@@ -1417,42 +1444,51 @@ document.addEventListener('DOMContentLoaded', async () => {
         existingTrackModal?.classList.add('hidden'); // Usa ? para segurança
     }
 
-    // NOVO: Popula o modal de busca de faixas
-    function populateExistingTrackSearch() {
-        if (!currentPlayer) {
-            if (existingTrackResults) existingTrackResults.innerHTML = '<p class="empty-state-small">Faça login.</p>';
-            return;
-        }
+   // NOVO: Popula o modal de busca de faixas (MODIFICADO)
+    function populateExistingTrackSearch() {
+        if (!currentPlayer) {
+            if (existingTrackResults) existingTrackResults.innerHTML = '<p class="empty-state-small">Faça login.</p>';
+            return;
+        }
 
-        const query = existingTrackSearch.value.toLowerCase().trim();
-        const playerArtistIds = currentPlayer.artists || [];
+        // NOVO: Pega o artista selecionado no formulário principal de Álbum
+        const selectedArtistId = albumArtistSelect.value;
 
-        const filteredSongs = db.songs
-            .filter(s => {
-                // Filtra por artista E pela query
-                const isPlayerSong = s.artistIds.some(artistId => playerArtistIds.includes(artistId));
-                const matchesQuery = s.title.toLowerCase().includes(query);
-                return isPlayerSong && matchesQuery;
-            })
-            .sort((a, b) => (b.totalStreams || 0) - (a.totalStreams || 0)); // Ordena
+        // NOVO: Verifica se um artista foi selecionado no form do álbum
+        if (!selectedArtistId) {
+             if (existingTrackResults) existingTrackResults.innerHTML = '<p class="empty-state-small">Selecione um Artista no formulário do álbum primeiro.</p>';
+             return;
+        }
 
-        if (!existingTrackResults) return; // Sai se o elemento não existe
+        const query = existingTrackSearch.value.toLowerCase().trim();
+        // const playerArtistIds = currentPlayer.artists || []; // Não é mais necessário para o filtro
 
-        if (filteredSongs.length === 0) {
-            existingTrackResults.innerHTML = '<p class="empty-state-small">Nenhuma faixa encontrada.</p>';
-            return;
-        }
+        const filteredSongs = db.songs
+            .filter(s => {
+                // MODIFICADO: Verifica se a música inclui o artista selecionado E bate com a query
+                const isArtistSong = s.artistIds.includes(selectedArtistId); // <-- MUDANÇA PRINCIPAL AQUI
+                const matchesQuery = s.title.toLowerCase().includes(query);
+                return isArtistSong && matchesQuery;
+            })
+            .sort((a, b) => (b.totalStreams || 0) - (a.totalStreams || 0)); // Ordena
 
-        existingTrackResults.innerHTML = filteredSongs.map(song => `
-            <div class="existing-track-item" data-song-id="${song.id}">
-                <img src="${song.cover || getCoverUrl(song.albumId)}" alt="${song.title}">
-                <div class="existing-track-item-info">
-                    <span class="existing-track-item-title">${song.title}</span>
-                    <span class="existing-track-item-artist">${song.artist}</span>
-                </div>
-            </div>
-        `).join('');
-    }
+        if (!existingTrackResults) return; // Sai se o elemento não existe
+
+        if (filteredSongs.length === 0) {
+            existingTrackResults.innerHTML = '<p class="empty-state-small">Nenhuma faixa encontrada para este artista.</p>';
+            return;
+        }
+
+        existingTrackResults.innerHTML = filteredSongs.map(song => `
+            <div class="existing-track-item" data-song-id="${song.id}">
+                <img src="${song.cover || getCoverUrl(song.albumId)}" alt="${song.title}">
+                <div class="existing-track-item-info">
+                    <span class="existing-track-item-title">${song.title}</span>
+                    <span class="existing-track-item-artist">${song.artist}</span>
+                </div>
+            </div>
+        `).join('');
+    }
 
     // NOVO: Manipula a seleção de uma faixa no modal de busca (para Álbum)
     function handleExistingTrackSelect(event) {
@@ -1852,45 +1888,60 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- FUNÇÕES DE EDIÇÃO/EXCLUSÃO (sem alterações) ---
 
-    // populateEditableReleases
-    function populateEditableReleases() {
-        if (!currentPlayer || !editReleaseList) {
-            if (editReleaseList) editReleaseList.innerHTML = '<p class="empty-state-small">Faça login para ver seus lançamentos.</p>';
-            return;
+  // populateEditableReleases (MODIFICADO para usar o filtro de artista)
+    function populateEditableReleases() {
+        if (!currentPlayer || !editReleaseList) {
+            if (editReleaseList) editReleaseList.innerHTML = '<p class="empty-state-small">Faça login para ver seus lançamentos.</p>';
+            return;
+        }
+
+        // NOVO: Pega o ID do artista selecionado no filtro
+        const selectedArtistId = editArtistFilterSelect.value;
+        const playerArtistIds = currentPlayer.artists || [];
+
+        let releasesToFilter = [...db.albums, ...db.singles];
+
+        // NOVO: Aplica o filtro
+        if (selectedArtistId && selectedArtistId !== 'all') {
+            // Filtra por um artista específico
+            releasesToFilter = releasesToFilter.filter(release => release.artistId === selectedArtistId);
+        } else {
+            // Filtro "Todos": Filtra por todos os artistas do jogador
+            releasesToFilter = releasesToFilter.filter(release => playerArtistIds.includes(release.artistId));
         }
-        const playerArtistIds = currentPlayer.artists || [];
-        const editableReleases = [...db.albums, ...db.singles]
-            .filter(release => playerArtistIds.includes(release.artistId))
-            .sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
-        if (editableReleases.length === 0) {
-            editReleaseList.innerHTML = '<p class="empty-state-small">Nenhum lançamento encontrado para seus artistas.</p>';
-            return;
-        }
-        editReleaseList.innerHTML = editableReleases.map(release => `
-            <div class="edit-release-item">
-                <img src="${release.imageUrl}" alt="${release.title}" class="edit-release-cover">
-                <div class="edit-release-info">
-                    <span class="edit-release-title">${release.title}</span>
-                    <span class="edit-release-artist">${release.artist} - ${new Date(release.releaseDate).getFullYear()}</span>
-                </div>
-                <div class="action-buttons">
-                    <button type="button" class="small-btn edit-release-btn"
-                            data-release-id="${release.id}"
-                            data-release-type="${release.type}"
-                            data-release-table="${release.tableName}">
-                        <i class="fas fa-pencil-alt"></i> Editar
-                    </button>
-                    <button type="button" class="small-btn delete-release-btn"
-                            data-release-id="${release.id}"
-                            data-release-type="${release.type}"
-                            data-release-table="${release.tableName}"
-                            data-release-title="${release.title}">
-                        <i class="fas fa-trash-alt"></i> Apagar
-                    </button>
-                </div>
-            </div>
-        `).join('');
-    }
+
+        const editableReleases = releasesToFilter.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+
+        if (editableReleases.length === 0) {
+            editReleaseList.innerHTML = '<p class="empty-state-small">Nenhum lançamento encontrado para este filtro.</p>';
+            return;
+        }
+
+        editReleaseList.innerHTML = editableReleases.map(release => `
+            <div class="edit-release-item">
+                <img src="${release.imageUrl}" alt="${release.title}" class="edit-release-cover">
+                <div class="edit-release-info">
+                    <span class="edit-release-title">${release.title}</span>
+                    <span class="edit-release-artist">${release.artist} - ${new Date(release.releaseDate).getFullYear()}</span>
+                </div>
+                <div class="action-buttons">
+                    <button type="button" class="small-btn edit-release-btn"
+                            data-release-id="${release.id}"
+                            data-release-type="${release.type}"
+                            data-release-table="${release.tableName}">
+                        <i class="fas fa-pencil-alt"></i> Editar
+                    </button>
+                    <button type="button" class="small-btn delete-release-btn"
+                            data-release-id="${release.id}"
+                            data-release-type="${release.type}"
+                            data-release-table="${release.tableName}"
+                            data-release-title="${release.title}">
+                        <i class="fas fa-trash-alt"></i> Apagar
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
     // openEditForm
     function openEditForm(releaseId, releaseType) {
         const release = (releaseType === 'album' ? db.albums : db.singles).find(r => r.id === releaseId);
