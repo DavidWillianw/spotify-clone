@@ -191,20 +191,20 @@ body {
 .tracklist-container { margin-top: 24px; }
 
 .track-row {
-    display: flex;
-    align-items: start;
-    gap: 10px;
-    /* padding: 12px 8px; */
-    border-bottom: 1px solid var(--background-tertiary);
-    min-height: 50px;
-    cursor: pointer;
-    justify-content: center;
-    align-content: center;
-    flex-wrap: nowrap;
-    flex-direction: column;
+    display: flex;
+    align-items: start;
+    gap: 10px;
+    /* padding: 12px 8px; */
+    border-bottom: 1px solid var(--background-tertiary);
+    min-height: 50px;
+    cursor: pointer;
+    justify-content: center;
+    align-content: center;
+    flex-wrap: nowrap;
+    flex-direction: column;
 }
 
-ficou melhor assim
+/* ficou melhor assim */
 .track-row:hover { background-color: var(--background-tertiary); }
 .track-row:last-child { border-bottom: none;    display: inline-grid
 ; }
@@ -305,30 +305,6 @@ ficou melhor assim
 .bottom-nav-item i { display: block; margin: 0 auto; }
 .bottom-nav-item .fa-microphone-alt { font-size: 22px; }
 
-/* Estilos para o Toggle de Faixa Existente */
-.toggle-existing {
-    margin-top: 10px;
-    margin-bottom: 20px;
-}
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    color: var(--text-secondary);
-    cursor: pointer;
-}
-.checkbox-label input[type="checkbox"] {
-    width: auto; /* Tamanho padrão do checkbox */
-    accent-color: var(--spotify-green); /* Cor do check */
-    cursor: pointer;
-}
-#existingTrackGroup small {
-    display: block;
-    margin-top: 5px;
-    font-size: 12px;
-    color: var(--text-secondary);
-}
 /* --- ESTILOS ADICIONADOS DO RPG --- */
 .rpg-rank {
   position: absolute; top: 5px; left: 15px; font-size: 16px; font-weight: 700;
@@ -889,4 +865,89 @@ body.player-open {
 
 @media (min-width: 1200px) {
   /* ... (seus estilos de desktop existentes) ... */
+}
+
+/* ========================================================== */
+/* ============= NOVOS ESTILOS (REAPROVEITAMENTO) ============= */
+/* ========================================================== */
+
+/* Estilos para o Toggle de Faixa Existente */
+.toggle-existing {
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+.checkbox-label input[type="checkbox"] {
+    width: auto; /* Tamanho padrão do checkbox */
+    accent-color: var(--spotify-green); /* Cor do check */
+    cursor: pointer;
+}
+#existingTrackGroup small {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Ações da Tracklist (Album Form) */
+.tracklist-actions {
+    display: flex;
+    flex-wrap: wrap; /* Permite quebra de linha em telas pequenas */
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.tracklist-actions .submit-btn,
+.tracklist-actions .small-btn {
+    margin: 0;
+    flex: 1;
+    min-width: 150px; /* Garante que não fiquem muito espremidos */
+}
+
+/* Estilos para resultados da busca de faixa existente (no modal) */
+#existingTrackResults .existing-track-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--background-tertiary);
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+#existingTrackResults .existing-track-item:hover {
+    background-color: #3f3f3f;
+}
+#existingTrackResults .existing-track-item img {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+#existingTrackResults .existing-track-item-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+#existingTrackResults .existing-track-item-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+#existingTrackResults .existing-track-item-artist {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
 }
