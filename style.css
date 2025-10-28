@@ -989,6 +989,195 @@ body.player-open {
     text-overflow: ellipsis;
     display: block;
 }
+/* --- ESTILOS ADICIONAIS PARA SEÇÃO DE EDIÇÃO --- */
+#editReleaseSection h3 {
+    color: var(--spotify-green);
+    margin-bottom: 20px;
+}
+
+/* Aplica o estilo padrão de select ao filtro de artista */
+#editArtistFilterSelect {
+    width: 100%;
+    background-color: var(--background-tertiary);
+    border: 1px solid #535353;
+    color: var(--text-primary);
+    padding: 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: "Montserrat", sans-serif;
+    appearance: none; /* Remove default browser styling */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23b3b3b3' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px 16px;
+    padding-right: 40px; /* Space for the arrow */
+}
+
+/* Remove a classe .styled-select se não for mais usada em outros lugares */
+/* Se for usada, copie as regras acima para .styled-select também */
+
+.edit-instructions {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.release-edit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.edit-release-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background-color: var(--background-tertiary);
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.edit-release-cover {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.edit-release-info {
+    flex-grow: 1;
+    min-width: 0; /* Para ellipsis funcionar */
+}
+
+.edit-release-title {
+    font-size: 14px;
+    font-weight: 600;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-primary);
+}
+
+.edit-release-artist {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px; /* Pequeno espaço entre título e artista */
+}
+
+.edit-release-item .action-buttons {
+    display: flex;
+    flex-direction: column; /* Empilha os botões verticalmente em telas menores */
+    gap: 8px; /* Espaço entre Editar e Apagar */
+    align-items: flex-end; /* Alinha botões à direita */
+    flex-shrink: 0;
+}
+
+.edit-release-btn {
+    /* Estilo já definido em .small-btn, mas pode adicionar ajustes se necessário */
+    padding: 8px 10px;
+    font-size: 11px;
+}
+
+.delete-release-btn {
+    /* Estilo base de .small-btn */
+    background: transparent;
+    border: 1px solid var(--trend-down-red);
+    color: var(--trend-down-red);
+    padding: 8px 10px; /* Ajuste para caber ícone e texto */
+    font-size: 11px; /* Menor para caber melhor */
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.delete-release-btn:hover {
+    background: rgba(226, 33, 52, 0.1); /* Vermelho leve no hover */
+}
+
+/* Estilos para o formulário de edição */
+#editReleaseForm .display-value {
+    font-size: 14px;
+    color: var(--text-primary);
+    padding: 14px 0; /* Alinha verticalmente com inputs */
+}
+
+.edit-warning {
+    font-size: 12px;
+    color: #ffcc00; /* Amarelo para aviso */
+    margin-top: 10px;
+    margin-bottom: 16px;
+    background-color: rgba(255, 204, 0, 0.1);
+    padding: 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#editReleaseForm .modal-actions {
+    margin-top: 24px; /* Espaçamento antes dos botões */
+}
+
+/* Modal de Confirmação */
+#deleteConfirmModal .modal-content h3 i {
+    margin-right: 8px;
+}
+
+.modal-warning {
+    font-size: 13px;
+    color: #ffcc00; /* Amarelo para aviso */
+    background-color: rgba(255, 204, 0, 0.1);
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 16px;
+    border-left: 3px solid #ffcc00;
+}
+.modal-warning strong {
+    color: #ffd633;
+}
+
+.delete-confirm-btn {
+    background-color: var(--trend-down-red);
+    color: var(--text-primary); /* Branco */
+}
+.delete-confirm-btn:hover:not(:disabled) {
+    background-color: #c81e2f; /* Vermelho mais escuro no hover */
+    transform: scale(1.02);
+}
+.delete-confirm-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--trend-down-red); /* Mantém a cor base mesmo desabilitado */
+}
+
+/* Ajuste para botões lado a lado em telas maiores */
+@media (min-width: 400px) { /* Ou outro breakpoint se preferir */
+    .edit-release-item .action-buttons {
+        flex-direction: row; /* Botões lado a lado */
+    }
+}
+
+/* Ajustes no Desktop */
+@media (min-width: 768px) {
+    .release-edit-list {
+        max-height: 400px; /* Limita altura da lista no desktop */
+        overflow-y: auto;
+    }
+    #editReleaseSection {
+        /* Adiciona um pouco mais de padding no desktop se necessário */
+        /* padding: 32px; */
+    }
+}
 #existingTrackResults .existing-track-item-artist {
     font-size: 12px;
     color: var(--text-secondary);
