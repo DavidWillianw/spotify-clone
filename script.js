@@ -939,7 +939,37 @@ document.addEventListener('DOMContentLoaded', async () => {
              editReleaseListContainer?.classList.remove('hidden');
          });
          cancelDeleteBtn?.addEventListener('click', closeDeleteConfirmModal);
-         confirmDeleteBtn?.addEventListener('click', handleDeleteRelease);
+       // ... (código existente dos listeners de edição) ...
+         confirmDeleteBtn?.addEventListener('click', handleDeleteRelease);
+
+
+        // --- INÍCIO DA CORREÇÃO PARA BUG 2 ---
+
+        // 1. Listener para o SUBMIT do formulário de Single
+        // Isso previne o recarregamento da página e chama a primeira etapa
+        newSingleForm?.addEventListener('submit', handleSingleSubmit);
+
+        // 2. Listeners para o Modal de Tipo de Faixa (que é aberto pelo handleSingleSubmit)
+        confirmTrackTypeBtn?.addEventListener('click', () => {
+            const selectedType = trackTypeSelect.value;
+            if (selectedType) {
+                // Chama a função que realmente processa o envio
+                processSingleSubmission(selectedType);
+            } else {
+                alert("Por favor, selecione um tipo de faixa.");
+            }
+        });
+
+        cancelTrackTypeBtn?.addEventListener('click', () => {
+            // Fecha o modal
+            trackTypeModal?.classList.add('hidden');
+            // Re-habilita o botão de submit do single se for cancelado
+            const btn = document.getElementById('submitNewSingle');
+            if(btn) {
+                btn.disabled = false;
+                btn.textContent = 'Lançar Single';
+            }
+        });
 
         // --- NOVOS LISTENERS ---
         toggleExistingSingle?.addEventListener('change', () => toggleSingleFormMode(false));
