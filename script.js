@@ -2838,7 +2838,7 @@ document.addEventListener('DOMContentLoaded', async () => {
              const existingSongId = existingSingleTrackId.value; // Get ID from hidden input (or empty string)
 
              // Convert local datetime string to full ISO 8601 UTC string for Airtable
-             const releaseDateISO = new Date(releaseDateTimeLocal).toISOString();
+            const releaseDateISO = releaseDateTimeLocal.split('T')[0];
              if (isNaN(new Date(releaseDateISO).getTime())) { // Double-check conversion
                   throw new Error("Data/Hora de lançamento inválida após conversão.");
              }
@@ -3013,7 +3013,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Convert local datetime to ISO 8601 UTC string
-            const releaseDateISO = new Date(releaseDateTimeLocal).toISOString();
+            const releaseDateISO = releaseDateTimeLocal.split('T')[0];
              if (isNaN(new Date(releaseDateISO).getTime())) {
                  throw new Error("Data/Hora de lançamento inválida.");
              }
@@ -3329,9 +3329,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Convert local datetime back to ISO 8601 UTC string
-        let updatedReleaseDateISO;
-        try {
-             updatedReleaseDateISO = new Date(updatedReleaseDateTimeLocal).toISOString();
+       let updatedReleaseDateISO;
+try {
+     updatedReleaseDateISO = new Date(updatedReleaseDateTimeLocal).toISOString().split('T')[0]; 
              if (isNaN(new Date(updatedReleaseDateISO).getTime())) { // Validate conversion
                   throw new Error("Data/Hora inválida.");
              }
