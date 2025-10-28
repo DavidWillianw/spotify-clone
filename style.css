@@ -23,7 +23,196 @@ body {
 .hidden { display: none !important; }
 
 .main-container { padding-bottom: 90px; }
+/* ========================================================== */
+/* ========= ESTILOS COMPLETOS PARA EDITAR/APAGAR ========= */
+/* ========================================================== */
 
+#editReleaseSection h3 {
+    color: var(--spotify-green);
+    margin-bottom: 20px;
+}
+
+/* Filtro Dropdown */
+#editReleaseSection .form-group { /* Garante espaçamento correto para o grupo do filtro */
+    margin-bottom: 20px;
+}
+#editReleaseSection label[for="editArtistFilterSelect"] { /* Estilo do label do filtro */
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+#editArtistFilterSelect {
+    width: 100%;
+    background-color: var(--background-tertiary);
+    border: 1px solid #535353;
+    color: var(--text-primary);
+    padding: 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: "Montserrat", sans-serif;
+    appearance: none; /* Remove default browser styling */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23b3b3b3' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px 16px;
+    padding-right: 40px; /* Space for the arrow */
+}
+
+/* Container da Lista */
+.edit-instructions {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+.release-edit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+/* Item Individual da Lista */
+.edit-release-item {
+    display: flex;         /* *** ESSENCIAL PARA O LAYOUT *** */
+    align-items: center;   /* Alinha verticalmente */
+    gap: 16px;            /* Espaço entre imagem, info, botões */
+    background-color: var(--background-tertiary);
+    padding: 12px;
+    border-radius: 8px;
+    overflow: hidden; /* Garante que nada vaze */
+}
+
+.edit-release-cover {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;        /* Impede que a imagem encolha */
+}
+
+.edit-release-info {
+    flex-grow: 1;          /* Faz a info ocupar o espaço restante */
+    min-width: 0;          /* MUITO IMPORTANTE para text-overflow funcionar */
+}
+
+.edit-release-title {
+    font-size: 14px;
+    font-weight: 600;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-primary);
+}
+
+.edit-release-artist {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+/* Container dos Botões de Ação (Editar/Apagar) */
+.edit-release-item .action-buttons {
+    display: flex;
+    flex-direction: column; /* Empilha botões em telas pequenas */
+    gap: 8px;
+    align-items: flex-end; /* Alinha os botões à direita do item */
+    flex-shrink: 0;        /* Impede que os botões encolham */
+    margin-left: auto;     /* Empurra os botões para a direita */
+}
+
+/* Botão Editar (Reusa .small-btn e ajusta padding/fonte) */
+.edit-release-btn {
+    /* Herda de .small-btn */
+    padding: 6px 8px;
+    font-size: 11px;
+}
+
+/* Botão Apagar */
+.delete-release-btn {
+    /* Estilo base de .small-btn, mas com cores vermelhas */
+    background: transparent;
+    border: 1px solid var(--trend-down-red);
+    color: var(--trend-down-red);
+    padding: 6px 8px;
+    font-size: 11px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap; /* Impede quebra de linha no texto */
+}
+.delete-release-btn:hover {
+    background: rgba(226, 33, 52, 0.1); /* Vermelho leve no hover */
+}
+
+/* Formulário de Edição (Escondido inicialmente) */
+#editReleaseForm {
+    /* display: none; é controlado por JS com a classe .hidden */
+}
+#editReleaseForm .display-value {
+    font-size: 14px;
+    color: var(--text-primary);
+    padding: 14px 0; /* Alinha verticalmente com inputs */
+}
+.edit-warning {
+    font-size: 12px;
+    color: #ffcc00;
+    margin-top: 10px;
+    margin-bottom: 16px;
+    background-color: rgba(255, 204, 0, 0.1);
+    padding: 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+#editReleaseForm .modal-actions {
+    margin-top: 24px;
+}
+
+/* Ajustes Responsivos para Botões */
+@media (min-width: 450px) { /* Ajuste o valor se necessário */
+    .edit-release-item .action-buttons {
+        flex-direction: row; /* Botões lado a lado em telas maiores */
+    }
+}
+
+/* Ajustes no Desktop (Scroll da Lista) */
+@media (min-width: 768px) {
+    .release-edit-list {
+        max-height: 400px; /* Limita altura da lista no desktop */
+        overflow-y: auto; /* Adiciona scroll se necessário */
+    }
+    /* Adiciona scrollbar customizada se desejar */
+    .release-edit-list::-webkit-scrollbar {
+        width: 8px;
+    }
+    .release-edit-list::-webkit-scrollbar-track {
+        background: var(--background-secondary);
+        border-radius: 4px;
+    }
+    .release-edit-list::-webkit-scrollbar-thumb {
+        background: var(--background-tertiary);
+        border-radius: 4px;
+    }
+    .release-edit-list::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+}
+
+/* ========================================================== */
+/* ========= FIM ESTILOS COMPLETOS PARA EDITAR/APAGAR ========= */
+/* ========================================================== */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* --- BARRA SUPERIOR (TOPO) --- */
