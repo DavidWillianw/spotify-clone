@@ -644,6 +644,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 2. NAVEGAÇÃO E UI ---
 
     const switchView = (viewId) => {
+        console.log(`switchView called with viewId: ${viewId}`); // <--- ADICIONE ESTA LINHA
         console.log(`Mudando para view: ${viewId}`);
         const currentView = document.querySelector('.page-view:not(.hidden)');
 
@@ -758,8 +759,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     const handleBack = () => {
-        const currentViewElement = document.querySelector('.page-view:not(.hidden)');
-        console.log("Botão Voltar pressionado.");
+console.log("handleBack called. Current history:", JSON.stringify(viewHistory)); // <--- ADICIONE ESTA LINHA
+    const currentViewElement = document.querySelector('.page-view:not(.hidden)');
+    console.log("Botão Voltar pressionado.");
 
         if (currentViewElement && currentViewElement.id === 'albumDetail' && albumCountdownInterval) {
             console.log("Limpando contagem regressiva do álbum ao voltar.");
@@ -767,9 +769,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             albumCountdownInterval = null;
         }
 
-        viewHistory.pop();
-        const previousViewId = viewHistory.pop() || 'mainView'; // Pop again to get the actual previous one
-        console.log("Voltando para a view:", previousViewId);
+viewHistory.pop(); // Remove a view atual
+    const previousViewId = viewHistory.pop() || 'mainView'; // Pega a view anterior
+    console.log("Popped history. Intending to switch to:", previousViewId); // <--- ADICIONE ESTA LINHA
         switchView(previousViewId); // Switch to the previous view
     };
 
@@ -3879,13 +3881,14 @@ if (!editAlbumTracklistEditor || !editTracklistActions) {
                 return;
             }
 
-            // Botões "Voltar" (em páginas de detalhes)
-            const backButton = event.target.closest('[data-action="back"]');
-            if (backButton) {
-                event.preventDefault();
-                handleBack();
-                return;
-            }
+// Botões "Voltar" (em páginas de detalhes)
+const backButton = event.target.closest('[data-action="back"]');
+if (backButton) {
+    console.log("Back button clicked!"); // <--- ADICIONE ESTA LINHA
+    event.preventDefault();
+    handleBack();
+    return;
+}
 
             // Botão "Atualizar"
             const refreshButton = event.target.closest('[data-action="refresh"]');
