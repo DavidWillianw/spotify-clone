@@ -2282,7 +2282,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // 2. Configurar os Countdowns dos Charts
                 setupCountdown('musicChartTimer', 'music');
-                setupCountdown('albumChartTimer', 'album');
+                //setupCountdown('albumChartTimer', 'album');
                 setupCountdown('rpgChartTimer', 'rpg');
 
                 // 3. Inicializar todos os Listeners
