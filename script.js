@@ -270,52 +270,132 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function loadAllData() {
-        const artistsURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Artists?filterByFormula=%7BArtista%20Principal%7D%3D1`;
-        const albumsURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent('Álbuns')}`;
-        const musicasURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent('Músicas')}`;
-        const singlesURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent('Singles e EPs')}`;
-        const playersURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Jogadores`;
+        const artistsURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Artists?filterByFormula=%7BArtista%20Principal%7D%3D1`;
+        const albumsURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent('Álbuns')}`;
+        const musicasURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent('Músicas')}`;
+        const singlesURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent('Singles e EPs')}`;
+        const playersURL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Jogadores`;
 
-        const fetchOptions = { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } };
-        console.log("Carregando dados do Airtable...");
-        try {
-            const [artistsData, albumsData, musicasData, singlesData, playersData] = await Promise.all([
-                fetchAllAirtablePages(artistsURL, fetchOptions),
-                fetchAllAirtablePages(albumsURL, fetchOptions),
-                fetchAllAirtablePages(musicasURL, fetchOptions),
-                fetchAllAirtablePages(singlesURL, fetchOptions),
-                fetchAllAirtablePages(playersURL, fetchOptions)
-            ]);
+        const fetchOptions = { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } };
+        console.log("Carregando dados do Airtable...");
+        try {
+            const [artistsData, albumsData, musicasData, singlesData, playersData] = await Promise.all([
+                fetchAllAirtablePages(artistsURL, fetchOptions),
+                fetchAllAirtablePages(albumsURL, fetchOptions),
+                fetchAllAirtablePages(musicasURL, fetchOptions),
+                fetchAllAirtablePages(singlesURL, fetchOptions),
+                fetchAllAirtablePages(playersURL, fetchOptions)
+            ]);
 
-            if (!playersData) console.warn("Falha ao carregar dados dos Jogadores. Continuando sem eles."); // Warn instead of error
-            if (!artistsData || !albumsData || !musicasData || !singlesData) throw new Error('Falha ao carregar dados essenciais (Artistas, Álbuns, Músicas, Singles).');
+            if (!playersData) console.warn("Falha ao carregar dados dos Jogadores. Continuando sem eles."); // Warn instead of error
+            if (!artistsData || !albumsData || !musicasData || !singlesData) throw new Error('Falha ao carregar dados essenciais (Artistas, Álbuns, Músicas, Singles).');
 
-            const musicasMap = new Map();
-            (musicasData.records || []).forEach(record => {
-                const fields = record.fields;
-                const artistIds = Array.isArray(fields['Artista']) ? fields['Artista'] : [fields['Artista']].filter(Boolean);
-                const albumLinks = fields['Álbuns'] || [];
-                const singleLinks = fields['Singles e EPs'] || [];
-                // Prioritize album link for parent ID, then single link
-                const parentReleaseId = (albumLinks.length > 0 ? albumLinks[0] : (singleLinks.length > 0 ? singleLinks[0] : null));
+            const musicasMap = new Map();
+            (musicasData.records || []).forEach(record => {
+                const fields = record.fields;
+                const artistIds = Array.isArray(fields['Artista']) ? fields['Artista'] : [fields['Artista']].filter(Boolean);
+                const albumLinks = fields['Álbuns'] || [];
+                const singleLinks = fields['Singles e EPs'] || [];
+                // Prioritize album link for parent ID, then single link
+                const parentReleaseId = (albumLinks.length > 0 ? albumLinks[0] : (singleLinks.length > 0 ? singleLinks[0] : null));
 
-                musicasMap.set(record.id, {
-                    id: record.id,
-                    title: fields['Nome da Faixa'] || 'Faixa Desconhecida',
-                    duration: fields['Duração'] ? new Date(fields['Duração'] * 1000).toISOString().substr(14, 5) : "0:00",
-                    trackNumber: fields['Nº da Faixa'] || 0,
-                    durationSeconds: fields['Duração'] || 0,
-                    artistIds: artistIds,
-                    collabType: fields['Tipo de Colaboração'],
-                    albumId: parentReleaseId, // ID do release principal (para capa, etc.)
-                    albumIds: albumLinks, // Todos os álbuns vinculados
-                    singleIds: singleLinks, // Todos os singles vinculados
-                    streams: fields.Streams || 0,
-                    totalStreams: fields['Streams Totais'] || 0,
-                    trackType: fields['Tipo de Faixa'] || 'B-side' // Default to B-side if missing
-                });
-            });
+                musicasMap.set(record.id, {
+                    id: record.id,
+                    title: fields['Nome da Faixa'] || 'Faixa Desconhecida',
+                    duration: fields['Duração'] ? new Date(fields['Duração'] * 1000).toISOString().substr(14, 5) : "0:00",
+                    trackNumber: fields['Nº da Faixa'] || 0,
+                    durationSeconds: fields['Duração'] || 0,
+                    artistIds: artistIds,
+                    collabType: fields['Tipo de Colaboração'],
+                    albumId: parentReleaseId, // ID do release principal (para capa, etc.)
+                    albumIds: albumLinks, // Todos os álbuns vinculados
+                    singleIds: singleLinks, // Todos os singles vinculados
+                    streams: fields.Streams || 0,
+                    totalStreams: fields['Streams Totais'] || 0,
+                    trackType: fields['Tipo de Faixa'] || 'B-side' // Default to B-side if missing
+                });
+            });
 
+            const artistsMapById = new Map();
+            const artistsList = (artistsData.records || []).map(record => {
+                const fields = record.fields;
+                const artist = {
+                    id: record.id,
+                    name: fields.Name || 'Artista Desconhecido',
+                    imageUrl: (fields['URL da Imagem']?.[0]?.url) || 'https://i.imgur.com/AD3MbBi.png', // Default image
+                    off: fields['Inspirações (Off)'] || [],
+                    RPGPoints: fields.RPGPoints || 0,
+                    LastActive: fields.LastActive || null,
+                    personalPoints: fields['Pontos Pessoais'] || 150 // <-- LINHA ADICIONADA
+                };
+                artistsMapById.set(artist.id, artist.name);
+                return artist;
+            });
+
+            const formatReleases = (records, isAlbum) => {
+                if (!records) return [];
+                return records.map(record => {
+                    const fields = record.fields;
+                    const id = record.id;
+                    // Find associated tracks from the map
+                    const tracks = Array.from(musicasMap.values())
+                        .filter(song => (isAlbum ? song.albumIds.includes(id) : song.singleIds.includes(id)))
+                        .sort((a, b) => (a.trackNumber || 0) - (b.trackNumber || 0)); // Sort by track number
+
+                    const totalDuration = tracks.reduce((sum, track) => sum + (track.durationSeconds || 0), 0);
+                    const totalAlbumStreams = tracks.reduce((sum, track) => sum + (track.totalStreams || 0), 0);
+
+                    const artistId = Array.isArray(fields['Artista']) ? fields['Artista'][0] : (fields['Artista'] || null);
+                    const artistName = artistId ? artistsMapById.get(artistId) : "Artista Desconhecido";
+                    const imageFieldName = isAlbum ? 'Capa do Álbum' : 'Capa';
+                    const imageUrl = (fields[imageFieldName]?.[0]?.url) || 'https://i.imgur.com/AD3MbBi.png'; // Default image
+
+                    // Airtable DATETIME fields return ISO 8601 UTC strings
+                    const releaseDateISO = fields['Data de Lançamento'] || null;
+
+                    return {
+                        id: id,
+                        title: fields['Nome do Álbum'] || fields['Nome do Single/EP'] || 'Título Desconhecido',
+                        artist: artistName,
+                        artistId: artistId,
+                        metascore: fields['Metascore'] || 0,
+                        imageUrl: imageUrl,
+                        releaseDate: releaseDateISO, // Store the full ISO 8601 string
+                        tracks: tracks,
+                        trackIds: tracks.map(t => t.id),
+                        totalDurationSeconds: totalDuration,
+                        weeklyStreams: fields['Stream do album'] || 0, // Ensure field name matches Airtable
+                        totalStreams: totalAlbumStreams,
+                        type: isAlbum ? 'album' : 'single',
+                        tableName: isAlbum ? 'Álbuns' : 'Singles e EPs'
+                    };
+                });
+            };
+
+            const formattedAlbums = formatReleases(albumsData.records, true);
+            const formattedSingles = formatReleases(singlesData.records, false);
+
+            const formattedPlayers = (playersData?.records || []).map(record => ({
+                id: record.id,
+                name: record.fields.Nome,
+                password: record.fields.Senha, // Be mindful of storing/transmitting passwords
+                artists: record.fields.Artistas || []
+            }));
+
+            console.log("Dados do Airtable carregados e formatados.");
+            return {
+                allArtists: artistsList,
+                albums: formattedAlbums,
+                singles: formattedSingles,
+                players: formattedPlayers,
+                musicas: Array.from(musicasMap.values()) // Convert map values back to array
+            };
+        } catch (error) {
+            console.error("Falha GERAL ao carregar dados do Airtable:", error);
+            document.body.innerHTML = '<div style="color: red; padding: 20px;"><h1>Erro Crítico</h1><p>Não foi possível carregar os dados. Tente recarregar a página ou contate o suporte.</p></div>';
+            return null; // Indicate failure
+        }
+    }
             const artistsMapById = new Map();
             const artistsList = (artistsData.records || []).map(record => {
                 const fields = record.fields;
@@ -397,34 +477,135 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const initializeData = (data) => {
-        try {
-            // Load previous chart data from localStorage
-            try {
-                const prevMusic = localStorage.getItem(PREVIOUS_MUSIC_CHART_KEY);
-                previousMusicChartData = prevMusic ? JSON.parse(prevMusic) : {};
-                const prevAlbum = localStorage.getItem(PREVIOUS_ALBUM_CHART_KEY);
-                previousAlbumChartData = prevAlbum ? JSON.parse(prevAlbum) : {};
-                const prevRpg = localStorage.getItem(PREVIOUS_RPG_CHART_KEY);
-                previousRpgChartData = prevRpg ? JSON.parse(prevRpg) : {};
-                console.log("Dados de chart anteriores carregados do localStorage.");
-            } catch (e) {
-                console.warn("Erro ao carregar dados de chart anteriores do localStorage:", e);
-                previousMusicChartData = {}; previousAlbumChartData = {}; previousRpgChartData = {};
-            }
+        try {
+            // Load previous chart data from localStorage
+            try {
+                const prevMusic = localStorage.getItem(PREVIOUS_MUSIC_CHART_KEY);
+                previousMusicChartData = prevMusic ? JSON.parse(prevMusic) : {};
+                const prevAlbum = localStorage.getItem(PREVIOUS_ALBUM_CHART_KEY);
+                previousAlbumChartData = prevAlbum ? JSON.parse(prevAlbum) : {};
+                const prevRpg = localStorage.getItem(PREVIOUS_RPG_CHART_KEY);
+                previousRpgChartData = prevRpg ? JSON.parse(prevRpg) : {};
+                console.log("Dados de chart anteriores carregados do localStorage.");
+            } catch (e) {
+                console.warn("Erro ao carregar dados de chart anteriores do localStorage:", e);
+                previousMusicChartData = {}; previousAlbumChartData = {}; previousRpgChartData = {};
+            }
 
-            // Map artists by ID for quick lookup
-            const artistsMapById = new Map();
-            db.artists = (data.allArtists || []).map(artist => {
-                const artistEntry = {
-                    ...artist,
-                    img: artist.imageUrl || 'https://i.imgur.com/AD3MbBi.png', // Ensure default image
-                    albums: [], // Initialize empty arrays for releases
-                    singles: []
-                };
-                artistsMapById.set(artist.id, artist.name);
-                return artistEntry;
-            });
+            // Map artists by ID for quick lookup
+            const artistsMapById = new Map();
+            db.artists = (data.allArtists || []).map(artist => {
+                const artistEntry = {
+                    ...artist,
+                    img: artist.imageUrl || 'https://i.imgur.com/AD3MbBi.png', // Ensure default image
+                    albums: [], // Initialize empty arrays for releases
+                    singles: [],
+                    careerTotalStreams: 0 // <-- NOVO: Inicializa o contador
+                };
+                artistsMapById.set(artist.id, artist.name);
+                return artistEntry;
+            });
 
+            // Create a map of release IDs to their release dates (full ISO string)
+            const releaseDateMap = new Map();
+            const allReleasesForDateMap = [...(data.albums || []), ...(data.singles || [])];
+            allReleasesForDateMap.forEach(item => {
+                if (item.id && item.releaseDate) {
+                    releaseDateMap.set(item.id, item.releaseDate);
+                }
+            });
+
+            // Process songs to find the earliest release date among linked releases
+            db.songs = (data.musicas || []).map(song => {
+                const allLinkedIds = [...(song.albumIds || []), ...(song.singleIds || [])];
+                let earliestDate = null;
+
+                if (allLinkedIds.length > 0) {
+                    const allDates = allLinkedIds
+                        .map(id => releaseDateMap.get(id)) // Get ISO strings from the map
+                        .filter(Boolean) // Filter out null/undefined dates
+                        .map(dateStr => new Date(dateStr)); // Convert ISO strings to Date objects
+
+                    if (allDates.length > 0) {
+                        const validDates = allDates.filter(d => !isNaN(d.getTime()));
+                        if (validDates.length > 0) {
+                            earliestDate = new Date(Math.min.apply(null, validDates));
+                        }
+                    }
+                }
+                const earliestDateString = earliestDate ? earliestDate.toISOString() : null;
+
+                return {
+                    ...song,
+                    streams: song.streams || 0,
+                    totalStreams: song.totalStreams || 0,
+                    cover: 'https://i.imgur.com/AD3MbBi.png', // Default cover, will be updated later
+                    artist: artistsMapById.get((song.artistIds || [])[0]) || 'Artista Desconhecido', // Primary artist name
+                    parentReleaseDate: earliestDateString // Store the EARLIEST release date (ISO String or null)
+                };
+            });
+
+            // Initialize albums and singles arrays
+            db.albums = [];
+            db.singles = [];
+
+            // Process all releases (albums and singles)
+            const allReleases = [...(data.albums || []), ...(data.singles || [])];
+            allReleases.forEach(item => {
+                // Update covers and potentially albumId/parentReleaseDate for associated songs
+                (item.trackIds || []).forEach(trackId => {
+                    const songInDb = db.songs.find(sDb => sDb.id === trackId);
+                    if (songInDb) {
+                        if (songInDb.albumId === item.id && songInDb.cover === 'https://i.imgur.com/AD3MbBi.png') {
+                            songInDb.cover = item.imageUrl;
+                        }
+                        else if (!songInDb.albumId) {
+                            if (songInDb.cover === 'https://i.imgur.com/AD3MbBi.png') {
+                                songInDb.cover = item.imageUrl;
+                            }
+                            songInDb.albumId = item.id;
+                        }
+                        if (!songInDb.parentReleaseDate && item.releaseDate) {
+                           console.warn(`Song ${songInDb.id} lacked parentReleaseDate, setting from ${item.id}`);
+                            songInDb.parentReleaseDate = item.releaseDate;
+                        }
+                    }
+                });
+
+                // Add the release to the correct array (db.albums or db.singles)
+                // and associate it with the primary artist
+                const artistEntry = db.artists.find(a => a.id === item.artistId);
+                if (item.type === 'album') {
+                    db.albums.push(item);
+                    if (artistEntry) { artistEntry.albums.push(item); }
+                } else {
+                    db.singles.push(item);
+                    if (artistEntry) { artistEntry.singles.push(item); }
+                }
+                if (!artistEntry && item.artist !== "Artista Desconhecido") {
+                    console.warn(`Artista ${item.artist} (ID: ${item.artistId}) para o lançamento ${item.title} (ID: ${item.id}) não encontrado na lista principal de artistas.`);
+                }
+            });
+
+            // --- NOVO: CÁLCULO DE STREAMS TOTAIS DA CARREIRA ---
+            db.artists.forEach(artist => {
+                const artistSongs = db.songs.filter(song => song.artistIds && song.artistIds.includes(artist.id));
+                const total = artistSongs.reduce((sum, song) => sum + (song.totalStreams || 0), 0);
+                artist.careerTotalStreams = total;
+            });
+            // --- FIM DA NOVA SEÇÃO ---
+
+            // Assign players data
+            db.players = data.players || [];
+
+            console.log(`DB Initialized: Artists: ${db.artists.length}, Albums: ${db.albums.length}, Singles: ${db.singles.length}, Songs: ${db.songs.length}, Players: ${db.players.length}`);
+            return true; // Indicate successful initialization
+        } catch (error) {
+            console.error("ERRO CRÍTICO durante initializeData:", error);
+            alert("Erro grave ao processar os dados carregados. A aplicação pode não funcionar corretamente.");
+            return false; // Indicate failure
+        }
+    };
             // Create a map of release IDs to their release dates (full ISO string)
             const releaseDateMap = new Map();
             const allReleasesForDateMap = [...(data.albums || []), ...(data.singles || [])];
@@ -1357,64 +1538,75 @@ const setupCountdown = (timerId, chartType) => {
         return Math.floor(streamsPerHour * diffHours);
     };
 
-    const computeChartData = (artistsArray) => {
-        if (!artistsArray) return [];
-        return artistsArray
-            .map(artist => ({
-                id: artist.id,
-                name: artist.name,
-                img: artist.img, // Assumes img property is already set
-                streams: calculateSimulatedStreams(artist.RPGPoints, artist.LastActive),
-                points: artist.RPGPoints || 0
-            }))
-            .sort((a, b) => (b.streams || 0) - (a.streams || 0))
-            .slice(0, CHART_TOP_N);
-    };
+const computeChartData = (artistsArray) => {
+        if (!artistsArray) return [];
+        return artistsArray
+            .map(artist => ({
+                id: artist.id,
+                name: artist.name,
+                img: artist.img, // Assumes img property is already set
+                // 'streams' aqui são os streams simulados para ORDENAÇÃO
+                streams: calculateSimulatedStreams(artist.RPGPoints, artist.LastActive), 
+                points: artist.RPGPoints || 0,
+                // Passa os dados para o cálculo de POPULARIDADE
+                careerTotalStreams: artist.careerTotalStreams || 0,
+                personalPoints: artist.personalPoints || 150
+            }))
+            .sort((a, b) => (b.streams || 0) - (a.streams || 0))
+            .slice(0, CHART_TOP_N);
+    };
 
     function renderRPGChart() {
-        const chartData = computeChartData(db.artists);
-        const container = document.getElementById('artistsGrid');
-        const previousData = previousRpgChartData;
+        const chartData = computeChartData(db.artists);
+        const container = document.getElementById('artistsGrid');
+        const previousData = previousRpgChartData;
 
-        if (!container) {
-            console.error("Contêiner 'artistsGrid' para o chart RPG não encontrado.");
-            return;
-        }
+        if (!container) {
+            console.error("Contêiner 'artistsGrid' para o chart RPG não encontrado.");
+            return;
+        }
 
-        if (chartData.length === 0) {
-            container.innerHTML = '<p class="empty-state">Nenhum artista no chart RPG no momento.</p>';
-            return;
-        }
+        if (chartData.length === 0) {
+            container.innerHTML = '<p class="empty-state">Nenhum artista no chart RPG no momento.</p>';
+            return;
+        }
 
-        container.innerHTML = chartData.map((artist, index) => {
-            const currentRank = index + 1;
-            const previousRank = previousData[artist.id];
-            let iconClass = 'fa-minus';
-            let trendClass = 'trend-stable';
+        container.innerHTML = chartData.map((artist, index) => {
+            const currentRank = index + 1;
+            const previousRank = previousData[artist.id];
+            let iconClass = 'fa-minus';
+            let trendClass = 'trend-stable';
 
-            if (previousRank === undefined) {
-                trendClass = 'trend-new';
-            } else if (currentRank < previousRank) {
-                iconClass = 'fa-caret-up';
-                trendClass = 'trend-up';
-            } else if (currentRank > previousRank) {
-                iconClass = 'fa-caret-down';
-                trendClass = 'trend-down';
-            }
+            if (previousRank === undefined) {
+                trendClass = 'trend-new';
+            } else if (currentRank < previousRank) {
+                iconClass = 'fa-caret-up';
+                trendClass = 'trend-up';
+           } else if (currentRank > previousRank) {
+                iconClass = 'fa-caret-down';
+                trendClass = 'trend-down';
+            }
 
-            return `
-                <div class="artist-card" data-artist-name="${artist.name}">
-                    <span class="rpg-rank">#${currentRank}</span>
-                    <span class="chart-rank-indicator rpg-indicator ${trendClass}">
-                        <i class="fas ${iconClass}"></i>
-                    </span>
-                    <img src="${artist.img}" alt="${artist.name}" class="artist-card-img">
-                    <p class="artist-card-name">${artist.name}</p>
-                    <span class="artist-card-type">${(artist.streams || 0).toLocaleString('pt-BR')} streams</span>
-                </div>`;
-        }).join('');
-    }
+            // --- INÍCIO DA LÓGICA DE POPULARIDADE ---
+           // artist.streams (agora artist.simulatedStreams) ordena o chart
+            // Mas vamos exibir a popularidade real
+            const basePopularity = artist.careerTotalStreams;
+            const pointsModifier = (artist.personalPoints || 100) / 100;
+            const finalPopularity = Math.floor(basePopularity * pointsModifier);
+            // --- FIM DA LÓGICA ---
 
+            return `
+                <div class="artist-card" data-artist-name="${artist.name}">
+                    <span class="rpg-rank">#${currentRank}</span>
+                    <span class="chart-rank-indicator rpg-indicator ${trendClass}">
+                        <i class="fas ${iconClass}"></i>
+                    </span>
+                    <img src="${artist.img}" alt="${artist.name}" class="artist-card-img">
+                    <p class="artist-card-name">${artist.name}</p>
+                                        <span class="artist-card-type">${finalPopularity.toLocaleString('pt-BR')} popularidade</span>
+                </div>`;
+        }).join('');
+    }
 
     // --- 4. SISTEMA DO ESTÚDIO ---
 
