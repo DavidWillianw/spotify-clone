@@ -238,10 +238,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             if(singleReleaseDateInput) singleReleaseDateInput.value = localISOTime;
             if(albumReleaseDateInput) albumReleaseDateInput.value = localISOTime;
 
-            console.log("DOM elements initialized.");
-            return true;
-        // ... (dentro de initializeDOMElements, no final do 'try')
-
             console.log("DOM elements initialized.");
 
         // --- ADICIONE ESTE BLOCO PARA EXPOR VARIÁVEIS GLOBAIS ---
@@ -251,8 +247,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Também precisamos expor o novo checkbox para o script principal
         toggleDeluxe = document.getElementById('toggleDeluxe'); 
         // --- FIM DO BLOCO ---
-
-            return true;
+            
+            return true;
+        // ... (dentro de initializeDOMElements, no final do 'try'
         } catch(error) {
             console.error("Erro ao inicializar elementos do DOM:", error);
             document.body.innerHTML = '<div style="color: red; padding: 20px;"><h1>Erro Interface</h1><p>Erro fatal ao buscar elementos da página. Verifique o console.</p></div>';
