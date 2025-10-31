@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // --- FIM DO BLOCO ---
             
             return true;
-        // ... (dentro de initializeDOMElements, no final do 'try'
+        // ... (dentro de initializeData, no final do 'try'
         } catch(error) {
             console.error("Erro ao inicializar elementos do DOM:", error);
             document.body.innerHTML = '<div style="color: red; padding: 20px;"><h1>Erro Interface</h1><p>Erro fatal ao buscar elementos da página. Verifique o console.</p></div>';
@@ -527,7 +527,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Assign players data
             db.players = data.players || [];
-window.db = db;
+            window.db = db;
             console.log(`DB Initialized: Artists: ${db.artists.length}, Albums: ${db.albums.length}, Singles: ${db.singles.length}, Songs: ${db.songs.length}, Players: ${db.players.length}`);
             return true; // Indicate successful initialization
         } catch (error) {
@@ -1525,7 +1525,7 @@ const computeChartData = (artistsArray) => {
         
         // Atualiza os números após popular todos os itens
         updateTrackNumbers(editorElement); 
-        window.populateTracklistEditor = populateTracklistEditor; // <--- ADICIONE ESTA LINHA
+window.populateTracklistEditor = populateTracklistEditor;
     }
 
     function initializeStudio() {
@@ -3019,6 +3019,7 @@ const computeChartData = (artistsArray) => {
              const nameFieldName = isAlbum ? 'Nome do Álbum' : 'Nome do Single/EP';
              const coverFieldName = isAlbum ? 'Capa do Álbum' : 'Capa';
              const linkFieldName = isAlbum ? 'Álbuns' : 'Singles e EPs';
+             const isDeluxe = document.getElementById('toggleDeluxe')?.checked;
 
              console.log(`Criando registro em ${targetTableName}...`);
              const releaseRecordFields = {
@@ -3970,7 +3971,7 @@ if (backButton) {
         console.log("Aplicação iniciada.");
 
         // 1. Inicializar Elementos do DOM
-        if (!initializeDOMElements()) {
+        if (!initializeData()) {
             console.error("Falha ao inicializar elementos do DOM. Aplicação parada.");
             document.body.classList.remove('loading');
             return; // Para a execução
