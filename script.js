@@ -80,6 +80,79 @@ document.addEventListener('DOMContentLoaded', async () => {
     const PREVIOUS_ALBUM_CHART_KEY = 'spotifyRpg_previousAlbumChart';
     const PREVIOUS_RPG_CHART_KEY = 'spotifyRpg_previousRpgChart';
 
+        function populateTracklistEditor(editorElement, tracks) {
+        if (!editorElement) return;
+        editorElement.innerHTML = ''; // Limpa o editor
+        if (!tracks || tracks.length === 0) {
+            editorElement.innerHTML = '<p class="empty-state-small">Nenhuma faixa encontrada.</p>';
+            return;
+        }
+
+        // Ordena as faixas pelo número da faixa antes de popular
+        const sortedTracks = [...tracks].sort((a, b) => (a.trackNumber || 99) - (b.trackNumber || 99));
+
+        sortedTracks.forEach(track => {
+            // Busca os dados completos da música no db global
+            const fullSong = db.songs.find(s => s.id === track.id);
+            if (!fullSong) {
+                console.warn(`Não foi possível encontrar dados completos para a faixa ${track.id} (${track.title})`);
+                return; // Pula se não encontrar dados completos
+            }
+
+            // Reconstrói os dados de feats a partir do objeto fullSong
+            const featsData = (fullSong.artistIds || [])
+                .slice(1) // Pega todos os IDs de artista exceto o primeiro (principal)
+                .map(artistId => {
+                    const artist = db.artists.find(a => a.id === artistId);
+                    return {
+                        id: artistId,
+                        type: fullSong.collabType || 'Feat.', // Usa o tipo de colaboração original
+                        name: artist ? artist.name : '?'
+                    };
+                });
+            
+            const newItem = document.createElement('div');
+            newItem.className = 'track-list-item-display';
+            newItem.dataset.itemId = `existing_${fullSong.id}`; // ID do item na lista
+            newItem.dataset.existingSongId = fullSong.id; // ID da música no Airtable
+            // Armazena o nome base (sem "feat." para edição)
+            newItem.dataset.trackName = fullSong.title.replace(/ \(feat\. .+\)$/i, ''); 
+            newItem.dataset.durationStr = fullSong.duration;
+            newItem.dataset.trackType = fullSong.trackType;
+            newItem.dataset.feats = JSON.stringify(featsData); // Armazena feats originais
+
+            // O título exibido é o nome completo da faixa (com feat., se houver)
+            const titleDisplay = `<span class="track-title-display" style="color: var(--spotify-green);">
+                <i class="fas fa-link" style="font-size: 10px; margin-right: 5px;" title="Faixa Existente"></i>${fullSong.title}
+            </span>`; 
+
+            newItem.innerHTML = `
+                <span class="track-number-display">${fullSong.trackNumber || '?'}</span>
+                <i class="fas fa-bars drag-handle"></i>
+                <div class="track-actions">
+                    <button type="button" class="small-btn edit-track-btn" title="Editar tipo de faixa">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                    <button type="button" class="small-btn remove-track-btn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="track-info-display">
+                    ${titleDisplay}
+                    <div class="track-details-display">
+                        <span class="duration">Duração: ${fullSong.duration}</span>
+                        <span class="type">Tipo: ${fullSong.trackType}</span>
+                    </div>
+                    <div class="feat-list feat-list-display" style="margin-top:5px;">
+                        ${featsData.map(f => `<span class="feat-tag-display">${f.type} ${f.name}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+            editorElement.appendChild(newItem);
+        });
+        
+        // Atualiza os números após popular todos os itens
+        updateTrackNumbers(editorElement); 
+window.populateTracklistEditor = populateTracklistEditor;
+    }
     // --- FUNÇÃO PARA INICIALIZAR ELEMENTOS DO DOM ---
     function initializeDOMElements() {
         console.log("Initializing DOM elements...");
@@ -242,12 +315,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log("DOM elements initialized.");
 
-            // --- ▼▼▼ CORREÇÃO: O BLOCO DEVE FICAR AQUI ▼▼▼ ---
-            window.albumArtistSelect = albumArtistSelect;
-            window.albumTracklistEditor = albumTracklistEditor;
-            window.albumTitle = document.getElementById('albumTitle'); // Garante que temos o input
-            toggleDeluxe = document.getElementById('toggleDeluxe'); 
-            // --- ▲▲▲ FIM DO BLOCO ▲▲▲ ---
+           // --- ▼▼▼ CORREÇÃO: O BLOCO DEVE FICAR AQUI ▼▼▼ ---
+            window.albumArtistSelect = albumArtistSelect;
+            window.albumTracklistEditor = albumTracklistEditor; // O elemento
+            window.albumTitle = document.getElementById('albumTitle'); // Garante que temos o input
+            toggleDeluxe = document.getElementById('toggleDeluxe'); 
+
+            // --- ADICIONE ESTAS DUAS LINHAS ---
+            window.db = db; // Expõe o objeto db (que será preenchido em initializeData)
+            window.populateTracklistEditor = populateTracklistEditor; // Expõe a FUNÇÃO
+            // --- ▲▲▲ FIM DO BLOCO ▲▲▲ ---
             
             return true; // <--- O 'return' DEVE SER A ÚLTIMA COISA DENTRO DO 'try'
         
@@ -1455,79 +1532,7 @@ const computeChartData = (artistsArray) => {
      * @param {HTMLElement} editorElement O elemento <div> (editAlbumTracklistEditor ou albumTracklistEditor)
      * @param {Array} tracks Um array de objetos de música (de release.tracks)
      */
-    function populateTracklistEditor(editorElement, tracks) {
-        if (!editorElement) return;
-        editorElement.innerHTML = ''; // Limpa o editor
-        if (!tracks || tracks.length === 0) {
-            editorElement.innerHTML = '<p class="empty-state-small">Nenhuma faixa encontrada.</p>';
-            return;
-        }
 
-        // Ordena as faixas pelo número da faixa antes de popular
-        const sortedTracks = [...tracks].sort((a, b) => (a.trackNumber || 99) - (b.trackNumber || 99));
-
-        sortedTracks.forEach(track => {
-            // Busca os dados completos da música no db global
-            const fullSong = db.songs.find(s => s.id === track.id);
-            if (!fullSong) {
-                console.warn(`Não foi possível encontrar dados completos para a faixa ${track.id} (${track.title})`);
-                return; // Pula se não encontrar dados completos
-            }
-
-            // Reconstrói os dados de feats a partir do objeto fullSong
-            const featsData = (fullSong.artistIds || [])
-                .slice(1) // Pega todos os IDs de artista exceto o primeiro (principal)
-                .map(artistId => {
-                    const artist = db.artists.find(a => a.id === artistId);
-                    return {
-                        id: artistId,
-                        type: fullSong.collabType || 'Feat.', // Usa o tipo de colaboração original
-                        name: artist ? artist.name : '?'
-                    };
-                });
-            
-            const newItem = document.createElement('div');
-            newItem.className = 'track-list-item-display';
-            newItem.dataset.itemId = `existing_${fullSong.id}`; // ID do item na lista
-            newItem.dataset.existingSongId = fullSong.id; // ID da música no Airtable
-            // Armazena o nome base (sem "feat." para edição)
-            newItem.dataset.trackName = fullSong.title.replace(/ \(feat\. .+\)$/i, ''); 
-            newItem.dataset.durationStr = fullSong.duration;
-            newItem.dataset.trackType = fullSong.trackType;
-            newItem.dataset.feats = JSON.stringify(featsData); // Armazena feats originais
-
-            // O título exibido é o nome completo da faixa (com feat., se houver)
-            const titleDisplay = `<span class="track-title-display" style="color: var(--spotify-green);">
-                <i class="fas fa-link" style="font-size: 10px; margin-right: 5px;" title="Faixa Existente"></i>${fullSong.title}
-            </span>`; 
-
-            newItem.innerHTML = `
-                <span class="track-number-display">${fullSong.trackNumber || '?'}</span>
-                <i class="fas fa-bars drag-handle"></i>
-                <div class="track-actions">
-                    <button type="button" class="small-btn edit-track-btn" title="Editar tipo de faixa">
-                        <i class="fas fa-pencil-alt"></i>
-                    </button>
-                    <button type="button" class="small-btn remove-track-btn"><i class="fas fa-times"></i></button>
-                </div>
-                <div class="track-info-display">
-                    ${titleDisplay}
-                    <div class="track-details-display">
-                        <span class="duration">Duração: ${fullSong.duration}</span>
-                        <span class="type">Tipo: ${fullSong.trackType}</span>
-                    </div>
-                    <div class="feat-list feat-list-display" style="margin-top:5px;">
-                        ${featsData.map(f => `<span class="feat-tag-display">${f.type} ${f.name}</span>`).join('')}
-                    </div>
-                </div>
-            `;
-            editorElement.appendChild(newItem);
-        });
-        
-        // Atualiza os números após popular todos os itens
-        updateTrackNumbers(editorElement); 
-window.populateTracklistEditor = populateTracklistEditor;
-    }
 
     function initializeStudio() {
         console.log("Inicializando listeners do Estúdio...");
