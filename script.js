@@ -1045,16 +1045,41 @@ viewHistory.pop(); // Remove a view atual
 
         const nowSort = new Date();
         const customSort = (a, b) => {
-            const dateA = new Date(a.releaseDate);
-            const dateB = new Date(b.releaseDate);
-            const isAFuture = dateA > nowSort;
-            const isBFuture = dateB > nowSort;
+            const dateA = new Date(a.releaseDate);
+            const dateB = new Date(b.releaseDate);
+            const isAFuture = dateA > nowSort;
+            const isBFuture = dateB > nowSort;
 
-            if (isAFuture && isBFuture) { return dateA - dateB; }
-            else if (isAFuture) { return -1; }
-            else if (isBFuture) { return 1; }
-            else { return dateB - dateA; }
-        };
+            // Lógica principal de datas
+            if (isAFuture && isBFuture) { // Futuros: Mais próximo primeiro (ASC)
+                if (dateA.getTime() !== dateB.getTime()) {
+                    return dateA - dateB;
+                }
+            } else if (isAFuture) {
+                return -1; // Futuro vem antes do passado
+            } else if (isBFuture) {
+                return 1; // Passado vem depois do futuro
+            } else { // Passados: Mais recente primeiro (DESC)
+                if (dateA.getTime() !== dateB.getTime()) {
+                    return dateB - dateA;
+                }
+            }
+
+            // --- INÍCIO DA CORREÇÃO (DESEMPATE) ---
+            // Se as datas forem iguais, verifica por "Deluxe"
+            const aIsDeluxe = a.title.toLowerCase().includes('deluxe');
+            const bIsDeluxe = b.title.toLowerCase().includes('deluxe');
+
+            if (aIsDeluxe && !bIsDeluxe) {
+                return -1; // 'a' (Deluxe) vem antes de 'b' (Normal)
+            } else if (!aIsDeluxe && bIsDeluxe) {
+                return 1; // 'b' (Deluxe) vem antes de 'a' (Normal)
+            }
+            
+            // Se ambos são deluxe ou ambos não são, mantém a ordem (ou ordena por nome)
+            return a.title.localeCompare(b.title); // Desempate final por nome
+            // --- FIM DA CORREÇÃO ---
+        };
 
         const albumsContainer = document.getElementById('albumsList');
         const sortedAlbums = (artist.albums || []).sort(customSort);
@@ -3880,22 +3905,32 @@ if (!editAlbumTracklistEditor || !editTracklistActions) {
 
 
     // --- 6. INICIALIZAÇÃO GERAL ---
-    function initializeBodyClickListener() {
-        document.body.addEventListener('click', (event) => {
-            // Artist Navigation
-            const artistCard = event.target.closest('.artist-card[data-artist-name]');
-            const artistLink = event.target.closest('.artist-link[data-artist-name]');
-            if (artistCard) {
-                openArtistDetail(artistCard.dataset.artistName);
-                return;
-            }
-            if (artistLink) {
-                event.preventDefault();
-                openArtistDetail(artistLink.dataset.artistName);
-                return;
-            }
+   function initializeBodyClickListener() {
+        document.body.addEventListener('click', (event) => {
+            // --- CORREÇÃO: O BOTÃO VOLTAR FOI MOVIDO PARA CIMA ---
+            // Botões "Voltar" (em páginas de detalhes)
+            const backButton = event.target.closest('[data-action="back"]');
+            if (backButton) {
+                console.log("Back button clicked!");
+                event.preventDefault();
+                handleBack();
+                return; // Para a execução aqui
+            }
 
-// Album/Single Navigation
+            // Artist Navigation
+            const artistCard = event.target.closest('.artist-card[data-artist-name]');
+            const artistLink = event.target.closest('.artist-link[data-artist-name]');
+            if (artistCard) {
+                openArtistDetail(artistCard.dataset.artistName);
+                return;
+            }
+            if (artistLink) {
+                event.preventDefault();
+                openArtistDetail(artistLink.dataset.artistName);
+                return;
+            }
+
+            // Album/Single Navigation (AGORA VEM DEPOIS DO 'BACK')
             const albumCard = event.target.closest('[data-album-id]');
             if (albumCard) {
                 // Ignora cliques em botões dentro da lista de edição
@@ -3924,15 +3959,6 @@ if (!editAlbumTracklistEditor || !editTracklistActions) {
                 openDiscographyDetail(discogLink.dataset.discogType);
                 return;
             }
-
-// Botões "Voltar" (em páginas de detalhes)
-const backButton = event.target.closest('[data-action="back"]');
-if (backButton) {
-    console.log("Back button clicked!"); // <--- ADICIONE ESTA LINHA
-    event.preventDefault();
-    handleBack();
-    return;
-}
 
             // Botão "Atualizar"
             const refreshButton = event.target.closest('[data-action="refresh"]');
