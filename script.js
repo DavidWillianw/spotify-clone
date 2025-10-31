@@ -235,27 +235,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             now.setMilliseconds(0); // Zera milissegundos
             const localISOTime = now.toISOString().slice(0, 16); // Pega "YYYY-MM-DDTHH:MM"
 
-            if(singleReleaseDateInput) singleReleaseDateInput.value = localISOTime;
-            if(albumReleaseDateInput) albumReleaseDateInput.value = localISOTime;
+            // ... (dentro de initializeDOMElements)
+
+            if(singleReleaseDateInput) singleReleaseDateInput.value = localISOTime;
+            if(albumReleaseDateInput) albumReleaseDateInput.value = localISOTime;
 
             console.log("DOM elements initialized.");
 
-        // --- ADICIONE ESTE BLOCO PARA EXPOR VARIÁVEIS GLOBAIS ---
-        window.albumArtistSelect = albumArtistSelect;
-        window.albumTracklistEditor = albumTracklistEditor;
-        window.albumTitle = document.getElementById('albumTitle'); // Garante que temos o input
-        // Também precisamos expor o novo checkbox para o script principal
-        toggleDeluxe = document.getElementById('toggleDeluxe'); 
-        // --- FIM DO BLOCO ---
-            
-            return true;
-        // ... (dentro de initializeData, no final do 'try'
+            // --- ▼▼▼ CORREÇÃO: O BLOCO DEVE FICAR AQUI ▼▼▼ ---
+            window.albumArtistSelect = albumArtistSelect;
+            window.albumTracklistEditor = albumTracklistEditor;
+            window.albumTitle = document.getElementById('albumTitle'); // Garante que temos o input
+            toggleDeluxe = document.getElementById('toggleDeluxe'); 
+            // --- ▲▲▲ FIM DO BLOCO ▲▲▲ ---
+            
+            return true; // <--- O 'return' DEVE SER A ÚLTIMA COISA DENTRO DO 'try'
+        
         } catch(error) {
-            console.error("Erro ao inicializar elementos do DOM:", error);
-            document.body.innerHTML = '<div style="color: red; padding: 20px;"><h1>Erro Interface</h1><p>Erro fatal ao buscar elementos da página. Verifique o console.</p></div>';
-            return false;
-        }
-    }
+            console.error("Erro ao inicializar elementos do DOM:", error);
+            document.body.innerHTML = '<div style="color: red; padding: 20px;"><h1>Erro Interface</h1><p>Erro fatal ao buscar elementos da página. Verifique o console.</p></div>';
+            return false;
+        }
+    }
 
     // --- 1. CARREGAMENTO DE DADOS ---
     async function fetchAllAirtablePages(baseUrl, fetchOptions) {
