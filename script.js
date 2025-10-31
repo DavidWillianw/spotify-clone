@@ -240,7 +240,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log("DOM elements initialized.");
             return true;
-        } catch(error) {
+        // ... (dentro de initializeDOMElements, no final do 'try')
+
+            console.log("DOM elements initialized.");
+
+        // --- ADICIONE ESTE BLOCO PARA EXPOR VARIÁVEIS GLOBAIS ---
+        window.albumArtistSelect = albumArtistSelect;
+        window.albumTracklistEditor = albumTracklistEditor;
+        window.albumTitle = document.getElementById('albumTitle'); // Garante que temos o input
+        // Também precisamos expor o novo checkbox para o script principal
+        toggleDeluxe = document.getElementById('toggleDeluxe'); 
+        // --- FIM DO BLOCO ---
+
+            return true;
+        } catch(error) {
             console.error("Erro ao inicializar elementos do DOM:", error);
             document.body.innerHTML = '<div style="color: red; padding: 20px;"><h1>Erro Interface</h1><p>Erro fatal ao buscar elementos da página. Verifique o console.</p></div>';
             return false;
@@ -517,7 +530,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Assign players data
             db.players = data.players || [];
-
+window.db = db;
             console.log(`DB Initialized: Artists: ${db.artists.length}, Albums: ${db.albums.length}, Singles: ${db.singles.length}, Songs: ${db.songs.length}, Players: ${db.players.length}`);
             return true; // Indicate successful initialization
         } catch (error) {
@@ -1515,6 +1528,7 @@ const computeChartData = (artistsArray) => {
         
         // Atualiza os números após popular todos os itens
         updateTrackNumbers(editorElement); 
+        window.populateTracklistEditor = populateTracklistEditor; // <--- ADICIONE ESTA LINHA
     }
 
     function initializeStudio() {
@@ -2905,6 +2919,7 @@ const computeChartData = (artistsArray) => {
          if (albumTracklistEditor) {
              albumTracklistEditor.innerHTML = '<p class="empty-state-small">Nenhuma faixa adicionada.</p>';
          }
+         if (toggleDeluxe) toggleDeluxe.checked = false; // <--- ADICIONE ESTA LINHA
          updateTrackNumbers(albumTracklistEditor); // Passa o editor correto
 
          if (albumTracklistEditor && typeof Sortable !== 'undefined') {
@@ -3014,6 +3029,7 @@ const computeChartData = (artistsArray) => {
                  "Artista": [artistId],
                  [coverFieldName]: [{ "url": coverUrl }],
                  "Data de Lançamento": releaseDateISO
+                 ...(isDeluxe && { "É deluxe?": true }) // <--- ADICIONE ESTA LINHA
              };
              const releaseResponse = await createAirtableRecord(targetTableName, releaseRecordFields);
 
