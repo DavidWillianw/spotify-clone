@@ -322,7 +322,6 @@ window.populateTracklistEditor = populateTracklistEditor;
             toggleDeluxe = document.getElementById('toggleDeluxe'); 
 
             // --- ADICIONE ESTAS DUAS LINHAS ---
-            window.db = db; // Expõe o objeto db (que será preenchido em initializeData)
             window.populateTracklistEditor = populateTracklistEditor; // Expõe a FUNÇÃO
             // --- ▲▲▲ FIM DO BLOCO ▲▲▲ ---
             
@@ -1555,8 +1554,8 @@ function renderRPGChart() {
             // --- ▲▲▲ FIM DO BLOCO ▲▲▲ ---
 
             // Pega os pontos de RPG (Ex: 100, 400) que vieram do 'computeChartData'
-            const displayPoints = artist.points; 
-
+// Pega o score de popularidade que veio do 'computeChartData'
+            const displayPoints = artist.popularity;
             return `
             <div class="artist-card" data-artist-name="${artist.name}">
                 <span class="rpg-rank">#${currentRank}</span>
