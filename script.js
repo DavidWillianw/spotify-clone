@@ -3029,8 +3029,11 @@ const computeChartData = (artistsArray) => {
                  "Artista": [artistId],
                  [coverFieldName]: [{ "url": coverUrl }],
                  "Data de Lançamento": releaseDateISO
-                 ...(isDeluxe && { "É deluxe?": true }) // <--- ADICIONE ESTA LINHA
              };
+             // 2. Adicionamos a propriedade "É deluxe?" condicionalmente
+            if (isDeluxe) {
+                releaseRecordFields["É deluxe?"] = true;
+            }
              const releaseResponse = await createAirtableRecord(targetTableName, releaseRecordFields);
 
              if (!releaseResponse || !releaseResponse.id) {
