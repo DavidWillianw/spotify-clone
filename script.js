@@ -70,8 +70,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         editAlbumTracklistEditor, // Editor do formulário de EDIÇÃO
         editTracklistActions, // Container dos botões de ação de EDIÇÃO
         openEditAddTrackModalBtn, // Botão Adicionar Nova Faixa (EDIÇÃO)
-        openEditExistingTrackModalBtn; // Botão Usar Faixa Existente (EDIÇÃO)
-        toggleDeluxe
+        openEditExistingTrackModalBtn, // Botão Usar Faixa Existente (EDIÇÃO)
+        toggleDeluxe;
 
     const AIRTABLE_BASE_ID = 'appG5NOoblUmtSMVI';
     const AIRTABLE_API_KEY = 'pat5T28kjmJ4t6TQG.69bf34509e687fff6a3f76bd52e64518d6c92be8b1ee0a53bcc9f50fedcb5c70'; // Use sua chave real aqui
