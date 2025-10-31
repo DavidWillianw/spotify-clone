@@ -1535,12 +1535,29 @@ function renderRPGChart() {
     // --- CORREÇÃO AQUI ---
     // Garanta que a linha começa DIRETAMENTE com 'chartData.map'
     // SEM espaços ou quebras de linha antes.
-    container.innerHTML = chartData.map((artist, index) => {
-        const currentRank = index + 1;
-        // ... (resto da sua lógica de ranking) ...
-        const displayPoints = artist.points; 
+   container.innerHTML = chartData.map((artist, index) => {
+            const currentRank = index + 1;
+            const previousRank = previousData[artist.id];
 
-        return `
+            // --- ▼▼▼ ADICIONE ESTE BLOCO DE CÓDIGO ▼▼▼ ---
+            let iconClass = 'fa-minus';
+            let trendClass = 'trend-stable';
+
+            if (previousRank === undefined) {
+                trendClass = 'trend-new';
+            } else if (currentRank < previousRank) {
+                iconClass = 'fa-caret-up';
+                trendClass = 'trend-up';
+            } else if (currentRank > previousRank) {
+                iconClass = 'fa-caret-down';
+                trendClass = 'trend-down';
+            }
+            // --- ▲▲▲ FIM DO BLOCO ▲▲▲ ---
+
+            // Pega os pontos de RPG (Ex: 100, 400) que vieram do 'computeChartData'
+            const displayPoints = artist.points; 
+
+            return `
             <div class="artist-card" data-artist-name="${artist.name}">
                 <span class="rpg-rank">#${currentRank}</span>
                 <span class="chart-rank-indicator rpg-indicator ${trendClass}">
