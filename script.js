@@ -1484,33 +1484,39 @@ const setupCountdown = (timerId, chartType) => {
 const computeChartData = (artistsArray) => {
     if (!artistsArray) return [];
 
-    // 1. Mapeia e CALCULA a popularidade final primeiro
+    // 1. Mapeia e CALCULA o "Score" final primeiro
     const artistsWithPopularity = artistsArray.map(artist => {
-        const basePopularity = artist.careerTotalStreams || 0;
-        // (Usei 150 como padrão, como no seu código original)
-        const pointsModifier = (artist.personalPoints || 150) / 100; 
-        const finalPopularity = Math.floor(basePopularity * pointsModifier);
+        const totalStreams = artist.careerTotalStreams || 0;
+        // (Usa 150 como padrão se estiver vazio no Airtable)
+        const personalPoints = artist.personalPoints || 150; 
+        
+        // --- A NOVA FÓRMULA ---
+        // Transforma streams em "pontos base" (1 milhão de streams = 1 ponto)
+        const basePoints = totalStreams / 1000000;
+        
+        // Aplica o multiplicador (150 pontos pessoais = 1.5x)
+        const pointsModifier = personalPoints / 100;
+        
+        // Calcula o score final e arredonda para baixo
+        const finalScore = Math.floor(basePoints * pointsModifier); 
+        // --- FIM DA NOVA FÓRMULA ---
 
         return {
             id: artist.id,
             name: artist.name,
             img: artist.img,
-            // --- MUDANÇA ---
-            // Adiciona a popularidade calculada ao objeto para ordenação
-            popularity: finalPopularity,
-            // Mantém os dados antigos para o cálculo de 'previousRpgChartData' (se necessário)
-            points: artist.RPGPoints || 0,
-            streams: calculateSimulatedStreams(artist.RPGPoints, artist.LastActive)
+            popularity: finalScore // <-- Usado para ORDENAR e EXIBIR
         };
     });
 
-    // 2. Ordena pela 'popularity' (o valor que é exibido), do maior para o menor
+    // 2. Ordena pelo 'popularity' (o "score" final), do maior para o menor
     return artistsWithPopularity
-        .sort((a, b) => b.popularity - a.popularity) // <-- MUDANÇA NA LÓGICA DE ORDENAÇÃO
+        .sort((a, b) => b.popularity - a.popularity)
         .slice(0, CHART_TOP_N);
 };
 
    // NOVO `renderRPGChart` (Substitua o antigo)
+// NOVO `renderRPGChart` (Substitua o antigo)
 function renderRPGChart() {
     const chartData = computeChartData(db.artists);
     const container = document.getElementById('artistsGrid');
@@ -1542,11 +1548,8 @@ function renderRPGChart() {
             trendClass = 'trend-down';
         }
 
-        // --- INÍCIO DA MUDANÇA ---
-        // A popularidade agora vem diretamente do objeto 'artist'
-        // (Não precisamos calcular 'basePopularity' ou 'pointsModifier' aqui)
-        const finalPopularity = artist.popularity;
-        // --- FIM DA MUDANÇA ---
+        // Pega o 'score' final (ex: 184) que veio do 'computeChartData'
+        const finalScore = artist.popularity; 
 
         return `
             <div class="artist-card" data-artist-name="${artist.name}">
@@ -1556,7 +1559,7 @@ function renderRPGChart() {
                 </span>
                 <img src="${artist.img}" alt="${artist.name}" class="artist-card-img">
                 <p class="artist-card-name">${artist.name}</p>
-                <span class="artist-card-type">${finalPopularity.toLocaleString('pt-BR')} popularidade</span>
+                                <span class="artist-card-type">${finalScore.toLocaleString('pt-BR')} pontos</span>
             </div>`;
     }).join('');
 }
