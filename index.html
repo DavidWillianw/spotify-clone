@@ -63,7 +63,8 @@
 
                 <div class="chart-header" style="margin-top: 32px;">
                     <h3><i class="fas fa-compact-disc"></i> Top 50 Álbuns</h3>
-                    </div>
+                    <p>Atualiza em: <span id="albumChartTimer">--</span></p>
+                </div>
                 <div id="albumChartsList" class="chart-list">
                     </div>
             </section>
@@ -90,7 +91,7 @@
     </div>
 
     <div id="artistDetail" class="page-view hidden">
-<button class="back-btn" data-action="back"><i class="fas fa-chevron-left"></i></button>
+        <button class="back-btn" data-action="back"><i class="fas fa-chevron-left"></i></button>
         <header class="artist-header">
             <div id="detailBg" class="header-bg"></div>
             <div class="header-overlay"></div>
@@ -110,14 +111,14 @@
 
             <div class="section-header" style="margin-top: 32px;">
                 <h3 class="section-title">Álbuns</h3>
-                <span class="see-all-btn" data-type="albums">VER TUDO</span>
+                <span class="see-all-btn discography-link" data-discog-type="albums">VER TUDO</span>
             </div>
             <div id="albumsList" class="horizontal-scroll-list">
                 </div>
 
             <div class="section-header" style="margin-top: 32px;">
                 <h3 class="section-title">Singles & EPs</h3>
-                <span class="see-all-btn" data-type="singles">VER TUDO</span>
+                <span class="see-all-btn discography-link" data-discog-type="singles">VER TUDO</span>
             </div>
             <div id="singlesList" class="horizontal-scroll-list">
                 </div>
@@ -129,7 +130,7 @@
     </div>
 
     <div id="albumDetail" class="page-view hidden">
-<button class="back-btn" data-action="back"><i class="fas fa-chevron-left"></i></button>
+        <button class="back-btn" data-action="back"><i class="fas fa-chevron-left"></i></button>
         <header class="album-header">
             <div id="albumDetailBg" class="header-bg"></div>
             <div class="header-overlay"></div>
@@ -153,7 +154,7 @@
     </div>
 
     <div id="discographyDetail" class="page-view hidden">
-<button class="back-btn" data-action="back"><i class="fas fa-chevron-left"></i></button>
+        <button class="back-btn" data-action="back"><i class="fas fa-chevron-left"></i></button>
         <main class="main-container">
             <h2 id="discographyTypeTitle" class="section-title">Discografia</h2>
             <div id="discographyGrid" class="artists-grid full-page-grid">
@@ -265,11 +266,12 @@
                             <label for="albumTitle">Nome do Álbum / EP</label>
                             <input type="text" id="albumTitle" placeholder="Ex: I've IVE" required />
                         </div>
+                        
                         <div class="toggle-existing">
-    <label class="checkbox-label">
-        <input type="checkbox" id="toggleDeluxe"> Marcar como Edição Deluxe
-    </label>
-</div>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="toggleDeluxe"> Lançamento Deluxe (Importar de álbum anterior)
+                            </label>
+                        </div>
                         <div class="studio-form-group">
                             <label for="albumCoverUrl">URL da Capa</label>
                             <input type="url" id="albumCoverUrl" placeholder="https://i.imgur.com/..." required />
@@ -362,7 +364,8 @@
             </p>
             <input type="hidden" id="deleteRecordId" />
             <input type="hidden" id="deleteTableName" />
-            <input type="hidden" id="deleteTrackIds" /> <div class="modal-actions">
+            <input type="hidden" id="deleteTrackIds" />
+            <div class="modal-actions">
                 <button type="button" class="cancel-btn" id="cancelDeleteBtn">Cancelar</button>
                 <button type="button" class="submit-btn delete-confirm-btn" id="confirmDeleteBtn">
                     <i class="fas fa-trash-alt"></i> Sim, Apagar
@@ -372,25 +375,25 @@
     </div>
 
      <div id="featModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>Adicionar Participação (Feat.)</h3>
-            <div class="studio-form-group">
-                <label for="featArtistSelect">Artista</label>
-                <select id="featArtistSelect"></select>
-            </div>
-            <div class="studio-form-group">
-                <label for="featTypeSelect">Tipo de Colaboração</label>
-                <select id="featTypeSelect">
-                    <option value="Feat.">Feat. (Ex: Artista A (feat. Artista B))</option>
-                    <option value="Dueto/Grupo">Dueto/Grupo (Ex: Artista A & Artista B)</option>
-                </select>
-            </div>
-            <div class="modal-actions">
-                <button type="button" class="cancel-btn" id="cancelFeatBtn">Cancelar</button>
-                <button type="button" class="submit-btn" id="confirmFeatBtn">Adicionar</button>
-            </div>
-        </div>
-    </div>
+         <div class="modal-content">
+             <h3>Adicionar Participação (Feat.)</h3>
+             <div class="studio-form-group">
+                 <label for="featArtistSelect">Artista</label>
+                 <select id="featArtistSelect"></select>
+             </div>
+             <div class="studio-form-group">
+                 <label for="featTypeSelect">Tipo de Colaboração</label>
+                 <select id="featTypeSelect">
+                     <option value="Feat.">Feat. (Ex: Artista A (feat. Artista B))</option>
+                     <option value="Dueto/Grupo">Dueto/Grupo (Ex: Artista A & Artista B)</option>
+                 </select>
+             </div>
+             <div class="modal-actions">
+                 <button type="button" class="cancel-btn" id="cancelFeatBtn">Cancelar</button>
+                 <button type="button" class="submit-btn" id="confirmFeatBtn">Adicionar</button>
+             </div>
+         </div>
+     </div>
 
     <div id="trackTypeModal" class="modal-overlay hidden">
         <div class="modal-content">
@@ -414,7 +417,9 @@
     <div id="albumTrackModal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3 id="albumTrackModalTitle">Adicionar Faixa</h3>
-            <input type="hidden" id="editingTrackItemId" /> <input type="hidden" id="editingTrackExistingId" /> <div class="studio-form-group">
+            <input type="hidden" id="editingTrackItemId" />
+            <input type="hidden" id="editingTrackExistingId" />
+            <div class="studio-form-group">
                 <label for="albumTrackNameInput">Nome da Faixa</label>
                 <input type="text" id="albumTrackNameInput" placeholder="Ex: Kitsch" required />
             </div>
@@ -484,8 +489,26 @@
             </div>
         </div>
     </div>
-
-
+    
+    <div id="selectOriginalAlbumModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Importar Faixas de Álbum Anterior</h3>
+            <p class="modal-description">
+                Selecione o álbum que servirá de base para esta edição Deluxe. 
+                Todas as faixas dele serão importadas para a tracklist.
+            </p>
+            <div class="studio-form-group">
+                <label for="originalAlbumSelect">Álbuns do Artista</label>
+                <select id="originalAlbumSelect">
+                    <option value="">Nenhum álbum encontrado...</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="cancel-btn" id="cancelImportBtn">Cancelar</button>
+                <button type="button" class="submit-btn" id="confirmImportBtn">Importar Faixas</button>
+            </div>
+        </div>
+    </div>
     <div id="musicPlayer" class="page-view hidden">
         <div class="player-header">
             <button class="player-close-btn"><i class="fas fa-chevron-down"></i></button>
@@ -533,6 +556,7 @@
 <audio id="audioElement"></audio>
 
     <script src="script.js"></script>
+    
     <script src="scriptt.js"></script>
-</body>
+    </body>
 </html>
