@@ -1516,7 +1516,7 @@ const computeChartData = (artistsArray) => {
 };
 
    // NOVO `renderRPGChart` (Substitua o antigo)
-// NOVO `renderRPGChart` (Substitua o antigo)
+// CÓDIGO CORRIGIDO (no script.js)
 function renderRPGChart() {
     const chartData = computeChartData(db.artists);
     const container = document.getElementById('artistsGrid');
@@ -1532,24 +1532,13 @@ function renderRPGChart() {
         return;
     }
 
+    // --- CORREÇÃO AQUI ---
+    // Garanta que a linha começa DIRETAMENTE com 'chartData.map'
+    // SEM espaços ou quebras de linha antes.
     container.innerHTML = chartData.map((artist, index) => {
         const currentRank = index + 1;
-        const previousRank = previousData[artist.id];
-        let iconClass = 'fa-minus';
-        let trendClass = 'trend-stable';
-
-        if (previousRank === undefined) {
-            trendClass = 'trend-new';
-        } else if (currentRank < previousRank) {
-            iconClass = 'fa-caret-up';
-            trendClass = 'trend-up';
-       } else if (currentRank > previousRank) {
-            iconClass = 'fa-caret-down';
-            trendClass = 'trend-down';
-        }
-
-        // Pega o 'score' final (ex: 184) que veio do 'computeChartData'
-        const finalScore = artist.popularity; 
+        // ... (resto da sua lógica de ranking) ...
+        const displayPoints = artist.points; 
 
         return `
             <div class="artist-card" data-artist-name="${artist.name}">
@@ -1559,9 +1548,9 @@ function renderRPGChart() {
                 </span>
                 <img src="${artist.img}" alt="${artist.name}" class="artist-card-img">
                 <p class="artist-card-name">${artist.name}</p>
-                                <span class="artist-card-type">${finalScore.toLocaleString('pt-BR')} pontos</span>
+                <span class="artist-card-type">${displayPoints.toLocaleString('pt-BR')} pontos</span>
             </div>`;
-    }).join('');
+    }).join(''); // O .join('') deve vir imediatamente após o .map()
 }
 
     // --- 4. SISTEMA DO ESTÚDIO ---
