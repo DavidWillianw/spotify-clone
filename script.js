@@ -3971,8 +3971,7 @@ if (backButton) {
         console.log("Aplicação iniciada.");
 
         // 1. Inicializar Elementos do DOM
-        if (!initializeData()) {
-            console.error("Falha ao inicializar elementos do DOM. Aplicação parada.");
+if (!initializeDOMElements()) { // <--- ✅ CORRIGIDO AQUI            console.error("Falha ao inicializar elementos do DOM. Aplicação parada.");
             document.body.classList.remove('loading');
             return; // Para a execução
         }
