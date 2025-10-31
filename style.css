@@ -1375,3 +1375,18 @@ body.player-open {
     text-overflow: ellipsis;
     display: block;
 }
+/* CSS para o novo botão de Atualizar */
+.refresh-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary); /* Usa a cor secundária do seu tema */
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 10px;
+    margin-left: 10px; /* Ajuste se necessário */
+    transition: color 0.2s;
+}
+
+.refresh-btn:hover {
+    color: var(--text-primary); /* Usa a cor principal no hover */
+}
