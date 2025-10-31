@@ -1480,75 +1480,86 @@ const setupCountdown = (timerId, chartType) => {
         return Math.floor(streamsPerHour * diffHours);
     };
 
+// NOVO `computeChartData` (Substitua o antigo)
 const computeChartData = (artistsArray) => {
-        if (!artistsArray) return [];
-        return artistsArray
-            .map(artist => ({
-                id: artist.id,
-                name: artist.name,
-                img: artist.img, // Assumes img property is already set
-                // 'streams' aqui são os streams simulados para ORDENAÇÃO
-                streams: calculateSimulatedStreams(artist.RPGPoints, artist.LastActive), 
-                points: artist.RPGPoints || 0,
-                // Passa os dados para o cálculo de POPULARIDADE
-                careerTotalStreams: artist.careerTotalStreams || 0,
-                personalPoints: artist.personalPoints || 150
-            }))
-            .sort((a, b) => (b.streams || 0) - (a.streams || 0))
-            .slice(0, CHART_TOP_N);
-    };
+    if (!artistsArray) return [];
 
-    function renderRPGChart() {
-        const chartData = computeChartData(db.artists);
-        const container = document.getElementById('artistsGrid');
-        const previousData = previousRpgChartData;
+    // 1. Mapeia e CALCULA a popularidade final primeiro
+    const artistsWithPopularity = artistsArray.map(artist => {
+        const basePopularity = artist.careerTotalStreams || 0;
+        // (Usei 150 como padrão, como no seu código original)
+        const pointsModifier = (artist.personalPoints || 150) / 100; 
+        const finalPopularity = Math.floor(basePopularity * pointsModifier);
 
-        if (!container) {
-            console.error("Contêiner 'artistsGrid' para o chart RPG não encontrado.");
-            return;
-        }
+        return {
+            id: artist.id,
+            name: artist.name,
+            img: artist.img,
+            // --- MUDANÇA ---
+            // Adiciona a popularidade calculada ao objeto para ordenação
+            popularity: finalPopularity,
+            // Mantém os dados antigos para o cálculo de 'previousRpgChartData' (se necessário)
+            points: artist.RPGPoints || 0,
+            streams: calculateSimulatedStreams(artist.RPGPoints, artist.LastActive)
+        };
+    });
 
-        if (chartData.length === 0) {
-            container.innerHTML = '<p class="empty-state">Nenhum artista no chart RPG no momento.</p>';
-            return;
-        }
+    // 2. Ordena pela 'popularity' (o valor que é exibido), do maior para o menor
+    return artistsWithPopularity
+        .sort((a, b) => b.popularity - a.popularity) // <-- MUDANÇA NA LÓGICA DE ORDENAÇÃO
+        .slice(0, CHART_TOP_N);
+};
 
-        container.innerHTML = chartData.map((artist, index) => {
-            const currentRank = index + 1;
-            const previousRank = previousData[artist.id];
-            let iconClass = 'fa-minus';
-            let trendClass = 'trend-stable';
+   // NOVO `renderRPGChart` (Substitua o antigo)
+function renderRPGChart() {
+    const chartData = computeChartData(db.artists);
+    const container = document.getElementById('artistsGrid');
+    const previousData = previousRpgChartData;
 
-            if (previousRank === undefined) {
-                trendClass = 'trend-new';
-            } else if (currentRank < previousRank) {
-                iconClass = 'fa-caret-up';
-                trendClass = 'trend-up';
-           } else if (currentRank > previousRank) {
-                iconClass = 'fa-caret-down';
-                trendClass = 'trend-down';
-            }
-
-            // --- INÍCIO DA LÓGICA DE POPULARIDADE ---
-           // artist.streams (agora artist.simulatedStreams) ordena o chart
-            // Mas vamos exibir a popularidade real
-            const basePopularity = artist.careerTotalStreams;
-            const pointsModifier = (artist.personalPoints || 100) / 100;
-            const finalPopularity = Math.floor(basePopularity * pointsModifier);
-            // --- FIM DA LÓGICA ---
-
-            return `
-                <div class="artist-card" data-artist-name="${artist.name}">
-                    <span class="rpg-rank">#${currentRank}</span>
-                    <span class="chart-rank-indicator rpg-indicator ${trendClass}">
-                        <i class="fas ${iconClass}"></i>
-                    </span>
-                    <img src="${artist.img}" alt="${artist.name}" class="artist-card-img">
-                    <p class="artist-card-name">${artist.name}</p>
-                                        <span class="artist-card-type">${finalPopularity.toLocaleString('pt-BR')} popularidade</span>
-                </div>`;
-        }).join('');
+    if (!container) {
+        console.error("Contêiner 'artistsGrid' para o chart RPG não encontrado.");
+        return;
     }
+
+    if (chartData.length === 0) {
+        container.innerHTML = '<p class="empty-state">Nenhum artista no chart RPG no momento.</p>';
+        return;
+    }
+
+    container.innerHTML = chartData.map((artist, index) => {
+        const currentRank = index + 1;
+        const previousRank = previousData[artist.id];
+        let iconClass = 'fa-minus';
+        let trendClass = 'trend-stable';
+
+        if (previousRank === undefined) {
+            trendClass = 'trend-new';
+        } else if (currentRank < previousRank) {
+            iconClass = 'fa-caret-up';
+            trendClass = 'trend-up';
+       } else if (currentRank > previousRank) {
+            iconClass = 'fa-caret-down';
+            trendClass = 'trend-down';
+        }
+
+        // --- INÍCIO DA MUDANÇA ---
+        // A popularidade agora vem diretamente do objeto 'artist'
+        // (Não precisamos calcular 'basePopularity' ou 'pointsModifier' aqui)
+        const finalPopularity = artist.popularity;
+        // --- FIM DA MUDANÇA ---
+
+        return `
+            <div class="artist-card" data-artist-name="${artist.name}">
+                <span class="rpg-rank">#${currentRank}</span>
+                <span class="chart-rank-indicator rpg-indicator ${trendClass}">
+                    <i class="fas ${iconClass}"></i>
+                </span>
+                <img src="${artist.img}" alt="${artist.name}" class="artist-card-img">
+                <p class="artist-card-name">${artist.name}</p>
+                <span class="artist-card-type">${finalPopularity.toLocaleString('pt-BR')} popularidade</span>
+            </div>`;
+    }).join('');
+}
 
     // --- 4. SISTEMA DO ESTÚDIO ---
 
